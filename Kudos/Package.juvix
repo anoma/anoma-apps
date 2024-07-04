@@ -5,9 +5,8 @@ import PackageDescription.V2 open;
 package : Package :=
   defaultPackage
     {name := "kudos";
-     dependencies := [ defaultStdlib
-                     ; github
-                       "anoma"
-                       "juvix-anoma-stdlib"
-                       "b91e93a7582a7ac87e7756e39c28affc05926dca"
+     dependencies := [ github "anoma" "juvix-anoma-stdlib" "v0.1.0"
+                     ; github "anoma" "juvix-stdlib" "v0.4.0"
+                     ; github "anoma" "juvix-containers" "v0.12.1"
+                     ; github "anoma" "anoma-app-patterns" "v0.1.1"
                      ]};

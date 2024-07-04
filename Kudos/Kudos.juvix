@@ -1,5 +1,39 @@
 module Kudos;
 
-import Kudos.Types open public;
-import Kudos.Logic open public;
-import Kudos.Instantiate open public;
+import Stdlib.Prelude open;
+import Anoma open;
+import Token.Transaction open;
+import Token.Logic open;
+
+import Label open;
+
+--- Creates an amount of Kudo tokens to a receiver.
+create
+  (self : KeyPair)
+  (amount : Nat)
+  (receiver : PublicKey)
+  : Transaction :=
+  let
+    kudoLabel : Label := mkKudoLabel (KeyPair.pubKey self);
+  in Token.Transaction.mint self kudoLabel amount receiver;
+
+--- Sends an amount of Kudo tokens to a receiver.
+--- If the token ;Resource; has no Kudos ;Label; this function returns nothing.
+--- NOT IMPLEMENTED: If the token logic function differs from the current implementation,
+--- this function returns nothing,
+--- If the calling ;KeyPair; is not the owner, this function returns nothing.
+send
+  (self : KeyPair)
+  (token : Resource)
+  (amount : Nat)
+  (receiver : PublicKey)
+  : Maybe Transaction :=
+  let
+    isKudo (r : Resource) : Bool :=
+      getSymbol r == "Kudos"
+      && getDecimals r == 18;
+      -- && Resource.logic r == tokenLogic; -- TODO
+  in if
+    | isKudo token :=
+      Token.Transaction.send self token amount receiver
+    | else := nothing;

@@ -1,0 +1,15 @@
+module Label;
+
+import Anoma open;
+
+import Token.Label open public;
+
+mkKudoLabel (originator : PublicKey) : Label :=
+  mkLabel@{
+    name := originator;
+    symbol := "Kudos";
+    decimals := 18
+  };
+
+getOriginator (r : Resource) : PublicKey :=
+  Label.name (anomaDecode (Resource.label r));
