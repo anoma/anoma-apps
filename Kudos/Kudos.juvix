@@ -19,8 +19,7 @@ create
 
 --- Sends an amount of Kudo tokens to a receiver.
 --- If the token ;Resource; has no Kudos ;Label; this function returns nothing.
---- NOT IMPLEMENTED: If the token logic function differs from the current implementation,
---- this function returns nothing,
+--- If the token logic function differs from the current implementation, this function returns nothing,
 --- If the calling ;KeyPair; is not the owner, this function returns nothing.
 send
   (self : KeyPair)
@@ -31,8 +30,8 @@ send
   let
     isKudo (r : Resource) : Bool :=
       getSymbol r == "Kudos"
-      && getDecimals r == 18;
-      -- && Resource.logic r == tokenLogic; -- TODO
+      && getDecimals r == 18
+      && anomaEncode(Resource.logic r) == anomaEncode(tokenLogic);
   in if
     | isKudo token :=
       Token.Transaction.send self token amount receiver
