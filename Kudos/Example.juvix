@@ -12,5 +12,5 @@ alice : KeyPair := mkKeyPair@{
 
 bob : PublicKey := 0x7d59c5623dd40a74aa4d5a32ac645d3b3f95daeae4c22be25476dd6a486f7382;
 
---- Create 10 Kudo tokens as Alice (with herself as the originator) with Bob as the owner.
+--- Create 10 Kudo tokens as Alice (the originator) for Bob (the owner).
 main : Transaction := create@{self := alice; amount := 10; receiver := bob};
