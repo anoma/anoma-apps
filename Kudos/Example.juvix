@@ -1,0 +1,18 @@
+module Example;
+
+import Anoma open;
+import Stdlib.Prelude open;
+
+import Kudos open;
+
+alice : KeyPair := mkKeyPair@{
+  pubKey :=  0xddd315c76991f8e058760cacdd19c21bf6a12c72bc229a60ad6aaa314fa07ac1;
+  privKey := 0xddd315c76991f8e058760cacdd19c21bf6a12c72bc229a60ad6aaa314fa07ac11662fc6e7829efcb0f4500827d49bb699af7b5475cef5220fd600ebbf9709a58;
+};
+
+bob : PublicKey := 0x7d59c5623dd40a74aa4d5a32ac645d3b3f95daeae4c22be25476dd6a486f7382;
+
+--- Create 10 Kudo tokens as Alice (with herself as the originator) with Bob as the owner.
+main : Transaction := create alice 10 bob;
+-- TODO: Use this notation once the termination checker issue is fixed for clarity:
+-- create@{self := alice; amount := 10; receiver := bob};
