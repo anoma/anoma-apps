@@ -62,6 +62,7 @@ mkCounterTransaction
     commitments := [commitment created];
     nullifiers := [nullifier consumed privKey];
     proofs := [consumed; created];
+    complianceProofs := [];
     delta := [];
     extra := 0;
     preference := 0
