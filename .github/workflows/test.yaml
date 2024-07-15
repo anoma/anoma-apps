@@ -1,0 +1,25 @@
+
+name: Test anoma-apps
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run test suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      - name: Download latest nightly Juvix binary
+        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        with:
+          repo: anoma/juvix-nightly-builds
+          cache: enable
+
+      - name: Run tests
+        run: juvix eval tests/Main.juvix
