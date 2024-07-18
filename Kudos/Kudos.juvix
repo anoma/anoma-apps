@@ -13,36 +13,42 @@ import Label open;
 
 --- Creates an amount of Kudo tokens to a receiver.
 create
-  (self : KeyPair)
-  (amount : Nat)
-  (receiver : PublicKey)
+  (_self : KeyPair)
+  (_amount : Nat)
+  (_receiver : PublicKey)
   : Either TokenError Transaction :=
-  let
-    kudoLabel : Label := mkKudoLabel (KeyPair.pubKey self);
-  in Token.Transaction.mint self kudoLabel amount receiver;
+  Token.Transaction.mint@{
+    self := _self;
+    label :=
+      mkKudoLabel@{
+        originator := KeyPair.pubKey _self
+      };
+    amount := _amount;
+    receiver := _receiver
+  };
 
 --- Sends an amount of Kudo tokens to a receiver.
 --- If the token ;Resource; has no Kudos ;Label; this function returns nothing.
 --- If the token logic function differs from the current implementation, this function returns nothing,
 --- If the calling ;KeyPair; is not the owner, this function returns nothing.
 send
-  (self : KeyPair)
-  (token : Resource)
-  (amount : Nat)
-  (receiver : PublicKey)
+  (_self : KeyPair)
+  (_token : Resource)
+  (_amount : Nat)
+  (_receiver : PublicKey)
   : Either TokenError Transaction :=
   let
     expectedLabel :=
       mkLabel@{
-        name := getName token;
+        name := getName _token;
         symbol := "Kudos";
         decimals := 18;
         supply := Unbound
       };
-    actualLabel := getLabel token;
+    actualLabel := getLabel _token;
 
     expectedLogic := anomaEncode tokenLogic;
-    actualLogic := Resource.logic token;
+    actualLogic := Resource.logic _token;
   in if
     | expectedLabel /= actualLabel :=
       throw
@@ -50,4 +56,10 @@ send
           expected := expectedLabel;
           actual := actualLabel
         }
-    | else := Token.Transaction.send self token amount receiver;
+    | else :=
+      Token.Transaction.send@{
+        self := _self;
+        token := _token;
+        amount := _amount;
+        receiver := _receiver
+      };
