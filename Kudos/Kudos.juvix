@@ -2,8 +2,12 @@ module Kudos;
 
 import Stdlib.Prelude open;
 import Anoma open;
+import AnomaHelpers open;
+
 import Token.Transaction open;
 import Token.Logic open;
+import Token.Error open;
+import Token.Supply open;
 
 import Label open;
 
@@ -12,7 +16,7 @@ create
   (self : KeyPair)
   (amount : Nat)
   (receiver : PublicKey)
-  : Transaction :=
+  : Either TokenError Transaction :=
   let
     kudoLabel : Label := mkKudoLabel (KeyPair.pubKey self);
   in Token.Transaction.mint self kudoLabel amount receiver;
@@ -26,13 +30,24 @@ send
   (token : Resource)
   (amount : Nat)
   (receiver : PublicKey)
-  : Maybe Transaction :=
+  : Either TokenError Transaction :=
   let
-    isKudo (r : Resource) : Bool :=
-      getSymbol r == "Kudos"
-      && getDecimals r == 18
-      && anomaEncode(Resource.logic r) == anomaEncode(tokenLogic);
+    expectedLabel :=
+      mkLabel@{
+        name := getName token;
+        symbol := "Kudos";
+        decimals := 18;
+        supply := Unbound
+      };
+    actualLabel := getLabel token;
+
+    expectedLogic := anomaEncode tokenLogic;
+    actualLogic := Resource.logic token;
   in if
-    | isKudo token :=
-      Token.Transaction.send self token amount receiver
-    | else := nothing;
+    | expectedLabel /= actualLabel :=
+      throw
+        mkInvalidLabelError@{
+          expected := expectedLabel;
+          actual := actualLabel
+        }
+    | else := Token.Transaction.send self token amount receiver;

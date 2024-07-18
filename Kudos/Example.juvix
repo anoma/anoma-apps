@@ -1,16 +1,27 @@
 module Example;
 
 import Anoma open;
+import AnomaHelpers open;
 import Stdlib.Prelude open;
+import Stdlib.Debug.Fail open using {failwith};
 
+import Token.Error open;
+import Authorization.Identities open;
 import Kudos open;
 
-alice : KeyPair := mkKeyPair@{
-  pubKey :=  0xddd315c76991f8e058760cacdd19c21bf6a12c72bc229a60ad6aaa314fa07ac1;
-  privKey := 0xddd315c76991f8e058760cacdd19c21bf6a12c72bc229a60ad6aaa314fa07ac11662fc6e7829efcb0f4500827d49bb699af7b5475cef5220fd600ebbf9709a58;
-};
+alice : KeyPair := universal;
 
-bob : PublicKey := 0x7d59c5623dd40a74aa4d5a32ac645d3b3f95daeae4c22be25476dd6a486f7382;
+bob : PublicKey :=
+  0x7d59c5623dd40a74aa4d5a32ac645d3b3f95daeae4c22be25476dd6a486f7382;
 
 --- Create 10 Kudo tokens as Alice (the originator) for Bob (the owner).
-main : Transaction := create@{self := alice; amount := 10; receiver := bob};
+main : Transaction :=
+  case
+    create@{
+      self := alice;
+      amount := 10;
+      receiver := bob
+    }
+  of
+    | left err := failwith (Show.show err)
+    | right tx := tx;

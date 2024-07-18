@@ -3,12 +3,14 @@ module Label;
 import Anoma open;
 
 import Token.Label open public;
+import Token.Supply open;
 
 mkKudoLabel (originator : PublicKey) : Label :=
   mkLabel@{
     name := originator;
     symbol := "Kudos";
-    decimals := 18
+    decimals := 18;
+    supply := Unbound;
   };
 
 getOriginator (r : Resource) : PublicKey :=
