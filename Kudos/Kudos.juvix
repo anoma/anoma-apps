@@ -39,22 +39,24 @@ send
   : Either TokenError Transaction :=
   let
     expectedLabel :=
-      mkLabel@{
-        name := getName _token;
-        symbol := "Kudos";
-        decimals := 18;
-        supply := Unbound
+      mkKudoLabel@{
+        originator := KeyPair.pubKey _self
       };
-    actualLabel := getLabel _token;
+    label := getLabel _token;
 
     expectedLogic := anomaEncode tokenLogic;
-    actualLogic := Resource.logic _token;
+    logic := anomaEncode (Resource.logic _token);
   in if
-    | expectedLabel /= actualLabel :=
+    | label /= expectedLabel :=
       throw
         mkInvalidLabelError@{
           expected := expectedLabel;
-          actual := actualLabel
+          actual := label
+        }
+    | logic /= expectedLogic :=
+      throw
+        mkError@{
+          msg := "The token has an unexpected logic function."
         }
     | else :=
       Token.Transaction.send@{
