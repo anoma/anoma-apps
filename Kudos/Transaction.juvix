@@ -1,4 +1,4 @@
-module Kudos;
+module Transaction;
 
 import Stdlib.Prelude open;
 import Anoma open;
@@ -51,16 +51,3 @@ send
         receiver := _receiver
       };
 
-isKudo (token : Resource) (self : KeyPair) : Bool :=
-  let
-    expectedLabel :=
-      mkKudoLabel@{
-        originator := KeyPair.pubKey self
-      };
-    label := getLabel token;
-    expectedLogic := anomaEncode tokenLogic;
-    logic := anomaEncode (Resource.logic token);
-  in if
-    | label /= expectedLabel := false
-    | logic /= expectedLogic := false
-    | else := true;

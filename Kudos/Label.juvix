@@ -1,8 +1,10 @@
 module Label;
 
+import Stdlib.Prelude open;
 import Anoma open;
 
-import Token.Label open public;
+import Token.Label open;
+import Token.Logic open;
 import Token.Supply open;
 
 mkKudoLabel (originator : PublicKey) : Label :=
@@ -10,8 +12,22 @@ mkKudoLabel (originator : PublicKey) : Label :=
     name := originator;
     symbol := "Kudos";
     decimals := 18;
-    supply := Unbound;
+    supply := Unbound
   };
 
 getOriginator (r : Resource) : PublicKey :=
   Label.name (anomaDecode (Resource.label r));
+
+isKudo (token : Resource) (self : KeyPair) : Bool :=
+  let
+    expectedLabel :=
+      mkKudoLabel@{
+        originator := KeyPair.pubKey self
+      };
+    label := getLabel token;
+    expectedLogic := anomaEncode tokenLogic;
+    logic := anomaEncode (Resource.logic token);
+  in if
+    | label /= expectedLabel := false
+    | logic /= expectedLogic := false
+    | else := true;
