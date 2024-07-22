@@ -7,23 +7,18 @@ import Token.Label open;
 import Token.Logic open;
 import Token.Supply open;
 
-mkKudoLabel (originator : PublicKey) : Label :=
+mkKudoLabel (_originator : PublicKey) : Label :=
   mkLabel@{
-    name := originator;
-    symbol := "Kudos";
+    name := "Kudos";
+    symbol := "KDS";
     decimals := 18;
-    supply := Unbound
+    supply := Unbound;
+    originator := _originator
   };
 
-getOriginator (r : Resource) : PublicKey :=
-  Label.name (anomaDecode (Resource.label r));
-
-isKudo (token : Resource) (self : KeyPair) : Bool :=
+isKudo (token : Resource) (originator : KeyPair) : Bool :=
   let
-    expectedLabel :=
-      mkKudoLabel@{
-        originator := KeyPair.pubKey self
-      };
+    expectedLabel := mkKudoLabel (KeyPair.pubKey originator);
     label := getLabel token;
     expectedLogic := anomaEncode tokenLogic;
     logic := anomaEncode (Resource.logic token);

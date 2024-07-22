@@ -20,10 +20,7 @@ create
   : Either TokenError Transaction :=
   Token.Transaction.initialize@{
     self := _self;
-    label :=
-      mkKudoLabel@{
-        originator := KeyPair.pubKey _self
-      };
+    label := mkKudoLabel (KeyPair.pubKey _self);
     amount := _amount;
     receiver := _receiver
   };
