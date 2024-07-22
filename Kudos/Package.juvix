@@ -14,5 +14,5 @@ package : Package :=
                      ; github
                        "anoma"
                        "anoma-app-patterns"
-                       "5e288ca2d178872fcbf4a9cb602945e3acdbdb81"
+                       "825d13312f06aa38979ede2ec8f2b00d4c49b028"
                      ]};

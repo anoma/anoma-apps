@@ -17,7 +17,7 @@ create
   (_amount : Nat)
   (_receiver : PublicKey)
   : Either TokenError Transaction :=
-  Token.Transaction.mint@{
+  Token.Transaction.initialize@{
     self := _self;
     label :=
       mkKudoLabel@{
@@ -37,31 +37,30 @@ send
   (_amount : Nat)
   (_receiver : PublicKey)
   : Either TokenError Transaction :=
-  let
-    expectedLabel :=
-      mkKudoLabel@{
-        originator := KeyPair.pubKey _self
-      };
-    label := getLabel _token;
-
-    expectedLogic := anomaEncode tokenLogic;
-    logic := anomaEncode (Resource.logic _token);
-  in if
-    | label /= expectedLabel :=
-      throw
-        mkInvalidLabelError@{
-          expected := expectedLabel;
-          actual := label
-        }
-    | logic /= expectedLogic :=
+  case isKudo _token _self of
+    | false :=
       throw
         mkError@{
-          msg := "The token has an unexpected logic function."
+          msg := "The input resource is not a Kudo token."
         }
-    | else :=
+    | true :=
       Token.Transaction.send@{
         self := _self;
         token := _token;
         amount := _amount;
         receiver := _receiver
       };
+
+isKudo (token : Resource) (self : KeyPair) : Bool :=
+  let
+    expectedLabel :=
+      mkKudoLabel@{
+        originator := KeyPair.pubKey self
+      };
+    label := getLabel token;
+    expectedLogic := anomaEncode tokenLogic;
+    logic := anomaEncode (Resource.logic token);
+  in if
+    | label /= expectedLabel := false
+    | logic /= expectedLogic := false
+    | else := true;
