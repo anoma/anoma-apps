@@ -6,6 +6,7 @@ import AnomaHelpers open;
 
 import Token.Transaction open;
 import Token.Logic open;
+import Token.Label open;
 import Token.Error open;
 import Token.Supply open;
 
@@ -28,9 +29,9 @@ create
   };
 
 --- Sends an amount of Kudo tokens to a receiver.
---- If the token ;Resource; has no Kudos ;Label; this function returns nothing.
---- If the token logic function differs from the current implementation, this function returns nothing,
---- If the calling ;KeyPair; is not the owner, this function returns nothing.
+--- If the token ;Resource; has no Kudos ;Label; or
+--- the token logic function differs from the current
+--- implementation, this function returns an error.
 send
   (_self : KeyPair)
   (_token : Resource)
@@ -50,4 +51,3 @@ send
         amount := _amount;
         receiver := _receiver
       };
-
