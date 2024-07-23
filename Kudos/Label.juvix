@@ -7,13 +7,13 @@ import Token.Label open;
 import Token.Logic open;
 import Token.Supply open;
 
-mkKudoLabel (_originator : PublicKey) : Label :=
+mkKudoLabel (originator : PublicKey) : Label :=
   mkLabel@{
     name := "Kudos";
     symbol := "KDS";
     decimals := 18;
     supply := Unbound;
-    originator := _originator
+    originator
   };
 
 isKudo (token : Resource) (originator : KeyPair) : Bool :=

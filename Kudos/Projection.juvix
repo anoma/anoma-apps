@@ -12,10 +12,8 @@ import Token.Logic open;
 import Label open;
 
 --- Returns the total quantity of all Kudo ;Kind; resources from an orignator ;PublicKey; for an account ;PublicKey;
-getBalance
-  (originator : PublicKey) (account : PublicKey) : Nat :=
+getBalance (originator : PublicKey) (account : PublicKey) : Nat :=
   let
     label : Label := mkKudoLabel originator;
-    kind : Kind :=
-      anomaDecode (anomaEncode (tokenLogic, label));
+    kind : Kind := anomaDecode (anomaEncode (tokenLogic, label));
   in Token.Projection.getBalance kind account;

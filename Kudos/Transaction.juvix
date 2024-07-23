@@ -13,16 +13,12 @@ import Token.Supply open;
 import Label open;
 
 --- Creates an amount of Kudo tokens to a receiver.
-create
-  (_self : KeyPair)
-  (_amount : Nat)
-  (_receiver : PublicKey)
-  : Either TokenError Transaction :=
+create (self : KeyPair) (amount : Nat) (receiver : PublicKey) : Either TokenError Transaction :=
   Token.Transaction.initialize@{
-    self := _self;
-    label := mkKudoLabel (KeyPair.pubKey _self);
-    amount := _amount;
-    receiver := _receiver
+    self;
+    label := mkKudoLabel (KeyPair.pubKey self);
+    amount;
+    receiver
   };
 
 --- Sends an amount of Kudo tokens to a receiver.
@@ -30,12 +26,12 @@ create
 --- the token logic function differs from the current
 --- implementation, this function returns an error.
 send
-  (_self : KeyPair)
-  (_token : Resource)
-  (_amount : Nat)
-  (_receiver : PublicKey)
+  (self : KeyPair)
+  (token : Resource)
+  (amount : Nat)
+  (receiver : PublicKey)
   : Either TokenError Transaction :=
-  case isKudo _token _self of
+  case isKudo token self of
     | false :=
       throw
         mkError@{
@@ -43,8 +39,8 @@ send
         }
     | true :=
       Token.Transaction.send@{
-        self := _self;
-        token := _token;
-        amount := _amount;
-        receiver := _receiver
+        self;
+        token;
+        amount;
+        receiver
       };

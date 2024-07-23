@@ -9,10 +9,9 @@ import Token.Error open;
 import Authorization.Identities open;
 import Kudos open;
 
-alice : KeyPair := universal;
+alice : KeyPair := Universal.keyPair;
 
-bob : PublicKey :=
-  0x7d59c5623dd40a74aa4d5a32ac645d3b3f95daeae4c22be25476dd6a486f7382;
+bob : PublicKey := Zero.pubKey;
 
 --- Create 10 Kudo tokens as Alice (the originator) for Bob (the owner).
 main : Transaction :=
