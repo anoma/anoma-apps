@@ -13,6 +13,7 @@ mkKudoLabel (originator : PublicKey) : Label :=
     symbol := "KDS";
     decimals := 18;
     supply := Unbound;
+    transferable := true;
     originator
   };
 
