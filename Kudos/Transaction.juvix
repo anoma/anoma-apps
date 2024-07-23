@@ -32,11 +32,7 @@ send
   (receiver : PublicKey)
   : Either TokenError Transaction :=
   case isKudo token self of
-    | false :=
-      throw
-        mkError@{
-          msg := "The input resource is not a Kudo token."
-        }
+    | false := throw notKudoError
     | true :=
       Token.Transaction.send@{
         self;
@@ -44,3 +40,8 @@ send
         amount;
         receiver
       };
+
+notKudoError : Error :=
+  mkError@{
+    msg := "The input resource is not a Kudo token."
+  };
