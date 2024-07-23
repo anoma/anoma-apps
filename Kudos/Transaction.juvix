@@ -13,7 +13,7 @@ import Token.Supply open;
 import Label open;
 
 --- Creates an amount of Kudo tokens to a receiver.
-create (self : KeyPair) (amount : Nat) (receiver : PublicKey) : Either TokenError Transaction :=
+create (self : KeyPair) (amount : Nat) (receiver : PublicKey) : Result TokenError Transaction :=
   Token.Transaction.initialize@{
     self;
     label := mkKudoLabel (KeyPair.pubKey self);
@@ -30,7 +30,7 @@ send
   (token : Resource)
   (amount : Nat)
   (receiver : PublicKey)
-  : Either TokenError Transaction :=
+  : Result TokenError Transaction :=
   case isKudo token self of
     | false := throw notKudoError
     | true :=

@@ -9,6 +9,6 @@ package : Package :=
       [ github "anoma" "juvix-anoma-stdlib" "v0.4.0"
       ; github "anoma" "juvix-stdlib" "v0.5.0"
       ; github "anoma" "juvix-containers" "v0.13.0"
-      ; github "anoma" "anoma-app-patterns" "nightly"
+      ; github "anoma" "anoma-app-patterns" "d91ff40f4105f46f56bc35e94af690ea084fe787"
       ]
   };
