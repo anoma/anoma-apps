@@ -22,5 +22,5 @@ main : Transaction :=
       receiver := bob
     }
   of
-    | left err := failwith (Show.show err)
-    | right tx := tx;
+    | error err := failwith (Show.show err)
+    | ok tx := tx;
