@@ -4,42 +4,24 @@ import Stdlib.Prelude open;
 import Anoma open;
 import AnomaHelpers open;
 
-import Token.Transaction open;
-import Token.Logic open;
-import Token.Label open;
+import Token.Transaction as Token open;
 import Token.Error open;
 import Token.Supply open;
 
 import Label open;
 
 --- Creates an amount of Kudo tokens to a receiver.
-create (self : KeyPair) (amount : Nat) (receiver : PublicKey) : Result TokenError Transaction :=
-  Token.Transaction.initialize@{
-    self;
-    label := mkKudoLabel (KeyPair.pubKey self);
-    amount;
-    receiver
-  };
+create (self : KeyPair) (quantity : Nat) (receiver : PublicKey) 
+: Result TokenError Transaction :=
+  Token.initialize@{self; label := mkKudoLabel (KeyPair.pubKey self); quantity; receiver};
 
 --- Sends an amount of Kudo tokens to a receiver.
---- If the token ;Resource; has no Kudos ;Label; or
---- the token logic function differs from the current
---- implementation, this function returns an error.
-send
-  (self : KeyPair)
-  (token : Resource)
-  (amount : Nat)
-  (receiver : PublicKey)
-  : Result TokenError Transaction :=
+--- If the token ;Resource; is not a Kudo this function returns an ;TokenError;.
+send (self : KeyPair) (token : Resource) (quantity : Nat) (receiver : PublicKey)
+: Result TokenError Transaction :=
   case isKudo token self of
     | false := throw notKudoError
-    | true :=
-      Token.Transaction.send@{
-        self;
-        token;
-        amount;
-        receiver
-      };
+    | true := Token.send@{self; token; quantity; receiver};
 
 notKudoError : Error :=
   mkError@{
