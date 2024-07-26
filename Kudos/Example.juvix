@@ -1,7 +1,6 @@
 module Example;
 
 import Anoma open;
-import AnomaHelpers open;
 import Stdlib.Prelude open;
 import Stdlib.Debug.Fail open using {failwith};
 
@@ -16,9 +15,9 @@ bob : PublicKey := Zero.pubKey;
 --- Create 10 Kudo tokens as Alice (the originator) for Bob (the owner).
 main : Transaction :=
   case
-    create@{
+    initialize@{
       self := alice;
-      amount := 10;
+      quantity := 10;
       receiver := bob
     }
   of
