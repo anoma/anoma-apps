@@ -6,7 +6,8 @@ import Stdlib.Debug.Fail open using {failwith};
 
 import Token.Error open;
 import Authorization.Identities open;
-import Kudos open;
+
+import Transaction open public;
 
 alice : KeyPair := Universal.keyPair;
 

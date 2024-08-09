@@ -2,6 +2,7 @@ module Label;
 
 import Stdlib.Prelude open;
 import Anoma open;
+import AnomaHelpers open;
 
 import Token.Label open;
 import Token.Logic open;
@@ -17,13 +18,18 @@ mkKudoLabel (originator : PublicKey) : Label :=
     originator
   };
 
-isKudo (token : Resource) (originator : KeyPair) : Bool :=
+isKudo (originator : KeyPair) (token : Resource)  : Bool :=
   let
     expectedLabel := mkKudoLabel (KeyPair.pubKey originator);
     label := getLabel token;
-    expectedLogic := anomaEncode tokenLogic;
+    expectedLogic := anomaEncode (tokenLogic (Label.supply expectedLabel));
     logic := anomaEncode (Resource.logic token);
   in if
     | label /= expectedLabel := false
     | logic /= expectedLogic := false
     | else := true;
+
+notKudoError : Error :=
+  mkError@{
+    msg := "The input resource is not a Kudo token."
+  };
