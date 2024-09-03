@@ -1,0 +1,5 @@
+module SetKey;
+
+import Stdlib.Prelude open;
+
+main : Pair (List String) Nat := (["August"; "Water"; "Miki"], 1);

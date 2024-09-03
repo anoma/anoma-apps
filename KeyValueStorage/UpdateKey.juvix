@@ -1,0 +1,9 @@
+module UpdateKey;
+
+import Stdlib.Prelude open;
+import Anoma open;
+
+main : Pair (List String) Nat :=
+  let
+    key : List String := ["August"; "Water"; "Miki"];
+  in key, anomaGet key + 1;

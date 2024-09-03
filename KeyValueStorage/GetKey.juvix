@@ -1,0 +1,6 @@
+module GetKey;
+
+import Stdlib.Prelude open;
+import Anoma open;
+
+main : Nat := anomaGet ["August"; "Water"; "Miki"];
