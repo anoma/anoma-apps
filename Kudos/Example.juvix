@@ -4,10 +4,10 @@ import Anoma open;
 import Stdlib.Prelude open;
 import Stdlib.Debug.Fail open using {failwith};
 
-import Token.Error open;
+import Resource.Error open;
 import Authorization.Identities open;
 
-import Transaction open public;
+import Interface open;
 
 alice : KeyPair := Universal.keyPair;
 

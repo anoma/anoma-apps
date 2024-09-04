@@ -4,9 +4,12 @@ import Stdlib.Prelude open;
 import Anoma open;
 import AnomaHelpers open;
 
+import Token.Resource open;
 import Token.Label open;
 import Token.Logic open;
-import Token.Supply open;
+
+import Resource.Error open;
+import Resource.Traits open;
 
 mkKudoLabel (originator : PublicKey) : Label :=
   mkLabel@{
@@ -14,22 +17,22 @@ mkKudoLabel (originator : PublicKey) : Label :=
     symbol := "KDS";
     decimals := 18;
     supply := Unbound;
-    transferable := true;
+    transferability := Transferability.Transferable;
     originator
   };
 
-isKudo (originator : KeyPair) (token : Resource)  : Bool :=
+isKudo (originator : PublicKey) (token : Token) : Bool :=
   let
-    expectedLabel := mkKudoLabel (KeyPair.pubKey originator);
-    label := getLabel token;
-    expectedLogic := anomaEncode (tokenLogic (Label.supply expectedLabel));
-    logic := anomaEncode (Resource.logic token);
+    expectedLabel : Label := mkKudoLabel originator;
+    label : Label := HasLabel.get token;
+    expectedLogicEncoded : Nat := tokenLogic (Label.supply expectedLabel) originator |> anomaEncode;
+    logicEncoded : Nat := HasLogic.get token |> anomaEncode;
   in if
     | label /= expectedLabel := false
-    | logic /= expectedLogic := false
+    | logicEncoded /= expectedLogicEncoded := false
     | else := true;
 
-notKudoError : Error :=
-  mkError@{
+notKudoError : DefaultError :=
+  mkDefaultError@{
     msg := "The input resource is not a Kudo token."
   };

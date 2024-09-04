@@ -1,0 +1,121 @@
+module Interface;
+
+import Stdlib.Prelude open;
+import Anoma open;
+import Data.Set as Set open using {Set};
+
+import Resource.Error open;
+import Resource.Traits open;
+import Transaction as Transaction open;
+import Projection.Balance as Projection open;
+
+import Token.Resource open;
+import Token.Label open;
+import Token.Logic open;
+import Intent.Asset open;
+import Intent.Swap.Resource open;
+
+import Label open;
+
+initialize
+  (self : KeyPair) (quantity : Nat) (receiver : PublicKey) : Result StandardError Transaction :=
+  Transaction.initialize@{
+    self;
+    toInitialize :=
+      Token.create@{
+        quantity;
+        tokenLabel := mkKudoLabel (KeyPair.pubKey self);
+        npk := receiver
+      };
+    maybeDummy := nothing
+  };
+
+finalize (self : KeyPair) (token : Token) : Result StandardError Transaction :=
+  case isKudo (KeyPair.pubKey self) token of
+    | false := throw notKudoError
+    | true :=
+      Transaction.finalize@{
+        self;
+        toFinalize := token
+      };
+
+send
+  (self : KeyPair)
+  (token : Token)
+  (quantity : Nat)
+  (receiver : PublicKey)
+  : Result StandardError Transaction :=
+  case isKudo (KeyPair.pubKey self) token of
+    | false := throw notKudoError
+    | true :=
+      Transaction.send@{
+        self;
+        toSend := token;
+        quantity;
+        receiver
+      };
+
+transfer
+  (self : KeyPair) (token : Token) (receiver : PublicKey) : Result StandardError Transaction :=
+  case isKudo (KeyPair.pubKey self) token of
+    | false := throw notKudoError
+    | true :=
+      Transaction.transfer@{
+        self;
+        toTransfer := token;
+        receiver
+      };
+
+split
+  (self : KeyPair)
+  (token : Token)
+  (quantitiesAndReceivers : List (Pair Nat PublicKey))
+  : Result StandardError Transaction :=
+  case isKudo (KeyPair.pubKey self) token of
+    | false := throw notKudoError
+    | true :=
+      Transaction.split@{
+        self;
+        toSplit := token;
+        quantitiesAndReceivers
+      };
+
+merge
+  (self : KeyPair)
+  (tokens : List Token)
+  (receiver : PublicKey)
+  : Result StandardError Transaction :=
+  case all (t in tokens) {isKudo (KeyPair.pubKey self) t} of
+    | false := throw notKudoError
+    | true :=
+      Transaction.merge@{
+        self;
+        toMerge := tokens;
+        receiver
+      };
+
+swap
+  (self : KeyPair)
+  (tokens : List Token)
+  (want : QuantifiedAssets)
+  (solver : PublicKey)
+  : Result StandardError Transaction :=
+  Transaction.swap@{
+    self;
+    toSwap := tokens;
+    intent :=
+      SwapIntent.create@{
+        want;
+        receiver := KeyPair.pubKey self;
+        solver
+      }
+  };
+
+--- Returns the total quantity of all Kudo ;Kind; resources from an orignator ;PublicKey; for an account ;PublicKey;
+balance (originator : PublicKey) (account : PublicKey) : Nat :=
+  let
+    label : Label := mkKudoLabel originator;
+    logic : Resource -> Transaction -> Bool := tokenLogic (Label.supply label) originator;
+    kind : Kind := anomaDecode (anomaEncode (tokenLogic, label));
+    ownedKudos : Set Resource := fetchOwnedResources kind account;
+  in Projection.balance ownedKudos;

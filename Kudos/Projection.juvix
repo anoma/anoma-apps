@@ -1,3 +1,0 @@
-module Projection;
-
-import Projection.Balance open public;
