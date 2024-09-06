@@ -81,7 +81,7 @@ dependencies:
       dependencies: []
 - git:
     name: anoma_anoma-app-patterns
-    ref: 61f5803eb7822e79913662a45b06a943771b96b8
+    ref: 934a652d3f826cf8b8f43dcb38b820ba43e53585
     url: https://github.com/anoma/anoma-app-patterns
   dependencies:
   - git:
