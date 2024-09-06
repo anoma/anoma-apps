@@ -1,0 +1,23 @@
+module SimpleCounterTests;
+
+import Stdlib.Prelude open;
+import Test.Anoma open;
+import Test.JuvixUnit open;
+import SimpleCounter open;
+
+tests : List Test :=
+  [ testCase
+    "init counter with zeroedCounter is valid"
+    (anomaAssertPass (verify (init zeroedCounter)))
+  ; testCase
+    "init counter with incrementedCounter is invalid"
+    (anomaAssertFail (verify (init incrementedCounter)))
+  ; testCase
+    "update with zeroedCounter and incrementedCounter is valid"
+    (anomaAssertPass
+      (verify (update zeroedCounter incrementedCounter)))
+  ; testCase
+    "update with zeroedCounter and zeroedCounter is invalid"
+    (anomaAssertFail
+      (verify (update zeroedCounter zeroedCounter)))
+  ];

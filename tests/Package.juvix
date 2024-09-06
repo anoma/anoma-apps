@@ -1,0 +1,12 @@
+module Package;
+
+import PackageDescription.V2 open;
+
+package : Package :=
+  defaultPackage {
+    name := "anoma-apps-tests";
+    dependencies := [
+      defaultStdlib
+      ; github "anoma" "juvix-test" "v0.11.0"
+      ; path "../SimpleCounter/tests"]
+  };
