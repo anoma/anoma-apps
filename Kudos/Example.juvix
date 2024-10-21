@@ -7,17 +7,28 @@ import Stdlib.Debug.Fail open using {failwith};
 import Resource.Error open;
 import Authorization.Identities open;
 
+import Anoma.Transaction open;
+import Anoma.Identity open;
+import Anoma.State.CommitmentTree open;
+
+import AnomaHelpers open;
 import Interface open;
 
-alice : KeyPair := Universal.keyPair;
+alice : Identity := Universal.identity;
 
-bob : PublicKey := Zero.pubKey;
+bob : ExternalIdentity := Zero.externalIdentity;
+
+standardInputs : StandardInputs :=
+  mkStandardInputs@{
+    identity := alice;
+    currentRoot := mkRoot 0
+  };
 
 --- Create 10 Kudo tokens as Alice (the originator) for Bob (the owner).
 main : Transaction :=
   case
     initialize@{
-      self := alice;
+      standardInputs;
       quantity := 10;
       receiver := bob
     }

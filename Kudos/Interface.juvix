@@ -1,121 +1,150 @@
 module Interface;
 
 import Stdlib.Prelude open;
-import Anoma open;
-import Data.Set as Set open using {Set};
+
+import Anoma.Identity open;
+import Anoma.Transaction open;
+import Anoma.Resource open;
 
 import Resource.Error open;
-import Resource.Traits open;
-import Transaction as Transaction open;
-import Projection.Balance as Projection open;
+import Transaction as Transaction;
 
 import Token.Resource open;
 import Token.Label open;
-import Token.Logic open;
 import Intent.Asset open;
 import Intent.Swap.Resource open;
+import Intent.Swap.Solution open;
+
+import AnomaHelpers open;
 
 import Label open;
 
 initialize
-  (self : KeyPair) (quantity : Nat) (receiver : PublicKey) : Result StandardError Transaction :=
-  Transaction.initialize@{
-    self;
-    toInitialize :=
+  (standardInputs : StandardInputs)
+  (quantity : Quantity)
+  (receiver : ExternalIdentity)
+  : Result StandardError Transaction :=
+  let
+    self := standardInputs |> StandardInputs.identity |> Identity.external;
+    token :=
       Token.create@{
         quantity;
-        tokenLabel := mkKudoLabel (KeyPair.pubKey self);
-        npk := receiver
+        tokenLabel := mkKudoLabel self;
+        owner := receiver
       };
+  in Transaction.initialize@{
+    standardInputs;
+    toInitialize := token;
     maybeDummy := nothing
   };
 
-finalize (self : KeyPair) (token : Token) : Result StandardError Transaction :=
-  case isKudo (KeyPair.pubKey self) token of
-    | false := throw notKudoError
-    | true :=
-      Transaction.finalize@{
-        self;
-        toFinalize := token
-      };
+finalize (standardInputs : StandardInputs) (token : Token) : Result StandardError Transaction :=
+  let
+    self : ExternalIdentity := standardInputs |> StandardInputs.identity |> Identity.external;
+  in case isKudo (self) token of
+       | false := throw notKudoError
+       | true :=
+         Transaction.finalize@{
+           standardInputs;
+           toFinalize := token
+         };
 
 send
-  (self : KeyPair)
+  (standardInputs : StandardInputs)
   (token : Token)
-  (quantity : Nat)
-  (receiver : PublicKey)
+  (quantity : Quantity)
+  (receiver : ExternalIdentity)
   : Result StandardError Transaction :=
-  case isKudo (KeyPair.pubKey self) token of
-    | false := throw notKudoError
-    | true :=
-      Transaction.send@{
-        self;
-        toSend := token;
-        quantity;
-        receiver
-      };
+  let
+    self : ExternalIdentity := standardInputs |> StandardInputs.identity |> Identity.external;
+  in case isKudo self token of
+       | false := throw notKudoError
+       | true :=
+         Transaction.send@{
+           standardInputs;
+           toSend := token;
+           quantity;
+           receiver
+         };
 
 transfer
-  (self : KeyPair) (token : Token) (receiver : PublicKey) : Result StandardError Transaction :=
-  case isKudo (KeyPair.pubKey self) token of
-    | false := throw notKudoError
-    | true :=
-      Transaction.transfer@{
-        self;
-        toTransfer := token;
-        receiver
-      };
+  (standardInputs : StandardInputs)
+  (token : Token)
+  (receiver : ExternalIdentity)
+  : Result StandardError Transaction :=
+  let
+    self : ExternalIdentity := standardInputs |> StandardInputs.identity |> Identity.external;
+  in case isKudo (self) token of
+       | false := throw notKudoError
+       | true :=
+         Transaction.transfer@{
+           standardInputs;
+           toTransfer := token;
+           receiver
+         };
 
 split
-  (self : KeyPair)
+  (standardInputs : StandardInputs)
   (token : Token)
-  (quantitiesAndReceivers : List (Pair Nat PublicKey))
+  --  TODO refactor type
+  (quantitiesAndReceivers : List (Pair Quantity ExternalIdentity))
   : Result StandardError Transaction :=
-  case isKudo (KeyPair.pubKey self) token of
-    | false := throw notKudoError
-    | true :=
-      Transaction.split@{
-        self;
-        toSplit := token;
-        quantitiesAndReceivers
-      };
+  let
+    self : ExternalIdentity := standardInputs |> StandardInputs.identity |> Identity.external;
+  in case isKudo self token of
+       | false := throw notKudoError
+       | true :=
+         Transaction.split@{
+           standardInputs;
+           toSplit := token;
+           quantitiesAndReceivers
+         };
 
 merge
-  (self : KeyPair)
+  (standardInputs : StandardInputs)
   (tokens : List Token)
-  (receiver : PublicKey)
+  (receiver : ExternalIdentity)
   : Result StandardError Transaction :=
-  case all (t in tokens) {isKudo (KeyPair.pubKey self) t} of
-    | false := throw notKudoError
-    | true :=
-      Transaction.merge@{
-        self;
-        toMerge := tokens;
-        receiver
-      };
+  let
+    self := standardInputs |> StandardInputs.identity |> Identity.external;
+  in case all (t in tokens) {isKudo self t} of
+       | false := throw notKudoError
+       | true :=
+         Transaction.merge@{
+           standardInputs;
+           toMerge := tokens;
+           receiver
+         };
 
 swap
-  (self : KeyPair)
-  (tokens : List Token)
+  (standardInputs : StandardInputs)
+  (toSwap : List Token)
   (want : QuantifiedAssets)
-  (solver : PublicKey)
+  (solver : ExternalIdentity)
   : Result StandardError Transaction :=
-  Transaction.swap@{
-    self;
-    toSwap := tokens;
-    intent :=
-      SwapIntent.create@{
-        want;
-        receiver := KeyPair.pubKey self;
-        solver
-      }
-  };
-
---- Returns the total quantity of all Kudo ;Kind; resources from an orignator ;PublicKey; for an account ;PublicKey;
-balance (originator : PublicKey) (account : PublicKey) : Nat :=
   let
-    label : Label := mkKudoLabel originator;
-    logic : Resource -> Transaction -> Bool := tokenLogic (Label.supply label) originator;
-    kind : Kind := anomaDecode (anomaEncode (tokenLogic, label));
-    ownedKudos : Set Resource := fetchOwnedResources kind account;
-  in Projection.balance ownedKudos;
+    self := standardInputs |> StandardInputs.identity |> Identity.external;
+  in case all (t in toSwap) {isKudo self t} of
+       | false := throw notKudoError
+       | true :=
+         Transaction.swap@{
+           standardInputs;
+           toSwap;
+           intent :=
+             SwapIntent.create@{
+               want;
+               receiver := self;
+               solver
+             }
+         };
+
+settle
+  (standardInputs : StandardInputs)
+  (transactions : List Transaction)
+  (solutions : List Solution)
+  : Result StandardError Transaction :=
+  Transaction.settle@{
+    standardInputs;
+    transactions;
+    solutions
+  };

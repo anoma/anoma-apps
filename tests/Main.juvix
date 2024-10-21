@@ -1,9 +1,0 @@
-module Main;
-
-import Stdlib.Prelude open;
-import SimpleCounterTests;
-import Test.JuvixUnit open;
-
-main : IO :=
-  runTestSuite
-    (testSuite "SimpleCounter tests" SimpleCounterTests.tests);
