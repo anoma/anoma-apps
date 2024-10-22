@@ -6,16 +6,16 @@ import Anoma.Identity open;
 import Anoma.Transaction open;
 import Anoma.Resource open;
 
-import Resource.Error open;
-import Transaction as Transaction;
+import Applib.Resource.Error open;
+import Applib.Transaction as Transaction;
 
-import Token.Resource open;
-import Token.Label open;
-import Intent.Asset open;
-import Intent.Swap.Resource open;
-import Intent.Swap.Solution open;
+import Applib.Token.Resource open;
+import Applib.Token.Label open;
+import Applib.Intent.Asset open;
+import Applib.Intent.Swap.Resource open;
+import Applib.Intent.Swap.Solution open;
 
-import AnomaHelpers open;
+import Applib.Helpers open;
 
 import Label open;
 

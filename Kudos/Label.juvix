@@ -1,14 +1,14 @@
 module Label;
 
 import Stdlib.Prelude open;
-import AnomaHelpers open;
+import Applib.Helpers open;
 
-import Token.Resource open;
-import Token.Label open;
-import Token.Logic open;
+import Applib.Token.Resource open;
+import Applib.Token.Label open;
+import Applib.Token.Logic open;
 
-import Resource.Error open;
-import Resource.Traits open;
+import Applib.Resource.Error open;
+import Applib.Resource.Traits open;
 
 import Anoma.Identity open;
 import Anoma.Builtin.System open;

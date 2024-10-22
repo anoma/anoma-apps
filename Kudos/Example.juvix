@@ -4,14 +4,14 @@ import Anoma open;
 import Stdlib.Prelude open;
 import Stdlib.Debug.Fail open using {failwith};
 
-import Resource.Error open;
-import Authorization.Identities open;
+import Applib.Resource.Error open;
+import Applib.Authorization.Identities open;
+import Applib.Helpers open;
 
 import Anoma.Transaction open;
 import Anoma.Identity open;
 import Anoma.State.CommitmentTree open;
 
-import AnomaHelpers open;
 import Interface open;
 
 alice : Identity := Universal.identity;
