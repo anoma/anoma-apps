@@ -7,8 +7,8 @@ package : Package :=
     name := "kudos";
     dependencies :=
       [ github "anoma" "juvix-stdlib" "ff351799c068e7b3e23dd903547d228dc30aff5e"
-      ; github "anoma" "juvix-arm-transparent" "c5d16b93ec2d01686c5dd934ce671a51edab344a"
-      ; github "anoma" "anoma-app-lib" "3546d48baf19479db9feb30f68c841175b279f48"
       ; github "anoma" "juvix-test" "v0.15.0"
+      ; github "anoma" "juvix-arm-transparent" "c5d16b93ec2d01686c5dd934ce671a51edab344a"
+      ; github "anoma" "anoma-app-lib" "32ff9d624aa8548f979deaff1340f4dbd4cf7b72"
       ]
   };

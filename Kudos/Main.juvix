@@ -5,7 +5,7 @@ import Stdlib.Debug.Fail open;
 
 import Anoma.Identity open;
 import Anoma.Builtin.System open;
-import Anoma.Transaction open using {Transaction};
+import Anoma.Transaction open;
 
 import Applib.Resource.Error open;
 import Applib.Helpers open;
