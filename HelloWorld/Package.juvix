@@ -1,0 +1,14 @@
+module Package;
+
+import PackageDescription.V2 open;
+
+package : Package :=
+  defaultPackage@?{
+    name := "hello-world";
+    dependencies :=
+      [ github "anoma" "juvix-stdlib" "37d3dd74b78f0ec0c48c8adc44f5b99c6d068464";
+        github "anoma" "juvix-arm-specs" "33731a510a0c9e1eb077ef8140521184b89fd16d";
+        github "anoma" "juvix-test" "v0.15.0";
+        github "anoma" "anoma-applib" "5b28b2a25be7aa48a4a241b11206ef2cf9024aa9"
+      ]
+  };
