@@ -18,7 +18,7 @@ package : Package :=
           "33731a510a0c9e1eb077ef8140521184b89fd16d";
         github
           "anoma"
-          "anoma-applib"
-          "4282ca4cfc6a0815dcdf359e03fa59ca179f1356";
+          "anoma-app-lib"
+          "d736c73301bddf0b477186eeab5bb1bf11a788b1";
       ];
   };
