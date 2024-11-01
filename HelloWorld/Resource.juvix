@@ -7,9 +7,11 @@ import Anoma.Builtin.System open;
 import Applib open;
 
 -- HELPER
-label : Label := mkLabel (anomaEncode ("Hello World!"));
-logic
-  (publicInputs : Logic.Instance) (privateInputs : Logic.Witness) : Bool := true;
+label : Label := mkLabel (anomaEncode "Hello World!");
+
+logic (publicInputs : Logic.Instance) (privateInputs : Logic.Witness) : Bool :=
+  true;
+
 value : Value := mkValue 0;
 
 -- RESOURCE OBJECT
@@ -22,5 +24,5 @@ mkHelloWorld : Resource :=
     ephemeral := false;
     nullifierKeyCommitment := toNullifierKeyCommitment Universal.identity;
     nonce := mkNonce rand;
-    randSeed := mkRandSeed rand
+    randSeed := mkRandSeed rand;
   };
