@@ -6,9 +6,19 @@ package : Package :=
   defaultPackage@{
     name := "kudos";
     dependencies :=
-      [ github "anoma" "juvix-stdlib" "ff351799c068e7b3e23dd903547d228dc30aff5e"
-      ; github "anoma" "juvix-test" "v0.15.0"
-      ; github "anoma" "juvix-arm-transparent" "efb1be6b0448690fb4d0b95a58f88fb1d5c7cc3e"
-      ; github "anoma" "anoma-app-lib" "32ff9d624aa8548f979deaff1340f4dbd4cf7b72"
-      ]
+      [
+        github
+          "anoma"
+          "juvix-stdlib"
+          "37d3dd74b78f0ec0c48c8adc44f5b99c6d068464";
+        github "anoma" "juvix-test" "v0.15.0";
+        github
+          "anoma"
+          "juvix-arm-specs"
+          "33731a510a0c9e1eb077ef8140521184b89fd16d";
+        github
+          "anoma"
+          "anoma-app-lib"
+          "d736c73301bddf0b477186eeab5bb1bf11a788b1";
+      ];
   };

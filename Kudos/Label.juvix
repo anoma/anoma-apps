@@ -1,17 +1,13 @@
 module Label;
 
 import Stdlib.Prelude open;
-import Applib.Helpers open;
 
-import Applib.Token.Resource open;
-import Applib.Token.Label open;
-import Applib.Token.Logic open;
-
-import Applib.Resource.Error open;
-import Applib.Resource.Traits open;
-
-import Anoma.Identity open;
+import Anoma open;
 import Anoma.Builtin.System open;
+
+import Applib open;
+import Applib.Token open;
+import Applib.Resource.Traits open;
 
 mkKudoLabel (originator : ExternalIdentity) : TokenLabel :=
   mkTokenLabel@{
@@ -20,7 +16,7 @@ mkKudoLabel (originator : ExternalIdentity) : TokenLabel :=
     decimals := 18;
     supply := Unbound;
     transferability := Transferability.Transferable;
-    originator
+    originator;
   };
 
 isKudo (originator : ExternalIdentity) (token : Token) : Bool :=
@@ -34,8 +30,3 @@ isKudo (originator : ExternalIdentity) (token : Token) : Bool :=
     | label /= expectedLabel := false
     | logicEncoded /= expectedLogicEncoded := false
     | else := true;
-
-notKudoError : DefaultError :=
-  mkDefaultError@{
-    msg := "The input resource is not a Kudo token."
-  };

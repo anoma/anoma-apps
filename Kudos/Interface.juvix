@@ -2,22 +2,19 @@ module Interface;
 
 import Stdlib.Prelude open;
 
-import Anoma.Identity open;
-import Anoma.Transaction open;
-import Anoma.Resource open;
+import Anoma open;
+import Applib open;
 
-import Applib.Resource.Error open;
-import Applib.Transaction as Transaction;
-
-import Applib.Token.Resource open;
-import Applib.Token.Label open;
-import Applib.Intent.Asset open;
-import Applib.Intent.Swap.Resource open;
-import Applib.Intent.Swap.Solution open;
-
-import Applib.Helpers open;
+import Applib.Token open;
+import Applib.Intent open;
+import Applib.Transaction.Errors open;
 
 import Label open;
+
+notKudoError : DefaultError :=
+  mkDefaultError@{
+    msg := "The input resource is not a Kudo token.";
+  };
 
 initialize
   (standardInputs : StandardInputs)
@@ -30,23 +27,27 @@ initialize
       Token.create@{
         quantity;
         tokenLabel := mkKudoLabel self;
-        owner := receiver
+        owner := receiver;
       };
   in Transaction.initialize@{
-    standardInputs;
-    toInitialize := token;
-    maybeDummy := nothing
-  };
+       standardInputs;
+       toInitialize := token;
+       maybeDummy := nothing;
+     };
 
-finalize (standardInputs : StandardInputs) (token : Token) : Result StandardError Transaction :=
+finalize
+  (standardInputs : StandardInputs)
+  (token : Token)
+  : Result StandardError Transaction :=
   let
-    self : ExternalIdentity := standardInputs |> StandardInputs.identity |> Identity.external;
+    self : ExternalIdentity :=
+      standardInputs |> StandardInputs.identity |> Identity.external;
   in case isKudo (self) token of
        | false := throw notKudoError
        | true :=
          Transaction.finalize@{
            standardInputs;
-           toFinalize := token
+           toFinalize := token;
          };
 
 send
@@ -56,7 +57,8 @@ send
   (receiver : ExternalIdentity)
   : Result StandardError Transaction :=
   let
-    self : ExternalIdentity := standardInputs |> StandardInputs.identity |> Identity.external;
+    self : ExternalIdentity :=
+      standardInputs |> StandardInputs.identity |> Identity.external;
   in case isKudo self token of
        | false := throw notKudoError
        | true :=
@@ -64,7 +66,7 @@ send
            standardInputs;
            toSend := token;
            quantity;
-           receiver
+           receiver;
          };
 
 transfer
@@ -73,14 +75,15 @@ transfer
   (receiver : ExternalIdentity)
   : Result StandardError Transaction :=
   let
-    self : ExternalIdentity := standardInputs |> StandardInputs.identity |> Identity.external;
+    self : ExternalIdentity :=
+      standardInputs |> StandardInputs.identity |> Identity.external;
   in case isKudo (self) token of
        | false := throw notKudoError
        | true :=
          Transaction.transfer@{
            standardInputs;
            toTransfer := token;
-           receiver
+           receiver;
          };
 
 split
@@ -90,14 +93,15 @@ split
   (quantitiesAndReceivers : List (Pair Quantity ExternalIdentity))
   : Result StandardError Transaction :=
   let
-    self : ExternalIdentity := standardInputs |> StandardInputs.identity |> Identity.external;
+    self : ExternalIdentity :=
+      standardInputs |> StandardInputs.identity |> Identity.external;
   in case isKudo self token of
        | false := throw notKudoError
        | true :=
          Transaction.split@{
            standardInputs;
            toSplit := token;
-           quantitiesAndReceivers
+           quantitiesAndReceivers;
          };
 
 merge
@@ -107,44 +111,52 @@ merge
   : Result StandardError Transaction :=
   let
     self := standardInputs |> StandardInputs.identity |> Identity.external;
-  in case all (t in tokens) {isKudo self t} of
+  in case
+       all (t in tokens) {
+         isKudo self t
+       }
+     of
        | false := throw notKudoError
        | true :=
          Transaction.merge@{
            standardInputs;
            toMerge := tokens;
-           receiver
+           receiver;
          };
 
 swap
   (standardInputs : StandardInputs)
   (toSwap : List Token)
-  (want : QuantifiedAssets)
+  (want : Asset.QuantifiedAssets)
   (solver : ExternalIdentity)
   : Result StandardError Transaction :=
   let
     self := standardInputs |> StandardInputs.identity |> Identity.external;
-  in case all (t in toSwap) {isKudo self t} of
+  in case
+       all (t in toSwap) {
+         isKudo self t
+       }
+     of
        | false := throw notKudoError
        | true :=
          Transaction.swap@{
            standardInputs;
            toSwap;
            intent :=
-             SwapIntent.create@{
+             Swap.SwapIntent.create@{
                want;
                receiver := self;
-               solver
-             }
+               solver;
+             };
          };
 
 settle
   (standardInputs : StandardInputs)
   (transactions : List Transaction)
-  (solutions : List Solution)
+  (solutions : List Swap.Solution)
   : Result StandardError Transaction :=
   Transaction.settle@{
     standardInputs;
     transactions;
-    solutions
+    solutions;
   };

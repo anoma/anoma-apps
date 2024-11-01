@@ -2,17 +2,14 @@ module Main;
 
 import Stdlib.Prelude open;
 import Stdlib.Debug.Fail open;
-
-import Anoma.Identity open;
+import Anoma open;
 import Anoma.Builtin.System open;
-import Anoma.Transaction open;
-
-import Applib.Resource.Error open;
-import Applib.Helpers open;
+import Applib open;
 
 import Kudos as Kudos;
 
-INVALID_FUNCTION_SELECTOR : {A : Type} -> A := failwith "Invalid function selector.";
+INVALID_FUNCTION_SELECTOR : {A : Type} -> A :=
+  failwith "Invalid function selector.";
 
 INVALID_ARGUMENT_NUMBER : {A : Type} -> A := failwith "Invalid argument number";
 
@@ -45,53 +42,53 @@ main (funcSelector : Nat) (args : List Nat) : AnomaTransaction :=
          Kudos.initialize@{
            standardInputs := anomaDecode a1;
            quantity := anomaDecode a2;
-           receiver := anomaDecode a3
+           receiver := anomaDecode a3;
          }
        | Finalize, [a1; a2] :=
          Kudos.finalize@{
            standardInputs := anomaDecode a1;
-           token := anomaDecode a2
+           token := anomaDecode a2;
          }
        | Send, [a1; a2; a3; a4] :=
          Kudos.send@{
            standardInputs := anomaDecode a1;
            token := anomaDecode a2;
            quantity := anomaDecode a3;
-           receiver := anomaDecode a4
+           receiver := anomaDecode a4;
          }
        | Transfer, [a1; a2; a3] :=
          Kudos.transfer@{
            standardInputs := anomaDecode a1;
            token := anomaDecode a2;
-           receiver := anomaDecode a3
+           receiver := anomaDecode a3;
          }
        | Split, [a1; a2; a3] :=
          Kudos.split@{
            standardInputs := anomaDecode a1;
            token := anomaDecode a2;
-           quantitiesAndReceivers := anomaDecode a3
+           quantitiesAndReceivers := anomaDecode a3;
          }
        | Merge, [a1; a2; a3] :=
          Kudos.merge@{
            standardInputs := anomaDecode a1;
            tokens := anomaDecode a2;
-           receiver := anomaDecode a3
+           receiver := anomaDecode a3;
          }
        | Swap, [a1; a2; a3; a4] :=
          Kudos.swap@{
            standardInputs := anomaDecode a1;
            toSwap := anomaDecode a2;
            want := anomaDecode a3;
-           solver := anomaDecode a4
+           solver := anomaDecode a4;
          }
        | Settle, [a1; a2; a3] :=
          Kudos.settle@{
            standardInputs := anomaDecode a1;
            transactions := anomaDecode a2;
-           solutions := anomaDecode a3
+           solutions := anomaDecode a3;
          }
        | INVALID, _ := INVALID_FUNCTION_SELECTOR
        | _, _ := INVALID_ARGUMENT_NUMBER
      }
-    |> txFromResult
+    |> fromResult
     |> toAnomaTransaction;
