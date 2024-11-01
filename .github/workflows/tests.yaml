@@ -8,7 +8,7 @@ on:
 
 jobs:
   kudos-tests:
-    name: Run test suite
+    name: Kudos
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,7 +31,7 @@ jobs:
         run: juvix eval Example.juvix
 
   hello-world-tests:
-    name: Run test suite
+    name: Hello World
     runs-on: ubuntu-latest
     defaults:
       run:
