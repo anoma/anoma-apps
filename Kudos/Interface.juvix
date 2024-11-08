@@ -22,9 +22,11 @@ initialize
   (receiver : ExternalIdentity)
   : Result StandardError Transaction :=
   let
-    self := standardInputs |> StandardInputs.identity |> Identity.external;
+    self := Identity.external (StandardInputs.caller standardInputs);
+    nonce := generatePseudoRandomNonce (StandardInputs.randSeed standardInputs);
     token :=
       Token.create@{
+        nonce;
         quantity;
         tokenLabel := mkKudoLabel self;
         owner := receiver;
@@ -40,8 +42,7 @@ finalize
   (token : Token)
   : Result StandardError Transaction :=
   let
-    self : ExternalIdentity :=
-      standardInputs |> StandardInputs.identity |> Identity.external;
+    self := Identity.external (StandardInputs.caller standardInputs);
   in case isKudo (self) token of
        | false := throw notKudoError
        | true :=
@@ -57,8 +58,7 @@ send
   (receiver : ExternalIdentity)
   : Result StandardError Transaction :=
   let
-    self : ExternalIdentity :=
-      standardInputs |> StandardInputs.identity |> Identity.external;
+    self := Identity.external (StandardInputs.caller standardInputs);
   in case isKudo self token of
        | false := throw notKudoError
        | true :=
@@ -75,8 +75,7 @@ transfer
   (receiver : ExternalIdentity)
   : Result StandardError Transaction :=
   let
-    self : ExternalIdentity :=
-      standardInputs |> StandardInputs.identity |> Identity.external;
+    self := Identity.external (StandardInputs.caller standardInputs);
   in case isKudo (self) token of
        | false := throw notKudoError
        | true :=
@@ -93,8 +92,7 @@ split
   (quantitiesAndReceivers : List (Pair Quantity ExternalIdentity))
   : Result StandardError Transaction :=
   let
-    self : ExternalIdentity :=
-      standardInputs |> StandardInputs.identity |> Identity.external;
+    self := Identity.external (StandardInputs.caller standardInputs);
   in case isKudo self token of
        | false := throw notKudoError
        | true :=
@@ -110,7 +108,7 @@ merge
   (receiver : ExternalIdentity)
   : Result StandardError Transaction :=
   let
-    self := standardInputs |> StandardInputs.identity |> Identity.external;
+    self := Identity.external (StandardInputs.caller standardInputs);
   in case
        all (t in tokens) {
          isKudo self t
@@ -131,7 +129,8 @@ swap
   (solver : ExternalIdentity)
   : Result StandardError Transaction :=
   let
-    self := standardInputs |> StandardInputs.identity |> Identity.external;
+    self := Identity.external (StandardInputs.caller standardInputs);
+    nonce := generatePseudoRandomNonce (StandardInputs.randSeed standardInputs);
   in case
        all (t in toSwap) {
          isKudo self t
@@ -144,6 +143,7 @@ swap
            toSwap;
            intent :=
              Swap.SwapIntent.create@{
+               nonce;
                want;
                receiver := self;
                solver;

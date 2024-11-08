@@ -10,15 +10,15 @@ package : Package :=
         github
           "anoma"
           "juvix-stdlib"
-          "37d3dd74b78f0ec0c48c8adc44f5b99c6d068464";
+          "8bc67b874860a26cba02d853b879e9c0a347efe2";
         github "anoma" "juvix-test" "v0.15.0";
         github
           "anoma"
           "juvix-arm-specs"
-          "33731a510a0c9e1eb077ef8140521184b89fd16d";
+          "efdd96172af1f88eb116f585370b102a0757f5a7";
         github
           "anoma"
           "anoma-app-lib"
-          "d736c73301bddf0b477186eeab5bb1bf11a788b1";
+          "ed94828126936f8ac4740030e8d4a97add7a6801";
       ];
   };

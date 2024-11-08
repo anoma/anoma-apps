@@ -19,7 +19,7 @@ jobs:
       - name: Download latest nightly Juvix binary
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
-          repo: anoma/juvix-nightly-builds
+          repo: anoma/juvix
           cache: enable
       - name: Clean
         run: juvix clean --global && juvix clean && juvix dependencies update
@@ -42,7 +42,7 @@ jobs:
       - name: Download latest nightly Juvix binary
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
-          repo: anoma/juvix-nightly-builds
+          repo: anoma/juvix
           cache: enable
       - name: Clean
         run: juvix clean --global && juvix clean && juvix dependencies update
