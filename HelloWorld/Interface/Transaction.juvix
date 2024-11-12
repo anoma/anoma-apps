@@ -2,7 +2,7 @@ module Interface.Transaction;
 
 import Stdlib.Prelude open;
 import Stdlib.Data.Set as Set open using {Set};
-import Stdlib.Data.Set as Map open using {Map};
+import Stdlib.Data.Map as Map open using {Map};
 import Anoma open;
 import Applib open;
 import Resource open;
