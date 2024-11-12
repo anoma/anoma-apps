@@ -8,7 +8,6 @@ import Applib.Authorization.Check open public;
 import Applib.Authorization.Check open public;
 import Applib.Authorization.Message open public;
 
-
 logic (publicInputs : Logic.Instance) (privateInputs : Logic.Witness) : Bool :=
   let
     tag := Logic.Instance.tag publicInputs;
@@ -57,4 +56,3 @@ mkWorldResource (owner : ExternalIdentity) (nonce : Nonce) : Resource :=
     owner;
     nonce;
   };
-

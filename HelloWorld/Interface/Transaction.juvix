@@ -41,7 +41,6 @@ helloWorldIntent
         };
   };
 
-
 prepareTransaction
   (standardInputs : StandardInputs)
   (consumed created : Set Resource)
