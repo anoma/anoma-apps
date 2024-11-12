@@ -4,6 +4,7 @@ import Stdlib.Prelude open;
 import Stdlib.Debug.Fail open using {failwith};
 
 import Anoma open;
+import Anoma.Builtin.ByteArray open;
 import Anoma.State.CommitmentTree open;
 
 import Applib open;
@@ -16,8 +17,9 @@ bob : ExternalIdentity := Zero.externalIdentity;
 
 standardInputs : StandardInputs :=
   mkStandardInputs@{
-    identity := alice;
+    caller := alice;
     currentRoot := mkRoot 0;
+    randSeed := mkRandSeed (mkByteArray (replicate 32 0x0));
   };
 
 --- Create 10 Kudo tokens as Alice (the originator) for Bob (the owner).

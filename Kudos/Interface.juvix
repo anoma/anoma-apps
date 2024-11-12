@@ -1,6 +1,7 @@
 module Interface;
 
 import Stdlib.Prelude open;
+import Stdlib.Data.Set as Set open using {Set};
 
 import Anoma open;
 import Applib open;
@@ -23,7 +24,7 @@ initialize
   : Result StandardError Transaction :=
   let
     self := Identity.external (StandardInputs.caller standardInputs);
-    nonce := generatePseudoRandomNonce (StandardInputs.randSeed standardInputs);
+    nonce := generateNonce (StandardInputs.randSeed standardInputs);
     token :=
       Token.create@{
         nonce;
@@ -124,15 +125,15 @@ merge
 
 swap
   (standardInputs : StandardInputs)
-  (toSwap : List Token)
+  (toSwap : Set Token)
   (want : Asset.QuantifiedAssets)
   (solver : ExternalIdentity)
   : Result StandardError Transaction :=
   let
     self := Identity.external (StandardInputs.caller standardInputs);
-    nonce := generatePseudoRandomNonce (StandardInputs.randSeed standardInputs);
+    nonce := generateNonce (StandardInputs.randSeed standardInputs);
   in case
-       all (t in toSwap) {
+       all (t in Set.toList toSwap) {
          isKudo self t
        }
      of
@@ -152,8 +153,8 @@ swap
 
 settle
   (standardInputs : StandardInputs)
-  (transactions : List Transaction)
-  (solutions : List Swap.Solution)
+  (transactions : Set Transaction)
+  (solutions : Set Swap.Solution)
   : Result StandardError Transaction :=
   Transaction.settle@{
     standardInputs;

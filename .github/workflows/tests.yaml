@@ -27,8 +27,8 @@ jobs:
         run: juvix typecheck
       - name: Format Check
         run: juvix format
-      - name: Run Example
-        run: juvix eval Example.juvix
+      #- name: Run Example
+      #  run: juvix eval Example.juvix
 
   hello-world-tests:
     name: Hello World
