@@ -1,0 +1,6 @@
+module Label;
+
+import Anoma open;
+import Anoma.Builtin.System open;
+
+label : Label := mkLabel (anomaEncode "Hello World!");

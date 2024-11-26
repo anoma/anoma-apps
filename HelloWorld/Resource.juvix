@@ -6,9 +6,9 @@ import Anoma open;
 import Anoma.Builtin.System open;
 import Applib open;
 
--- HELPER
-label : Label := mkLabel (anomaEncode "Hello World!");
+import Label open using {label};
 
+-- HELPER
 logic (publicInputs : Logic.Instance) (privateInputs : Logic.Witness) : Bool :=
   true;
 
@@ -17,8 +17,8 @@ value : Value := mkValue 0;
 -- RESOURCE OBJECT
 mkHelloWorld : Resource :=
   mkResource@{
-    logicRef := Reference.to (logic);
     labelRef := Reference.to (label);
+    logicRef := Reference.to (logic);
     valueRef := Reference.to (value);
     quantity := 1;
     ephemeral := false;

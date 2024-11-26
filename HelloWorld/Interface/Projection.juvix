@@ -1,0 +1,7 @@
+module Interface.Projection;
+
+import Stdlib.Prelude open;
+import Anoma open;
+import Anoma.Builtin.System open;
+
+getLabel (resource : Resource) : Nat := Label.unLabel (Reference.from (Resource.labelRef (resource)));
