@@ -1,13 +1,14 @@
 # how to run:
+# 0. set anoma-path variable in this file to the folder where anoma is cloned and compiled
 # 1. make run-client
 # 2. make run-node # keep this running in a separate terminal
 # 3. make add-transaction
+anoma-path = ~/projects/anoma
 base = Main
 
 juvix = $(base).juvix
 nockma = $(base).nockma
 proved = $(base).proved.nockma
-anoma-path = ~/projects/anoma
 root = $(shell pwd)
 config = config.yaml
 anoma-config = $(anoma-path)/$(config)
