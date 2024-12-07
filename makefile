@@ -15,6 +15,10 @@ anoma-config = $(anoma-path)/$(config)
 
 all: $(proved)
 
+.PHONY: clean
+clean:
+	rm -rf $(config) $(proved) $(nockma)
+
 .PHONY: run-client
 run-client:
 	juvix dev anoma start --anoma-dir $(anoma-path)
