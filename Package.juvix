@@ -6,5 +6,5 @@ package : Package :=
   defaultPackage@{
     name := "anoma-devnet-apps";
     main := just "Main.juvix";
-    dependencies := [defaultStdlib; path "~/projects/anoma-applib"];
+    dependencies := [defaultStdlib; github "anoma" "anoma-applib" "c7a863bd58c9c4fa6ee7993ae1ab45b6123a016d"];
   };
