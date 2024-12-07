@@ -8,8 +8,7 @@ juvix = $(base).juvix
 nockma = $(base).nockma
 proved = $(base).proved.nockma
 anoma-path = ~/projects/anoma
-juvix-path = ~/projects/juvix
-juvix-include-path = $(juvix-path)/include/anoma
+root = $(shell pwd)
 config = config.yaml
 anoma-config = $(anoma-path)/$(config)
 
@@ -22,7 +21,7 @@ run-client:
 .PHONY: run-node
 run-node:
 	cd $(anoma-path) && \
-		mix run --no-halt $(juvix-include-path)/start-config.exs
+		mix run --no-halt $(root)/start-config.exs
 
 .PHONY: add-transaction
 add-transaction: $(proved) $(config)

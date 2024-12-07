@@ -6,5 +6,7 @@ import BaseLayer.TransactionRequest open using {
   module TransactionRequest;
 };
 import Counter.Simple as Counter;
+import Swap;
 
-main : TransactionRequest := Counter.main;
+-- main : TransactionRequest := Counter.main;
+main : TransactionRequest := Swap.main;
