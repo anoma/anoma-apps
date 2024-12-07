@@ -1,5 +1,5 @@
 # how to run:
-# 0. set anoma-path variable in this file to the folder where anoma is cloned and compiled
+# 0. set anoma-path variable in this file to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
 # 1. make run-client
 # 2. make run-node # keep this running in a separate terminal
 # 3. make add-transaction
