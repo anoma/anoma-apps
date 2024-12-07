@@ -1,0 +1,111 @@
+module Counter.Simple.Logic;
+
+import Stdlib.Prelude open;
+import Stdlib.Data.Set as Set open using {Set};
+import Stdlib.Data.Map as Map open using {Map};
+
+import Anoma open;
+import Applib.Helpers open;
+import Applib.Identities open;
+import Applib.Resource.Traits open;
+import Counter.Simple.Count open;
+import Counter.Simple.Label open;
+
+--- The counter resource logic.
+--- @param publicInputs The resource logic public inputs.
+--- @param privateInputs The resource logic private inputs.
+--- @return The resource logic validity.
+counterLogic
+  : (publicInputs : Logic.Instance)
+    -> (privateInputs : Logic.Witness)
+    -> Bool :=
+  \{publicInputs privateInputs :=
+    parametrizedCounterLogic@{
+      initializationLogic;
+      incrementationLogic;
+      publicInputs;
+      privateInputs;
+    }};
+
+--- A parametrized counter resource logic accepting different sub-logic function.
+--- @param initializationLogic The initialization sub-logic.
+--- @param incrementationLogic The incrementation sub-logic.
+--- @param publicInputs The resource logic public inputs.
+--- @param privateInputs The resource logic private inputs.
+--- @return Whether the logic is valid or not.
+parametrizedCounterLogic
+  (initializationLogic : Resource -> Logic.Instance -> Bool)
+  (incrementationLogic : Resource -> Logic.Witness -> Bool)
+  (publicInputs : Logic.Instance)
+  (privateInputs : Logic.Witness)
+  : Bool :=
+  let
+    pub := Logic.Proper.fromBaseLayerInstance publicInputs privateInputs;
+    tag := Logic.Proper.Instance.tag pub;
+    customInputs := Logic.Witness.customInputs privateInputs;
+    customMap : Map CustomInputsKey CustomInputsValue :=
+      anomaDecode customInputs;
+  in case tag of
+       | Consumed nullifier :=
+         case lookupResource nullifier customMap of {
+           | nothing := false
+           | just self :=
+             if
+               | Resource.ephemeral self :=
+                 initializationLogic self publicInputs
+               | else := incrementationLogic self privateInputs
+         }
+       | Created commitment :=
+         case lookupResource commitment customMap of
+           | nothing := false
+           | just self :=
+             if
+               | Resource.ephemeral self := false
+               | else := true;
+
+--- The initialization sub-logic function checking that the quantity euqals 1.
+--- @param self The resource object carrying the checking resource logic.
+--- @param publicInputs The resource logic public inputs.
+--- @return Whether the logic is valid or not.
+initializationLogic (self : Resource) (publicInputs : Logic.Instance) : Bool :=
+  HasQuantity.get self == 1;
+
+--- The incrementation sub-logic function conducting a kind check and incrementation check.
+--- @param self The resource object carrying the checking resource logic.
+--- @param privateInputs The resource logic private inputs.
+--- @return Whether the logic is valid or not.
+incrementationLogic (self : Resource) (privateInputs : Logic.Witness) : Bool :=
+  let
+    consumed := privateInputs |> Logic.Witness.consumed;
+    created := privateInputs |> Logic.Witness.created;
+  in case consumed, created of
+       | [consumedCounter], [createdCounter] :=
+         kindCheck@{
+           self;
+           consumedCounter;
+           createdCounter;
+         }
+           && isIncremented@{
+                consumedCounter;
+                createdCounter;
+              }
+       | _, _ := false;
+
+--- Checks if the kinds of the checking, consumed, and created are identitcal.
+--- @param self The checking resource.
+--- @param self The consumed counter resource.
+--- @param self The created counter resource.
+--- @param The check result.
+kindCheck (self consumedCounter createdCounter : Resource) : Bool :=
+  kind self == kind consumedCounter
+    && kind consumedCounter == kind createdCounter;
+
+--- Checks if the created counter value is incremented by one relative to the the consumed counter.
+--- @param self The consumed counter resource.
+--- @param self The created counter resource.
+--- @param The check result.
+isIncremented (consumedCounter createdCounter : Resource) : Bool :=
+  let
+    expected : Nat := getCount consumedCounter + 1;
+    actual : Nat := getCount createdCounter;
+  in expected == actual;

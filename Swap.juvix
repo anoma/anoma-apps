@@ -1,0 +1,182 @@
+module Swap;
+
+import Stdlib.Prelude open;
+import Stdlib.Debug.Trace open;
+import Anoma.Builtin.ByteArray open;
+import BaseLayer.TransactionRequest open using {
+  TransactionRequest;
+  module TransactionRequest;
+};
+import Anoma open;
+import Stdlib.Debug open using {failwith};
+
+axiom undefined {A} : A;
+
+fromJust {A} : Maybe A -> A
+  | nothing := failwith "fromJust"
+  | (just x) := x;
+
+createdMagic : Nat := anomaEncode (just true);
+
+consumedMagic : Nat := anomaEncode "hello";
+
+mylogic (basePub : Logic.Instance) (priv : Logic.Witness) : Bool :=
+  let
+    hasCommitment (cm : Commitment) (r : Resource) : Bool := commitment r == cm;
+    hasNullifier (nf : Nullifier) (r : Resource) : Bool := nullifier r == nf;
+    getCreated (cm : Commitment) : Resource :=
+      fromJust (find (hasCommitment cm) (Logic.Witness.created priv));
+    getConsumed (nf : Nullifier) : Resource :=
+      fromJust (find (hasNullifier nf) (Logic.Witness.consumed priv));
+    sortedCreated : List Resource :=
+      map (mkCommitment >> getCreated) (Logic.Instance.commitments basePub);
+    sortedConsumed : List Resource :=
+      map (mkNullifier >> getConsumed) (Logic.Instance.nullifiers basePub);
+    pub := Logic.Proper.fromBaseLayerInstance basePub priv;
+    ptab := Logic.Proper.Instance.tag pub;
+  in case ptab of
+       | Created c :=
+         let
+           res := getCreated c;
+         in Resource.quantity res == 1
+           && Logic.Proper.Instance.appData pub == createdMagic
+           && Logic.Witness.customInputs priv == createdMagic
+       | Consumed c :=
+         let
+           res := getConsumed c;
+         in Resource.quantity res == 1
+           && Logic.Proper.Instance.appData pub == consumedMagic
+           && Logic.Witness.customInputs priv == consumedMagic;
+
+myResourceEph : Resource :=
+  mkResource@{
+    label := 0;
+    logic := mylogic;
+    ephemeral := true;
+    quantity := 1;
+    data := 0;
+    nullifier-key := replicate 32 0x0 |> mkByteArray |> toAnomaContents;
+    rseed := 0;
+    nonce := replicate 32 0x0 |> mkByteArray |> toAnomaContents;
+  };
+
+myResource : Resource :=
+  mkResource@{
+    label := 0;
+    logic := mylogic;
+    ephemeral := false;
+    quantity := 1;
+    data := 0;
+    nullifier-key := replicate 32 0x0 |> mkByteArray |> toAnomaContents;
+    rseed := 0;
+    nonce := 2;
+  };
+
+myResource' : Resource := myResource@Resource{nonce := 222};
+
+myResourceEph' : Resource := myResourceEph@Resource{nonce := 333};
+
+myResourceCommitment' : Nat := base-commitment myResource';
+
+myResourceCommitment : Nat := base-commitment myResource;
+
+myResourceEphNullifier : Nat := base-nullifier myResourceEph;
+
+myResourceEphNullifier' : Nat := base-nullifier myResourceEph';
+
+mycommitments : List Nat := [myResourceCommitment; myResourceCommitment'];
+
+mynullifiers : List Nat := [myResourceEphNullifier; myResourceEphNullifier'];
+
+mycreated : List Resource := [myResource; myResource'];
+
+myconsumed : List Resource := [myResourceEph; myResourceEph'];
+
+myResourceEphProof : Logic.Proof :=
+  let
+    publicInputs : Logic.Instance :=
+      Logic.mkInstance@{
+        commitments := mycommitments;
+        nullifiers := mynullifiers;
+        tag := myResourceEphNullifier;
+        appData := consumedMagic;
+      };
+    privateInputs : Logic.Witness :=
+      Logic.mkWitness@{
+        created := mycreated;
+        consumed := myconsumed;
+        customInputs := consumedMagic;
+      };
+  in Logic.prove (Logic.mkProvingKey myResourceEph) publicInputs privateInputs;
+
+myResourceEphProof' : Logic.Proof :=
+  let
+    publicInputs : Logic.Instance :=
+      Logic.mkInstance@{
+        commitments := mycommitments;
+        nullifiers := mynullifiers;
+        tag := myResourceEphNullifier';
+        appData := consumedMagic;
+      };
+    privateInputs : Logic.Witness :=
+      Logic.mkWitness@{
+        created := mycreated;
+        consumed := myconsumed;
+        customInputs := consumedMagic;
+      };
+  in Logic.prove (Logic.mkProvingKey myResourceEph') publicInputs privateInputs;
+
+myResourceProof : Logic.Proof :=
+  let
+    publicInputs : Logic.Instance :=
+      Logic.mkInstance@{
+        commitments := mycommitments;
+        nullifiers := mynullifiers;
+        tag := myResourceCommitment;
+        appData := createdMagic;
+      };
+    privateInputs : Logic.Witness :=
+      Logic.mkWitness@{
+        created := mycreated;
+        consumed := myconsumed;
+        customInputs := createdMagic;
+      };
+  in Logic.prove (Logic.mkProvingKey myResource) publicInputs privateInputs;
+
+myResourceProof' : Logic.Proof :=
+  let
+    publicInputs : Logic.Instance :=
+      Logic.mkInstance@{
+        commitments := mycommitments;
+        nullifiers := mynullifiers;
+        tag := myResourceCommitment';
+        appData := createdMagic;
+      };
+    privateInputs : Logic.Witness :=
+      Logic.mkWitness@{
+        created := mycreated;
+        consumed := myconsumed;
+        customInputs := createdMagic;
+      };
+  in Logic.prove (Logic.mkProvingKey myResource') publicInputs privateInputs;
+
+myproofs : List Logic.Proof :=
+  [myResourceProof'; myResourceEphProof'; myResourceProof; myResourceEphProof];
+
+tx-action : Action :=
+  mkAction@{
+    commitments := mycommitments;
+    nullifiers := mynullifiers;
+    proofs := myproofs;
+    app-data := 0;
+  };
+
+tx : Transaction :=
+  mkTransaction@{
+    roots := [];
+    delta := actionDelta tx-action;
+    actions := [tx-action];
+    delta-proof := 0;
+  };
+
+main : TransactionRequest := TransactionRequest.fromTransaction tx;

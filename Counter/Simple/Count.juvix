@@ -1,0 +1,8 @@
+module Counter.Simple.Count;
+
+import Stdlib.Prelude open;
+import Anoma open;
+import Anoma.Builtin.System open;
+
+--- Returns the count of a counter resource.
+getCount : Resource -> Nat := Resource.data;

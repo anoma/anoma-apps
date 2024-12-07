@@ -1,0 +1,10 @@
+module Main;
+
+import Stdlib.Prelude open;
+import BaseLayer.TransactionRequest open using {
+  TransactionRequest;
+  module TransactionRequest;
+};
+import Counter.Simple as Counter;
+
+main : TransactionRequest := Counter.main;

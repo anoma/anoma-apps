@@ -1,0 +1,6 @@
+module Counter.Simple;
+
+import Counter.Simple.Logic open public;
+import Counter.Simple.Resource open public;
+import Counter.Simple.Interface.Transaction open public;
+import Counter.Simple.Interface.Projection open public;

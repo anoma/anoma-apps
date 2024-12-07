@@ -1,0 +1,10 @@
+module Package;
+
+import PackageDescription.V2 open;
+
+package : Package :=
+  defaultPackage@{
+    name := "anoma-devnet-apps";
+    main := just "Main.juvix";
+    dependencies := [defaultStdlib; path "~/projects/anoma-applib"];
+  };

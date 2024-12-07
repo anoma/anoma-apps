@@ -1,0 +1,29 @@
+module Counter.Simple.Resource;
+
+import Stdlib.Prelude open;
+import Stdlib.Data.Set as Set open;
+
+import Anoma open;
+import Anoma.Builtin.System open;
+
+import Applib.Identities open;
+import Applib.Helpers open;
+import Counter.Simple.Label open;
+import Counter.Simple.Logic open;
+
+--- Constructs a counter with a quantity of 1 that can be consumed by the universal identity (and everyone who has composed their identity with it).
+--- @param count The intial count.
+--- @param ephemeral Whether the resource is ephemeral or not.
+--- @return The constructed counter resource.
+mkCounter
+  (nonce : Nonce) {count : Nat := 0} {ephemeral : Bool := false} : Resource :=
+  mkResource@{
+    logic := counterLogic;
+    label := counterLabel;
+    data := count;
+    quantity := 1;
+    ephemeral;
+    nullifier-key := unNullifierKeyCommitment Universal.nullifierKeyCommitment |> toAnomaContents;
+    nonce := nonceToNat nonce;
+    rseed := 0;
+  };
