@@ -18,20 +18,21 @@ import Applib.Identities as Id;
 --- @return The transaction object initializing a counter.
 initialize (standardInputs : StandardInputs) : Transaction :=
   let
-    noncePair := generateNoncePair (StandardInputs.randSeed standardInputs);
+    (nonce1, nonce2) :=
+      generateNoncePair (StandardInputs.randSeed standardInputs);
   in prepareStandardTransaction@{
        standardInputs;
        consumed :=
          [
            mkCounter@{
-             nonce := fst noncePair;
+             nonce := nonce1;
              ephemeral := true;
            };
          ];
        created :=
          [
            mkCounter@{
-             nonce := snd noncePair;
+             nonce := nonce2;
              ephemeral := false;
            };
          ];
@@ -43,17 +44,19 @@ initialize (standardInputs : StandardInputs) : Transaction :=
 --- @return The transaction object incrementing a counter.
 increment
   (standardInputs : StandardInputs) (currentCounter : Resource) : Transaction :=
-  prepareStandardTransaction@{
-    standardInputs;
-    consumed := [currentCounter];
-    created :=
-      [
-        mkCounter@{
-          nonce := generateNonce (StandardInputs.randSeed standardInputs);
-          count := getCount currentCounter + 1;
-        };
-      ];
-  };
+  let
+    nonce := generateNonce (StandardInputs.randSeed standardInputs);
+  in prepareStandardTransaction@{
+       standardInputs;
+       consumed := [currentCounter];
+       created :=
+         [
+           mkCounter@{
+             nonce;
+             count := getCount currentCounter + 1;
+           };
+         ];
+     };
 
 std : StandardInputs :=
   mkStandardInputs@{

@@ -3,7 +3,7 @@
 # 1. make run-client
 # 2. make run-node # keep this running in a separate terminal
 # 3. make add-transaction
-anoma-path = ~/projects/anoma
+anoma-path = ~/Projects/Anoma/anoma
 base = Main
 
 juvix = $(base).juvix

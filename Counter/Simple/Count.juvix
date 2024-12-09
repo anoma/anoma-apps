@@ -5,4 +5,4 @@ import Anoma open;
 import Anoma.Builtin.System open;
 
 --- Returns the count of a counter resource.
-getCount : Resource -> Nat := Resource.data;
+getCount : Resource -> Nat := Resource.value;

@@ -54,9 +54,10 @@ myResourceEph : Resource :=
     logic := mylogic;
     ephemeral := true;
     quantity := 1;
-    data := 0;
-    nullifier-key := replicate 32 0x0 |> mkByteArray |> toAnomaContents;
-    rseed := 0;
+    value := 0;
+    nullifierKeyCommitment :=
+      replicate 32 0x0 |> mkByteArray |> toAnomaContents;
+    randSeed := 0;
     nonce := replicate 32 0x0 |> mkByteArray |> toAnomaContents;
   };
 
@@ -66,9 +67,10 @@ myResource : Resource :=
     logic := mylogic;
     ephemeral := false;
     quantity := 1;
-    data := 0;
-    nullifier-key := replicate 32 0x0 |> mkByteArray |> toAnomaContents;
-    rseed := 0;
+    value := 0;
+    nullifierKeyCommitment :=
+      replicate 32 0x0 |> mkByteArray |> toAnomaContents;
+    randSeed := 0;
     nonce := 2;
   };
 
@@ -168,7 +170,7 @@ tx-action : Action :=
     commitments := mycommitments;
     nullifiers := mynullifiers;
     proofs := myproofs;
-    app-data := 0;
+    appData := 0;
   };
 
 tx : Transaction :=
@@ -176,7 +178,7 @@ tx : Transaction :=
     roots := [];
     delta := actionDelta tx-action;
     actions := [tx-action];
-    delta-proof := 0;
+    deltaProof := 0;
   };
 
 main : TransactionRequest := TransactionRequest.fromTransaction tx;

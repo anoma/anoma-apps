@@ -20,12 +20,12 @@ mkCounter
   mkResource@{
     logic := counterLogic;
     label := counterLabel;
-    data := count;
+    value := count;
     quantity := 1;
     ephemeral;
-    nullifier-key :=
+    nullifierKeyCommitment :=
       unNullifierKeyCommitment Universal.nullifierKeyCommitment
         |> toAnomaContents;
     nonce := nonceToNat nonce;
-    rseed := 0;
+    randSeed := 0;
   };

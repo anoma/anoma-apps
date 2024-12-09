@@ -1,0 +1,61 @@
+module HelloWorld.Interface.Transaction;
+
+import Anoma open;
+import Applib open;
+import HelloWorld.Resource open;
+import Stdlib.Prelude open;
+import Stdlib.Data.Set as Set open using {Set};
+import Stdlib.Data.Map as Map open using {Map};
+
+import Anoma.State.CommitmentTree open;
+import Applib.Identities open;
+import BaseLayer.TransactionRequest open;
+import Applib.Helpers open;
+
+prepareTransaction
+  (standardInputs : StandardInputs)
+  (consumed created : List Resource)
+  : Transaction :=
+  mkTransactionHelper@{
+    roots := [StandardInputs.currentRoot standardInputs];
+    actions :=
+      [
+        mkActionHelper@{
+          consumed;
+          created;
+        };
+      ];
+  };
+
+initialize (standardInputs : StandardInputs) : Transaction :=
+  let
+    (nonce1, nonce2) :=
+      generateNoncePair (StandardInputs.randSeed standardInputs);
+  in prepareTransaction@{
+       standardInputs;
+       consumed :=
+         [
+           mkHelloWorldResource@{
+             nonce := nonce1;
+             ephemeral := true;
+           };
+         ];
+       created :=
+         [
+           mkHelloWorldResource@{
+             nonce := nonce2;
+             ephemeral := false;
+           };
+         ];
+     };
+
+std : StandardInputs :=
+  mkStandardInputs@{
+    caller := Universal.identity;
+    currentRoot := mkRoot 0;
+    randSeed := 0;
+  };
+
+tx : Transaction := initialize std;
+
+main : TransactionRequest := TransactionRequest.fromTransaction tx;
