@@ -11,7 +11,10 @@ import Applib.Helpers open;
 
 --- A dummy logic function that always returns true.
 logic (publicInputs : Logic.Instance) (privateInputs : Logic.Witness) : Bool :=
-  "DEBUG by MICHAEL" >-> true;
+  case findResource (Logic.Instance.tag publicInputs) privateInputs of
+    | ConsumedRes self := Resource.ephemeral self == false
+    | CreatedRes self := Resource.ephemeral self == false
+    | NonExisting := false;
 
 --- A label containing the string "Hello world!".
 label : Nat := anomaEncode "Hello world!";
@@ -22,10 +25,10 @@ mkHelloWorldResource (nonce : Nonce) {ephemeral : Bool := false} : Resource :=
     logic;
     value := 0;
     quantity := 1;
-    nonce := nonceToNat nonce;
+    nonce := 123;
+    -- nonceToNat nonce;
     ephemeral;
     randSeed := 0;
-    nullifierKeyCommitment :=
-      unNullifierKeyCommitment Universal.nullifierKeyCommitment
-        |> toAnomaContents;
+    nullifierKeyCommitment := 0;
   };
+-- unNullifierKeyCommitment Universal.nullifierKeyCommitment |> toAnomaContents;

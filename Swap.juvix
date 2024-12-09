@@ -8,6 +8,7 @@ import BaseLayer.TransactionRequest open using {
   module TransactionRequest;
 };
 import Anoma open;
+import Applib.Helpers open;
 import Stdlib.Debug open using {failwith};
 
 axiom undefined {A} : A;
@@ -20,33 +21,18 @@ createdMagic : Nat := anomaEncode (just true);
 
 consumedMagic : Nat := anomaEncode "hello";
 
-mylogic (basePub : Logic.Instance) (priv : Logic.Witness) : Bool :=
-  let
-    hasCommitment (cm : Commitment) (r : Resource) : Bool := commitment r == cm;
-    hasNullifier (nf : Nullifier) (r : Resource) : Bool := nullifier r == nf;
-    getCreated (cm : Commitment) : Resource :=
-      fromJust (find (hasCommitment cm) (Logic.Witness.created priv));
-    getConsumed (nf : Nullifier) : Resource :=
-      fromJust (find (hasNullifier nf) (Logic.Witness.consumed priv));
-    sortedCreated : List Resource :=
-      map (mkCommitment >> getCreated) (Logic.Instance.commitments basePub);
-    sortedConsumed : List Resource :=
-      map (mkNullifier >> getConsumed) (Logic.Instance.nullifiers basePub);
-    pub := Logic.Proper.fromBaseLayerInstance basePub priv;
-    ptab := Logic.Proper.Instance.tag pub;
-  in case ptab of
-       | Created c :=
-         let
-           res := getCreated c;
-         in Resource.quantity res == 1
-           && Logic.Proper.Instance.appData pub == createdMagic
-           && Logic.Witness.customInputs priv == createdMagic
-       | Consumed c :=
-         let
-           res := getConsumed c;
-         in Resource.quantity res == 1
-           && Logic.Proper.Instance.appData pub == consumedMagic
-           && Logic.Witness.customInputs priv == consumedMagic;
+mylogic
+  (publicInputs : Logic.Instance) (privateInputs : Logic.Witness) : Bool :=
+  case findResource (Logic.Instance.tag publicInputs) privateInputs of
+    | CreatedRes res :=
+      Resource.quantity res == 1
+        && Logic.Instance.appData publicInputs == createdMagic
+        && Logic.Witness.customInputs privateInputs == createdMagic
+    | ConsumedRes res :=
+      Resource.quantity res == 1
+        && Logic.Instance.appData publicInputs == consumedMagic
+        && Logic.Witness.customInputs privateInputs == consumedMagic
+    | NonExisting := false;
 
 myResourceEph : Resource :=
   mkResource@{

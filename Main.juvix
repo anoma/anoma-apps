@@ -9,6 +9,6 @@ import Counter.Simple as Counter;
 import Swap;
 import HelloWorld.Interface.Transaction as HelloWorld;
 
--- main : TransactionRequest := Counter.main;
+main : TransactionRequest := Counter.main;
 -- main : TransactionRequest := Swap.main;
-main : TransactionRequest := HelloWorld.main;
+-- main : TransactionRequest := HelloWorld.main;

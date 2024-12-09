@@ -16,52 +16,23 @@ import Counter.Simple.Label open;
 --- @param privateInputs The resource logic private inputs.
 --- @return The resource logic validity.
 counterLogic
-  : (publicInputs : Logic.Instance)
-    -> (privateInputs : Logic.Witness)
-    -> Bool :=
-  \{publicInputs privateInputs :=
-    parametrizedCounterLogic@{
-      initializationLogic;
-      incrementationLogic;
-      publicInputs;
-      privateInputs;
-    }};
-
---- A parametrized counter resource logic accepting different sub-logic function.
---- @param initializationLogic The initialization sub-logic.
---- @param incrementationLogic The incrementation sub-logic.
---- @param publicInputs The resource logic public inputs.
---- @param privateInputs The resource logic private inputs.
---- @return Whether the logic is valid or not.
-parametrizedCounterLogic
-  (initializationLogic : Resource -> Logic.Instance -> Bool)
-  (incrementationLogic : Resource -> Logic.Witness -> Bool)
-  (publicInputs : Logic.Instance)
-  (privateInputs : Logic.Witness)
-  : Bool :=
+  (publicInputs : Logic.Instance) (privateInputs : Logic.Witness) : Bool :=
   let
-    pub := Logic.Proper.fromBaseLayerInstance publicInputs privateInputs;
-    tag := Logic.Proper.Instance.tag pub;
+    tag := Logic.Instance.tag publicInputs;
     customInputs := Logic.Witness.customInputs privateInputs;
     customMap : Map CustomInputsKey CustomInputsValue :=
       anomaDecode customInputs;
-  in case tag of
-       | Consumed nullifier :=
-         case lookupResource nullifier customMap of {
-           | nothing := false
-           | just self :=
-             if
-               | Resource.ephemeral self :=
-                 initializationLogic self publicInputs
-               | else := incrementationLogic self privateInputs
-         }
-       | Created commitment :=
-         case lookupResource commitment customMap of
-           | nothing := false
-           | just self :=
-             if
-               | Resource.ephemeral self := false
-               | else := true;
+  in case findResource tag privateInputs of
+       | ConsumedRes self :=
+         if
+           | Resource.ephemeral self := initializationLogic self publicInputs
+           | else := incrementationLogic self privateInputs
+
+       | CreatedRes self :=
+         if
+           | Resource.ephemeral self := false
+           | else := true
+       | NonExisting := false;
 
 --- The initialization sub-logic function checking that the quantity euqals 1.
 --- @param self The resource object carrying the checking resource logic.
