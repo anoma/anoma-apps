@@ -2,17 +2,16 @@ module Package;
 
 import PackageDescription.V2 open;
 
-local : Bool := false;
-
-applib : Dependency :=
-  case local of
-    | true := path "../anoma-applib"
-    | false :=
-      github "anoma" "anoma-applib" "d02a5da5d0521fd40b2b255be61d15c39994ff80";
-
 package : Package :=
   defaultPackage@{
     name := "anoma-devnet-apps";
     main := just "Main.juvix";
-    dependencies := [defaultStdlib; applib];
+    dependencies :=
+      [
+        defaultStdlib;
+        github
+          "anoma"
+          "anoma-applib"
+          "ddc161560067ac85fd8753776a961918e0e882d3";
+      ];
   };
