@@ -5,4 +5,4 @@ import Anoma open;
 import Anoma.Builtin.System open;
 
 --- The counter label.
-counterLabel : Nat := "SimpleCounter" |> anomaEncode
+counterLabel : Nat := "SimpleCounter" |> anomaEncode;

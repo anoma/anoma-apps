@@ -6,4 +6,4 @@ import Counter.Simple.Resource open;
 import Counter.Simple.Count open;
 
 --- Returns the count of a counter ;Resource;.
-count : Resource -> Nat := getCount
+count : Resource -> Nat := getCount;

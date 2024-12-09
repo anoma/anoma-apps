@@ -55,12 +55,12 @@ increment
       ];
   };
 
-
-std : StandardInputs := mkStandardInputs@{
-  caller := Id.Universal.identity;
-  currentRoot := mkRoot 0;
-  randSeed := 0;
-} ;
+std : StandardInputs :=
+  mkStandardInputs@{
+    caller := Id.Universal.identity;
+    currentRoot := mkRoot 0;
+    randSeed := 0;
+  };
 
 tx : Transaction := initialize std;
 

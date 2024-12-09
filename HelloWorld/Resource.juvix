@@ -1,0 +1,31 @@
+module HelloWorld.Resource;
+
+import Stdlib.Prelude open;
+import Stdlib.Data.Set as Set open;
+
+import Anoma open;
+import Anoma.Builtin.System open;
+
+import Applib.Identities open;
+import Applib.Helpers open;
+
+--- A dummy logic function that always returns true.
+logic (publicInputs : Logic.Instance) (privateInputs : Logic.Witness) : Bool :=
+  true;
+
+--- A label containing the string "Hello world!".
+label : Nat := anomaEncode "Hello world!";
+
+mkHelloWorldResource (owner : ExternalIdentity) (nonce : Nonce) : Resource :=
+  mkResource@{
+    label;
+    logic;
+    data := 0;
+    quantity := 1;
+    nonce := nonceToNat nonce;
+    ephemeral := false;
+    rseed := 0;
+    nullifier-key :=
+      unNullifierKeyCommitment Universal.nullifierKeyCommitment
+        |> toAnomaContents;
+  };
