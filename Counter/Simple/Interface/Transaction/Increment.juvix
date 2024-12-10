@@ -5,6 +5,7 @@ import Stdlib.Debug.Fail open using {failwith};
 import Stdlib.Data.Set as Set open using {Set};
 import Stdlib.Data.Map as Map;
 import Anoma open;
+import Anoma.State.CommitmentTree open;
 import Applib.Helpers open;
 import Applib.Identities open;
 
@@ -34,7 +35,6 @@ increment
      };
 
 {-
--- TODO the main function should be able to process input arguments. However, this requires efforts by the engineering team.
 main
 (standardInputs : StandardInputs)
 (currentCounter : Resource)
@@ -48,6 +48,7 @@ main : TransactionRequest :=
     std :=
       mkStandardInputs@{
         caller := Universal.identity;
+        currentRoot := mkRoot 0;
         randSeed := 0;
       };
     (nonce1, nonce2) := generateNoncePair (StandardInputs.randSeed std);

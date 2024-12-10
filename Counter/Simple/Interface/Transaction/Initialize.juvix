@@ -5,6 +5,7 @@ import Stdlib.Debug.Fail open using {failwith};
 import Stdlib.Data.Set as Set open using {Set};
 import Stdlib.Data.Map as Map;
 import Anoma open;
+import Anoma.State.CommitmentTree open;
 import Applib.Helpers open;
 import Applib.Identities open;
 
@@ -41,6 +42,7 @@ initialize (standardInputs : StandardInputs) : Transaction :=
 std : StandardInputs :=
   mkStandardInputs@{
     caller := Universal.identity;
+    currentRoot := mkRoot 0;
     randSeed := 0;
   };
 

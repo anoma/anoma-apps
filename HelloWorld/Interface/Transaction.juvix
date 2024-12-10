@@ -4,6 +4,7 @@ import Anoma open;
 import Applib open;
 import Stdlib.Prelude open;
 
+import Anoma.State.CommitmentTree open;
 import HelloWorld.Resource open;
 import BaseLayer.TransactionRequest open;
 
@@ -42,6 +43,7 @@ prepareTransaction (consumed created : List Resource) : Transaction :=
 std : StandardInputs :=
   mkStandardInputs@{
     caller := Universal.identity;
+    currentRoot := mkRoot 0;
     randSeed := 0;
   };
 
