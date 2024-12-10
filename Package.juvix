@@ -9,9 +9,10 @@ package : Package :=
     dependencies :=
       [
         defaultStdlib;
-        github
+        -- path "../anoma-applib";
+          github
           "anoma"
           "anoma-applib"
-          "18f972db9b20456f2656d928bbb75132de73ab91";
+          "8b75cd6eba7c0b084b50458368e68d7e8f9d9387";
       ];
   };

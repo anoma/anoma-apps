@@ -4,9 +4,11 @@
 # 2. make run-node # keep this running in a separate terminal
 # 3. make add-transaction
 anoma-path = ~/Projects/Anoma/anoma
-base = Main
+base-path = Interface
+base = Transaction
 
-juvix = $(base).juvix
+
+juvix = $(base-path)/$(base).juvix
 nockma = $(base).nockma
 proved = $(base).proved.nockma
 root = $(shell pwd)
@@ -26,7 +28,7 @@ run-client:
 .PHONY: run-node
 run-node:
 	cd $(anoma-path) && \
-		mix run --no-halt $(root)/start-config.exs
+		mix run --no-halt $(root)/../start-config.exs
 
 .PHONY: add-transaction
 add-transaction: $(proved) $(config)

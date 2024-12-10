@@ -1,0 +1,50 @@
+module Counter.Simple.Interface.Transaction.Initialize;
+
+import Stdlib.Prelude open;
+import Stdlib.Debug.Fail open using {failwith};
+import Stdlib.Data.Set as Set open using {Set};
+import Stdlib.Data.Map as Map;
+import Anoma open;
+import Applib.Helpers open;
+import Applib.Identities open;
+
+import Counter.Simple.Resource open;
+import Counter.Simple.Logic open;
+import Counter.Simple.Count open;
+import BaseLayer.TransactionRequest open;
+
+--- Initializes a counter that can be incremented by everyone.
+--- @param standardInputs The transaction function standard inputs.
+--- @return The transaction object initializing a counter.
+initialize (standardInputs : StandardInputs) : Transaction :=
+  let
+    (nonce1, nonce2) :=
+      generateNoncePair (StandardInputs.randSeed standardInputs);
+  in prepareStandardTransaction@{
+       standardInputs;
+       consumed :=
+         [
+           mkCounter@{
+             nonce := nonce1;
+             ephemeral := true;
+           };
+         ];
+       created :=
+         [
+           mkCounter@{
+             nonce := nonce2;
+             ephemeral := false;
+           };
+         ];
+     };
+
+std : StandardInputs :=
+  mkStandardInputs@{
+    caller := Universal.identity;
+    randSeed := 0;
+  };
+
+tx : Transaction := initialize std;
+
+-- TODO Require `StandardInputs` as input arguments.
+main : TransactionRequest := TransactionRequest.fromTransaction tx;

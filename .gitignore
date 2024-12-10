@@ -3,5 +3,6 @@
 *.nockma
 .DS_Store
 
-
+.nockma
 .vscode
+config.yaml

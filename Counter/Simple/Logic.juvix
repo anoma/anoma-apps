@@ -23,11 +23,11 @@ counterLogic
     customMap : Map CustomInputsKey CustomInputsValue :=
       anomaDecode customInputs;
   in case findResource tag privateInputs of
+       -- TODO Use tag according to the specs.
        | ConsumedRes self :=
          if
            | Resource.ephemeral self := initializationLogic self publicInputs
            | else := incrementationLogic self privateInputs
-
        | CreatedRes self :=
          if
            | Resource.ephemeral self := false

@@ -1,4 +1,4 @@
-module Swap;
+module Sandbox.Manual;
 
 import Stdlib.Prelude open;
 import Stdlib.Debug.Trace open;

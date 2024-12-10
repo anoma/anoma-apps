@@ -1,0 +1,10 @@
+module Sandbox.Main;
+
+import Stdlib.Prelude open;
+import BaseLayer.TransactionRequest open using {
+  TransactionRequest;
+  module TransactionRequest;
+};
+import Sandbox.Manual;
+
+main : TransactionRequest := Sandbox.Manual.main;
