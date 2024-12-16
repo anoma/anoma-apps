@@ -1,9 +1,0 @@
-module Counter.Simple.Interface.Projection;
-
-import Stdlib.Prelude open;
-import Anoma open;
-import Counter.Simple.Resource open;
-import Counter.Simple.Count open;
-
---- Returns the count of a counter ;Resource;.
-count : Resource -> Nat := getCount;
