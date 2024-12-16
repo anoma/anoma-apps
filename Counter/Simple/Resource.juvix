@@ -1,15 +1,14 @@
 module Counter.Simple.Resource;
 
 import Stdlib.Prelude open;
-import Stdlib.Data.Set as Set open;
 
-import Anoma open;
+import Anoma.Resource.Types open;
+import Anoma.Builtin.ByteArray open;
 import Anoma.Builtin.System open;
 
 import Applib.Identities open;
+import BaseLayer.ResourceMachine open;
 import Applib.Helpers open;
-import Counter.Simple.Logic open;
-import Applib.Identities open;
 
 --- Constructs a counter with a quantity of 1 that can be consumed by the universal identity (and everyone who has composed their identity with it).
 --- @param count The intial count.
@@ -27,3 +26,26 @@ mkCounter
     nonce := Nonce.toNat nonce;
     randSeed := 0;
   };
+
+valid-counter? : Instance -> Witness -> Bool
+ | pub priv :=
+  case findResource (Instance.tag pub) priv of
+    | ConsumedRes self :=
+      if
+        | Resource.ephemeral self := Resource.quantity self == 1
+        | else := increment-correct? self priv
+    | CreatedRes self := not (Resource.ephemeral self)
+    | NonExisting := false;
+
+increment-correct? (self : Resource) (private : Witness) : Bool :=
+  case Witness.consumed private, Witness.created private of
+    | [consumed], [created] :=
+      same-kind? [self; consumed; created] && incremented? consumed created
+    | _, _ := false;
+
+same-kind? : List Resource -> Bool
+  | nil := true
+  | (x :: xs) := all \{y := kind y == kind x} xs;
+
+incremented? : Resource -> Resource -> Bool
+  | consumed created := Resource.value consumed + 1 == Resource.value created;
