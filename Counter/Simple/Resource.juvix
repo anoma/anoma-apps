@@ -18,7 +18,7 @@ import Counter.Simple.Logic open;
 mkCounter
   (nonce : Nonce) {count : Nat := 0} {ephemeral : Bool := false} : Resource :=
   mkResource@{
-    logic := counterLogic;
+    logic := valid-counter?;
     label := counterLabel;
     value := count;
     quantity := 1;
