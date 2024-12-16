@@ -8,8 +8,8 @@ import Anoma.Builtin.System open;
 
 import Applib.Identities open;
 import Applib.Helpers open;
-import Counter.Simple.Label open;
 import Counter.Simple.Logic open;
+import Applib.Identities open;
 
 --- Constructs a counter with a quantity of 1 that can be consumed by the universal identity (and everyone who has composed their identity with it).
 --- @param count The intial count.
@@ -19,7 +19,7 @@ mkCounter
   (nonce : Nonce) {count : Nat := 0} {ephemeral : Bool := false} : Resource :=
   mkResource@{
     logic := valid-counter?;
-    label := counterLabel;
+    label := "SimpleCounter" |> anomaEncode;
     value := count;
     quantity := 1;
     ephemeral;

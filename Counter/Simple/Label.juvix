@@ -1,8 +1,0 @@
-module Counter.Simple.Label;
-
-import Stdlib.Prelude open;
-import Anoma open;
-import Anoma.Builtin.System open;
-
---- The counter label.
-counterLabel : Nat := "SimpleCounter" |> anomaEncode;
