@@ -1,6 +1,0 @@
-module Counter.Simple.Interface.Transaction;
-
-import Counter.Simple.Interface.Transaction.Increment open hiding {main} public;
-import Counter.Simple.Interface.Transaction.Initialize open hiding {
-  main;
-} public;

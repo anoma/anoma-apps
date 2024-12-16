@@ -1,4 +1,4 @@
-module Counter.Simple.Interface.Transaction.Initialize;
+module Counter.Simple.Initialize;
 
 import Stdlib.Prelude open;
 import Stdlib.Debug.Fail open using {failwith};
