@@ -22,7 +22,7 @@ mkHelloWorldResource (nonce : Nonce) {ephemeral : Bool := false} : Resource :=
     logic;
     value := 0;
     quantity := 1;
-    nonce := nonceToNat nonce;
+    nonce := Nonce.toNat nonce;
     -- TODO The anoma-applib functions should be adapted.
     ephemeral;
     randSeed := 0;

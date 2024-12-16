@@ -23,9 +23,7 @@ mkCounter
     value := count;
     quantity := 1;
     ephemeral;
-    nullifierKeyCommitment :=
-      unNullifierKeyCommitment Universal.nullifierKeyCommitment
-        |> toAnomaContents;
-    nonce := nonceToNat nonce;
+    nullifierKeyCommitment := toAnomaContents Universal.pub;
+    nonce := Nonce.toNat nonce;
     randSeed := 0;
   };
