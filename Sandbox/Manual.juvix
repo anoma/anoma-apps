@@ -26,11 +26,11 @@ mylogic
   case findResource (Logic.Instance.tag publicInputs) privateInputs of
     | CreatedRes res :=
       Resource.quantity res == 1
-        && Logic.Instance.appData publicInputs == createdMagic
+        && Logic.Instance.app-data publicInputs == createdMagic
         && Logic.Witness.customInputs privateInputs == createdMagic
     | ConsumedRes res :=
       Resource.quantity res == 1
-        && Logic.Instance.appData publicInputs == consumedMagic
+        && Logic.Instance.app-data publicInputs == consumedMagic
         && Logic.Witness.customInputs privateInputs == consumedMagic
     | NonExisting := false;
 
@@ -87,7 +87,7 @@ myResourceEphProof : Logic.Proof :=
         commitments := mycommitments;
         nullifiers := mynullifiers;
         tag := myResourceEphNullifier;
-        appData := consumedMagic;
+        app-data := consumedMagic;
       };
     privateInputs : Logic.Witness :=
       Logic.mkWitness@{
@@ -104,7 +104,7 @@ myResourceEphProof' : Logic.Proof :=
         commitments := mycommitments;
         nullifiers := mynullifiers;
         tag := myResourceEphNullifier';
-        appData := consumedMagic;
+        app-data := consumedMagic;
       };
     privateInputs : Logic.Witness :=
       Logic.mkWitness@{
@@ -121,7 +121,7 @@ myResourceProof : Logic.Proof :=
         commitments := mycommitments;
         nullifiers := mynullifiers;
         tag := myResourceCommitment;
-        appData := createdMagic;
+        app-data := createdMagic;
       };
     privateInputs : Logic.Witness :=
       Logic.mkWitness@{
@@ -138,7 +138,7 @@ myResourceProof' : Logic.Proof :=
         commitments := mycommitments;
         nullifiers := mynullifiers;
         tag := myResourceCommitment';
-        appData := createdMagic;
+        app-data := createdMagic;
       };
     privateInputs : Logic.Witness :=
       Logic.mkWitness@{
@@ -156,7 +156,7 @@ tx-action : Action :=
     commitments := mycommitments;
     nullifiers := mynullifiers;
     proofs := myproofs;
-    appData := 0;
+    app-data := 0;
   };
 
 tx : Transaction :=
