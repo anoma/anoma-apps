@@ -8,6 +8,7 @@ import Anoma open;
 import Anoma.State.CommitmentTree open;
 import Applib.Helpers open;
 import Applib.Identities open;
+import Counter.Simple.Increment.Encoded open;
 
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
@@ -20,16 +21,16 @@ increment
   (standardInputs : StandardInputs) (currentCounter : Resource) : Transaction :=
   let
     nonce := generateNonce (StandardInputs.randSeed standardInputs);
+    newCounter :=
+      mkCounter@{
+        nonce;
+        count := Resource.value currentCounter + 1;
+      };
+
   in prepareStandardTransaction@{
        standardInputs;
        consumed := [currentCounter];
-       created :=
-         [
-           mkCounter@{
-             nonce;
-             count := Resource.value currentCounter + 1;
-           };
-         ];
+       created := [newCounter];
      };
 
 {-
@@ -40,22 +41,16 @@ main
 increment standardInputs currentCounter |> TransactionRequest.fromTransaction;
 -}
 
+currentResource : Resource := anomaDecode currentCounterResourceEncoded;
+
 -- TODO WORKAROUND (see above).
 main : TransactionRequest :=
   let
     std :=
       mkStandardInputs@{
         caller := Universal.identity;
-        currentRoot := mkRoot 0;
+        currentRoot := mkRoot latestRoot;
         randSeed := 0;
       };
     (nonce1, nonce2) := generateNoncePair (StandardInputs.randSeed std);
-  in increment
-      std
-      mkCounter@{
-        nonce := nonce2;
-        ephemeral := false;
-      }
-    |> TransactionRequest.fromTransaction;
-
--- TODO FAILS with "12:19:31.204 [error] Transaction verification failed. Reason: {:error, "Nullified resources are not committed at latest root"}"
+  in increment std currentResource |> TransactionRequest.fromTransaction;

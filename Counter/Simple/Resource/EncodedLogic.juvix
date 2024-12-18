@@ -1,0 +1,7 @@
+module Counter.Simple.Resource.EncodedLogic;
+
+import Stdlib.Prelude open;
+
+-- Set this variable to the output of:
+--      make encode-logic
+valid-counter?-encoded : Nat := 0;

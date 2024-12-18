@@ -8,7 +8,11 @@ import Anoma.Builtin.System open;
 
 import Applib.Identities open;
 import BaseLayer.ResourceMachine open;
+import Counter.Simple.Resource.EncodedLogic open;
 import Applib.Helpers open;
+
+valid-counter?-decoded : Instance -> Witness -> Bool :=
+  anomaDecode valid-counter?-encoded;
 
 --- Constructs a counter with a quantity of 1 that can be consumed by the universal identity (and everyone who has composed their identity with it).
 --- @param count The intial count.
@@ -17,7 +21,7 @@ import Applib.Helpers open;
 mkCounter
   (nonce : Nonce) {count : Nat := 0} {ephemeral : Bool := false} : Resource :=
   mkResource@{
-    logic := valid-counter?;
+    logic := valid-counter?-decoded;
     label := "SimpleCounter" |> anomaEncode;
     value := count;
     quantity := 1;
@@ -28,14 +32,14 @@ mkCounter
   };
 
 valid-counter? : Instance -> Witness -> Bool
- | pub priv :=
-  case findResource (Instance.tag pub) priv of
-    | ConsumedRes self :=
-      if
-        | Resource.ephemeral self := Resource.quantity self == 1
-        | else := increment-correct? self priv
-    | CreatedRes self := not (Resource.ephemeral self)
-    | NonExisting := false;
+  | pub priv :=
+    case findResource (Instance.tag pub) priv of
+      | ConsumedRes self :=
+        if
+          | Resource.ephemeral self := Resource.quantity self == 1
+          | else := increment-correct? self priv
+      | CreatedRes self := not (Resource.ephemeral self)
+      | NonExisting := false;
 
 increment-correct? (self : Resource) (private : Witness) : Bool :=
   case Witness.consumed private, Witness.created private of

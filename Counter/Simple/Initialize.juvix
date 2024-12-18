@@ -19,6 +19,11 @@ initialize (standardInputs : StandardInputs) : Transaction :=
   let
     (nonce1, nonce2) :=
       generateNoncePair (StandardInputs.randSeed standardInputs);
+    initialCounter :=
+      mkCounter@{
+        nonce := nonce2;
+        ephemeral := false;
+      };
   in prepareStandardTransaction@{
        standardInputs;
        consumed :=
@@ -28,13 +33,7 @@ initialize (standardInputs : StandardInputs) : Transaction :=
              ephemeral := true;
            };
          ];
-       created :=
-         [
-           mkCounter@{
-             nonce := nonce2;
-             ephemeral := false;
-           };
-         ];
+       created := [initialCounter];
      };
 
 std : StandardInputs :=
