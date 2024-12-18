@@ -53,10 +53,10 @@ increment-counter: $(proved2) $(config)
 $(config): $(anoma-config)
 	cp $(anoma-config) $(config)
 
-$(nockma1): $(juvix)
+$(nockma1): $(juvix1)
 	juvix compile anoma $(juvix1)
 
-$(nockma2): $(juvix)
+$(nockma2): $(juvix2)
 	juvix compile anoma $(juvix2)
 
 $(proved1): $(nockma1) $(config)
