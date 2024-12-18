@@ -1,13 +1,24 @@
+# dependencies:
+# 	- python3
+# 	- jq
+# 	- grpcurl
+# 	- base64
 # how to run:
 # 0. set anoma-path variable in this file to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
 # 1. make run-client
 # 2. make run-node # keep this running in a separate terminal
 # 3. make add-transaction
-anoma-path = ~/Projects/Anoma/anoma
-base-path = Simple/Interface/Transaction
+anoma-path = ~/heliax/anoma
+base-path = Simple/
+script-path = ../scripts/
 
 initialize = Initialize
 increment = Increment
+counter-logic = Logic
+grpc_port ?= $(error Set the grpc_port variable)
+client_host ?= localhost
+
+base64_to_atom = $(script-path)/base64_to_atom.py
 
 juvix1 = $(base-path)/$(initialize).juvix
 nockma1 = $(initialize).nockma
@@ -39,6 +50,18 @@ run-client:
 run-node:
 	cd $(anoma-path) && \
 		mix run --no-halt $(root)/../start-config.exs
+
+.PHONY: get-latest-root
+get-latest-root:
+	@grpcurl -plaintext $(client_host):$(grpc_port) Anoma.Protobuf.BlockService.Root | jq -r '.root' | $(base64_to_atom)
+
+.PHONY: get-unspent-resources
+get-unspent-resources:
+	@grpcurl -plaintext $(client_host):$(grpc_port) Anoma.Protobuf.IndexerService.ListUnspentResources | jq -r '.unspentResources[]' | $(base64_to_atom)
+
+.PHONY: encode-logic
+encode-logic: $(counter-logic-proved)
+	@base64 < $(counter-logic-proved) | $(base64_to_atom)
 
 .PHONY: initialize-counter
 initialize-counter: $(proved1) $(config)
