@@ -36,6 +36,8 @@ root = $(shell pwd)
 config = config.yaml
 anoma-config = $(anoma-path)/$(config)
 
+all-juvix = $(shell find . -name '*.juvix')
+
 all: $(proved)
 
 .PHONY: clean
@@ -76,10 +78,10 @@ increment-counter: $(proved2) $(config)
 $(config): $(anoma-config)
 	cp $(anoma-config) $(config)
 
-$(nockma1): $(juvix1)
+$(nockma1): $(all-juvix)
 	juvix compile anoma $(juvix1)
 
-$(nockma2): $(juvix2)
+$(nockma2): $(all-juvix)
 	juvix compile anoma $(juvix2)
 
 $(proved1): $(nockma1) $(config)
@@ -88,7 +90,7 @@ $(proved1): $(nockma1) $(config)
 $(proved2): $(nockma2) $(config)
 	juvix dev anoma -c $(config) prove $(nockma2)
 
-$(counter-logic-nockma): $(counter-logic-juvix)
+$(counter-logic-nockma): $(all-juvix)
 	@juvix compile anoma $(counter-logic-juvix)
 
 $(counter-logic-proved): $(counter-logic-nockma)
