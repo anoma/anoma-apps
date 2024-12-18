@@ -17,6 +17,10 @@ juvix2 = $(base-path)/$(increment).juvix
 nockma2 = $(increment).nockma
 proved2 = $(increment).proved.nockma
 
+counter-logic-juvix = $(base-path)/$(counter-logic).juvix
+counter-logic-nockma = $(counter-logic).nockma
+counter-logic-proved = $(counter-logic).proved.nockma
+
 root = $(shell pwd)
 config = config.yaml
 anoma-config = $(anoma-path)/$(config)
@@ -60,3 +64,9 @@ $(proved1): $(nockma1) $(config)
 
 $(proved2): $(nockma2) $(config)
 	juvix dev anoma -c $(config) prove $(nockma2)
+
+$(counter-logic-nockma): $(counter-logic-juvix)
+	@juvix compile anoma $(counter-logic-juvix)
+
+$(counter-logic-proved): $(counter-logic-nockma)
+	@juvix dev anoma prove $(counter-logic-nockma)
