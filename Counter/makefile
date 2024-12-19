@@ -67,6 +67,14 @@ get-unspent-resources: $(unspent-resources-int)
 encode-logic: $(encode-logic-int)
 	@cat $(encode-logic-int)
 
+.PHONY: encode-logic-clipboard-linux
+encode-logic-clipboard-linux: $(encode-logic-int)
+	cat $(encode-logic-int) | tr -d '\n' | xclip -selection clipboard
+
+.PHONY: encode-logic-clipboard-mac
+encode-logic-clipboard-mac: $(encode-logic-int)
+	cat $(encode-logic-int) | tr -d '\n' | pbcopy
+
 .PHONY: initialize-counter
 counter-initialize: $(initialize-proved) $(config)
 	juvix dev anoma -c $(config) add-transaction $(initialize-proved)
