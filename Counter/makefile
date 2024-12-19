@@ -6,12 +6,12 @@
 # 	- base64
 # how to run:
 # 0. set anoma-path variable in this file to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
-# 1. make run-client
-# 2. make run-node # keep this running in a separate terminal
-# 3. make add-transaction
-anoma-path = ~/heliax/anoma
-base-path = Simple/
-script-path = ../scripts/
+# 1. make run-node # keep this running in a separate terminal
+# 2. make counter-initialize
+# 3. make counter-increment
+anoma-path = ~/projects/anoma
+base-path = Simple
+script-path = ../scripts
 
 initialize = Initialize
 increment = Increment
@@ -20,13 +20,13 @@ counter-logic = Logic
 base64_to_atom = $(script-path)/base64_to_atom.py
 anoma-build = anoma-build
 
-juvix1 = $(base-path)/$(initialize).juvix
-nockma1 = $(anoma-build)/$(initialize).nockma
-proved1 = $(anoma-build)/$(initialize).proved.nockma
+initialize-juvix = $(base-path)/$(initialize).juvix
+initialize-nockma = $(anoma-build)/$(initialize).nockma
+initialize-proved = $(anoma-build)/$(initialize).proved.nockma
 
-juvix2 = $(base-path)/$(increment).juvix
-nockma2 = $(anoma-build)/$(increment).nockma
-proved2 = $(anoma-build)/$(increment).proved.nockma
+increment-juvix = $(base-path)/$(increment).juvix
+increment-nockma = $(anoma-build)/$(increment).nockma
+increment-proved = $(anoma-build)/$(increment).proved.nockma
 
 counter-logic-juvix = $(base-path)/$(counter-logic).juvix
 counter-logic-nockma = $(anoma-build)/$(counter-logic).nockma
@@ -50,10 +50,6 @@ clean:
 	juvix clean
 	rm -rf $(anoma-build)
 
-.PHONY: run-client
-run-client:
-	juvix dev anoma start --anoma-dir $(anoma-path)
-
 .PHONY: run-node
 run-node:
 	cd $(anoma-path) && \
@@ -72,12 +68,12 @@ encode-logic: $(encode-logic-int)
 	@cat $(encode-logic-int)
 
 .PHONY: initialize-counter
-initialize-counter: $(proved1) $(config)
-	juvix dev anoma -c $(config) add-transaction $(proved1)
+counter-initialize: $(initialize-proved) $(config)
+	juvix dev anoma -c $(config) add-transaction $(initialize-proved)
 
 .PHONY: increment-counter
-increment-counter: $(proved2) $(config)
-	juvix dev anoma -c $(config) add-transaction $(proved2)
+counter-increment: $(increment-proved) $(config)
+	juvix dev anoma -c $(config) add-transaction $(increment-proved)
 
 # TODO Improve script or use JS/TS helpers.
 
@@ -102,17 +98,17 @@ $(anoma-build):
 $(config): $(anoma-config)
 	@cp $(anoma-config) $(config)
 
-$(nockma1): $(all-juvix)
-	juvix compile anoma $(juvix1) -o $(nockma1)
+$(initialize-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(initialize-juvix) -o $(initialize-nockma)
 
-$(nockma2): $(all-juvix)
-	juvix compile anoma $(juvix2) -o $(nockma2)
+$(increment-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(increment-juvix) -o $(increment-nockma)
 
-$(proved1): $(nockma1) $(config)
-	juvix dev anoma -c $(config) prove $(nockma1) -o $(proved1)
+$(initialize-proved): $(initialize-nockma) $(config)
+	juvix dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved)
 
-$(proved2): $(nockma2) $(config)
-	juvix dev anoma -c $(config) prove $(nockma2) -o $(proved2)
+$(increment-proved): $(increment-nockma) $(config)
+	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved)
 
 $(counter-logic-nockma): $(all-juvix)
 	@juvix compile anoma $(counter-logic-juvix) -o $(counter-logic-nockma)
