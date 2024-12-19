@@ -1,4 +1,5 @@
 .juvix-build
+anoma-build/
 .history
 *.nockma
 .DS_Store
