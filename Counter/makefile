@@ -5,10 +5,11 @@
 # 	- grpcurl
 # 	- base64
 # how to run:
-# 0. set anoma-path variable in this file to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
-# 1. make run-node # keep this running in a separate terminal
-# 2. make counter-initialize
-# 3. make counter-increment
+# - set anoma-path variable in this file to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
+# - make run-node # keep this running in a separate terminal
+# - make encode-logic-clipboard-linux # then replace the value of valid-counter?-encoded in EncodedLogic.juvix
+# - make counter-initialize
+# TODO
 anoma-path = ~/projects/anoma
 base-path = Simple
 script-path = ../scripts
