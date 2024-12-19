@@ -95,7 +95,7 @@ $(encode-logic-int): $(anoma-build) $(counter-logic-proved)
 $(anoma-build):
 	@mkdir -p $(anoma-build)
 
-$(config): $(anoma-config)
+$(config): $(anoma-build) $(anoma-config)
 	@cp $(anoma-config) $(config)
 
 $(initialize-nockma): $(anoma-build) $(all-juvix)
