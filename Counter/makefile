@@ -75,6 +75,10 @@ counter-initialize: $(initialize-proved) $(config)
 counter-increment: $(increment-proved) $(config)
 	juvix dev anoma -c $(config) add-transaction $(increment-proved)
 
+.PHONY: cat-config
+cat-config: $(config)
+	@cat $(config)
+
 # TODO Improve script or use JS/TS helpers.
 
 $(host): $(config)
