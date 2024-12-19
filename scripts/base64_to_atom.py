@@ -7,8 +7,11 @@ def base64_to_atom(b):
     return int.from_bytes(bs, byteorder='little')
 
 if __name__ == "__main__":
-    sys.set_int_max_str_digits(0)
     inLines = sys.stdin.readlines()
+    if not inLines:
+        print('', end='')
+        exit(0)
+    sys.set_int_max_str_digits(0)
     for d in inLines[:-1]:
         print(base64_to_atom(d))
     print(base64_to_atom(inLines[-1]), end='')
