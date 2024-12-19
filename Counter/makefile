@@ -114,4 +114,4 @@ $(counter-logic-nockma): $(all-juvix)
 	@juvix compile anoma $(counter-logic-juvix) -o $(counter-logic-nockma)
 
 $(counter-logic-proved): $(counter-logic-nockma) $(config)
-	@juvix dev anoma prove $(counter-logic-nockma) -o $(counter-logic-proved)
+	@juvix dev anoma -c $(config) prove $(counter-logic-nockma) -o $(counter-logic-proved)
