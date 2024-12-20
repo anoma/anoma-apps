@@ -7,7 +7,7 @@ import sys
 def atom_to_base64(astr):
     a  = int(astr)
     bs = a.to_bytes(length = math.ceil(a.bit_length() / 8), byteorder='little')
-    return base64.b64encode(bs)
+    return base64.b64encode(bs).decode('utf-8')
 
 if __name__ == "__main__":
     inLines = sys.stdin.readlines()
