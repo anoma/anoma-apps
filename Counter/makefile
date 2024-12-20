@@ -25,6 +25,15 @@ initialize-juvix = $(base-path)/$(initialize).juvix
 initialize-nockma = $(anoma-build)/$(initialize).nockma
 initialize-proved = $(anoma-build)/$(initialize).proved.nockma
 
+initialize-paul-proved = $(anoma-build)/$(initialize)-paul.proved.nockma
+initialize-paul-candidate = $(anoma-build)/$(initialize)-paul.candidate.nockma
+initialize-paul-candidate-text = $(initialize-paul-candidate).txt
+initialize-paul-transaction-function-text = $(anoma-build)/$(initialize)-paul.transaction-function.nockma.txt
+
+initialize-candidate = $(anoma-build)/$(initialize).candidate.nockma
+initialize-candidate-text = $(initialize-candidate).txt
+initialize-transaction-function-text = $(anoma-build)/$(initialize).transaction-function.nockma.txt
+
 increment-juvix = $(base-path)/$(increment).juvix
 increment-nockma = $(anoma-build)/$(increment).nockma
 increment-proved = $(anoma-build)/$(increment).proved.nockma
@@ -34,6 +43,7 @@ counter-logic-nockma = $(anoma-build)/$(counter-logic).nockma
 counter-logic-proved = $(anoma-build)/$(counter-logic).proved.nockma
 
 encode-logic-int = $(anoma-build)/encode-logic.int
+encode-logic-text = $(anoma-build)/encode-logic.txt
 unspent-resources-int = $(anoma-build)/unspent-resources.int
 get-latest-root-int = $(anoma-build)/latest-root.int
 
@@ -88,6 +98,22 @@ counter-increment: $(increment-proved) $(config)
 cat-config: $(config)
 	@cat $(config)
 
+.PHONY: cat-transaction-function
+cat-transaction-function: $(initialize-transaction-function-text)
+	@cat $(initialize-transaction-function-text)
+
+.PHONY: diff
+diff: $(initialize-paul-transaction-function-text) $(initialize-transaction-function-text)
+	delta $(initialize-paul-transaction-function-text) $(initialize-transaction-function-text)
+
+.PHONY: cat-encode-logic-text
+cat-encode-logic-text: $(encode-logic-text)
+	@cat $(encode-logic-text)
+
+.PHONY: cat-candidate
+cat-candidate: $(initialize-candidate-text)
+	@cat $(initialize-candidate-text)
+
 # TODO Improve script or use JS/TS helpers.
 
 $(host): $(config)
@@ -101,6 +127,9 @@ $(unspent-resources-int): $(anoma-build) $(host) $(port)
 
 $(get-latest-root-int): $(anoma-build) $(host) $(port)
 	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root | jq -r '.root' | $(base64_to_atom) > $(get-latest-root-int)
+
+$(encode-logic-text): $(anoma-build) $(counter-logic-proved)
+	juvix dev nockma encode --from bytes --to text < $(counter-logic-proved) > $(encode-logic-text)
 
 $(encode-logic-int): $(anoma-build) $(counter-logic-proved)
 	@base64 < $(counter-logic-proved) | $(base64_to_atom) > $(encode-logic-int)
@@ -128,3 +157,21 @@ $(counter-logic-nockma): $(all-juvix)
 
 $(counter-logic-proved): $(counter-logic-nockma) $(config)
 	@juvix dev anoma -c $(config) prove $(counter-logic-nockma) -o $(counter-logic-proved)
+
+$(initialize-paul-candidate): $(initialize-paul-proved) $(config)
+	juvix dev anoma -c $(config) prove $(initialize-paul-proved) -o $(initialize-paul-candidate)
+
+$(initialize-paul-candidate-text): $(initialize-paul-candidate) $(config)
+	juvix dev nockma encode --from bytes --to text < $(initialize-paul-candidate) > $(initialize-paul-candidate-text)
+
+$(initialize-paul-transaction-function-text): $(initialize-paul-candidate-text)
+	sed '0,/0/{s/0//}' $(initialize-paul-candidate-text) > $(initialize-paul-transaction-function-text)
+
+$(initialize-candidate): $(initialize-proved) $(config)
+	juvix dev anoma -c $(config) prove $(initialize-proved) -o $(initialize-candidate)
+
+$(initialize-candidate-text): $(initialize-candidate) $(config)
+	juvix dev nockma encode --from bytes --to text < $(initialize-candidate) > $(initialize-candidate-text)
+
+$(initialize-transaction-function-text): $(initialize-candidate-text)
+	sed '0,/0/{s/0//}' $(initialize-candidate-text) > $(initialize-transaction-function-text)
