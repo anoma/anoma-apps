@@ -3,8 +3,12 @@ from pathlib import Path
 import sys
 
 def make_args(args):
-    inner_args = " ".join([a for a in args])
-    return "[{} 0]".format(inner_args)
+    inner_args_list = [a for a in args if a.strip()]
+    if inner_args_list:
+        inner_args = " ".join(inner_args_list)
+        return "[{} 0]".format(inner_args)
+    else:
+        return "0"
 
 if __name__ == "__main__":
     argFiles = sys.argv[1:]
