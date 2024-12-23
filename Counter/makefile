@@ -16,6 +16,7 @@ script-path = ../scripts
 
 initialize = Initialize
 increment = Increment
+get-count = GetCount
 counter-logic = Logic
 
 base64_to_atom = $(script-path)/base64_to_atom.py
@@ -44,6 +45,12 @@ increment-args = $(anoma-build)/$(increment).args
 counter-logic-juvix = $(base-path)/$(counter-logic).juvix
 counter-logic-nockma = $(anoma-build)/$(counter-logic).nockma
 counter-logic-proved = $(anoma-build)/$(counter-logic).proved.nockma
+
+get-count-juvix = $(base-path)/$(get-count).juvix
+get-count-nockma = $(anoma-build)/$(get-count).nockma
+get-count-proved = $(anoma-build)/$(get-count).proved.nockma
+get-count-args = $(anoma-build)/$(get-count).args
+get-count-result = $(anoma-build)/$(get-count).result
 
 encode-logic-int = $(anoma-build)/encode-logic.int
 encode-logic-text = $(anoma-build)//encode-logic.txt
@@ -89,13 +96,18 @@ encode-logic-clipboard-linux: $(encode-logic-int)
 encode-logic-clipboard-mac: $(encode-logic-int)
 	cat $(encode-logic-int) | tr -d '\n' | pbcopy
 
-.PHONY: initialize-counter
+.PHONY: counter-initialize
 counter-initialize: $(initialize-proved) $(config)
 	juvix dev anoma -c $(config) add-transaction $(initialize-proved)
 
-.PHONY: increment-counter
+.PHONY: counter-increment
 counter-increment: $(increment-proved) $(config)
 	juvix dev anoma -c $(config) add-transaction $(increment-proved)
+
+.PHONY: get-count
+get-count: $(get-count-result)
+	@cat $(get-count-result)
+	@echo ""
 
 .PHONY: cat-config
 cat-config: $(config)
@@ -125,9 +137,11 @@ $(host): $(config)
 $(port): $(config)
 	@yq -r '.port' $(config) | tr -d '\n' > $(port)
 
+.PHONY: $(unspent-resources-int)
 $(unspent-resources-int): $(anoma-build) $(host) $(port)
 	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources | jq -r 'try .unspentResources[]' | $(base64_to_atom) > $(unspent-resources-int)
 
+.PHONY: $(get-latest-root-int)
 $(get-latest-root-int): $(anoma-build) $(host) $(port)
 	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root | jq -r '.root' | $(base64_to_atom) > $(get-latest-root-int)
 
@@ -139,6 +153,9 @@ $(encode-logic-int): $(anoma-build) $(counter-logic-proved)
 
 $(initialize-args): $(anoma-build) $(encode-logic-int)
 	$(make_args) $(encode-logic-int) > $(initialize-args)
+
+$(get-count-args): $(anoma-build) $(unspent-resources-int)
+	$(make_args) $(unspent-resources-int) > $(get-count-args)
 
 $(increment-args): $(anoma-build) $(encode-logic-int) $(get-latest-root-int) $(unspent-resources-int)
 	$(make_args) $(encode-logic-int) $(unspent-resources-int) $(get-latest-root-int) > $(increment-args)
@@ -155,11 +172,20 @@ $(initialize-nockma): $(anoma-build) $(all-juvix)
 $(increment-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(increment-juvix) -o $(increment-nockma)
 
+$(get-count-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(get-count-juvix) -o $(get-count-nockma)
+
 $(initialize-proved): $(initialize-args) $(initialize-nockma) $(config)
 	juvix dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved) --args $(initialize-args)
 
 $(increment-proved): $(increment-nockma) $(config) $(increment-args)
 	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved) --args $(increment-args)
+
+$(get-count-proved): $(get-count-args) $(get-count-nockma) $(config)
+	juvix dev anoma -c $(config) prove $(get-count-nockma) -o $(get-count-proved) --args $(get-count-args)
+
+$(get-count-result): $(get-count-proved)
+	juvix dev nockma encode --from bytes --to text < $(get-count-proved) > $(get-count-result)
 
 $(counter-logic-nockma): $(all-juvix)
 	@juvix compile anoma $(counter-logic-juvix) -o $(counter-logic-nockma)
