@@ -4,14 +4,14 @@ import Stdlib.Prelude open;
 import Stdlib.Data.Set as Set open;
 
 import Anoma open;
+import BaseLayer.ResourceMachine open;
 import Anoma.Builtin.System open;
 
 import Applib.Identities open;
 import Applib.Helpers open;
 
 --- A dummy logic function that always returns true.
-logic (publicInputs : Logic.Instance) (privateInputs : Logic.Witness) : Bool :=
-  true;
+logic (publicInputs : Instance) (privateInputs : Witness) : Bool := true;
 
 --- A label containing the string "Hello world!".
 label : Nat := anomaEncode "Hello world!";

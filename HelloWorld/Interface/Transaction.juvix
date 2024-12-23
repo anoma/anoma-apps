@@ -5,6 +5,7 @@ import Applib open;
 import Stdlib.Prelude open;
 
 import Anoma.State.CommitmentTree open;
+import BaseLayer.ResourceMachine open;
 import HelloWorld.Resource open;
 import BaseLayer.TransactionRequest open;
 

@@ -12,6 +12,7 @@ import Counter.Simple.Increment.Encoded open;
 
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
+import BaseLayer.ResourceMachine open;
 
 --- Increments the counter value by 1.
 --- @param currentCounter The current counter to increment.
