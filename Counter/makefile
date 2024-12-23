@@ -10,7 +10,7 @@
 # - make encode-logic-clipboard-linux # then replace the value of valid-counter?-encoded in EncodedLogic.juvix
 # - make counter-initialize
 # TODO
-anoma-path = ~/heliax/anoma
+anoma-path = ~/projects/anoma
 base-path = Simple
 script-path = ../scripts
 
@@ -20,18 +20,12 @@ get-count = GetCount
 counter-logic = Logic
 
 base64_to_atom = $(script-path)/base64_to_atom.py
-make_args = $(script-path)/make_args.py
 anoma-build = anoma-build
 
 initialize-juvix = $(base-path)/$(initialize).juvix
 initialize-nockma = $(anoma-build)/$(initialize).nockma
 initialize-proved = $(anoma-build)/$(initialize).proved.nockma
 initialize-args = $(anoma-build)/$(initialize).args
-
-initialize-paul-proved = $(anoma-build)/$(initialize)-paul.proved.nockma
-initialize-paul-candidate = $(anoma-build)/$(initialize)-paul.candidate.nockma
-initialize-paul-candidate-text = $(initialize-paul-candidate).txt
-initialize-paul-transaction-function-text = $(anoma-build)/$(initialize)-paul.transaction-function.nockma.txt
 
 initialize-candidate = $(anoma-build)/$(initialize).candidate.nockma
 initialize-candidate-text = $(initialize-candidate).txt
@@ -52,10 +46,8 @@ get-count-proved = $(anoma-build)/$(get-count).proved.nockma
 get-count-args = $(anoma-build)/$(get-count).args
 get-count-result = $(anoma-build)/$(get-count).result
 
-encode-logic-int = $(anoma-build)/encode-logic.int
-encode-logic-text = $(anoma-build)//encode-logic.txt
-unspent-resources-int = $(anoma-build)/unspent-resources.int
-get-latest-root-int = $(anoma-build)/latest-root.int
+unspent-resources = $(anoma-build)/unspent-resources
+get-latest-root = $(anoma-build)/latest-root
 
 root = $(shell pwd)
 config = $(anoma-build)/config.yaml
@@ -77,24 +69,12 @@ run-node:
 		mix run --no-halt $(root)/../start-config.exs
 
 .PHONY: get-latest-root
-get-latest-root: $(get-latest-root-int)
-	@cat $(get-latest-root-int)
+get-latest-root: $(get-latest-root)
+	@cat $(get-latest-root)
 
 .PHONY: get-unspent-resources
-get-unspent-resources: $(unspent-resources-int)
-	@cat $(unspent-resources-int)
-
-.PHONY: encode-logic
-encode-logic: $(encode-logic-int)
-	@cat $(encode-logic-int)
-
-.PHONY: encode-logic-clipboard-linux
-encode-logic-clipboard-linux: $(encode-logic-int)
-	cat $(encode-logic-int) | tr -d '\n' | xclip -selection clipboard
-
-.PHONY: encode-logic-clipboard-mac
-encode-logic-clipboard-mac: $(encode-logic-int)
-	cat $(encode-logic-int) | tr -d '\n' | pbcopy
+get-unspent-resources: $(unspent-resources)
+	@cat $(unspent-resources)
 
 .PHONY: counter-initialize
 counter-initialize: $(initialize-proved) $(config)
@@ -117,14 +97,6 @@ cat-config: $(config)
 cat-transaction-function: $(initialize-transaction-function-text)
 	@cat $(initialize-transaction-function-text)
 
-.PHONY: diff
-diff: $(initialize-paul-transaction-function-text) $(initialize-transaction-function-text)
-	delta $(initialize-paul-transaction-function-text) $(initialize-transaction-function-text)
-
-.PHONY: cat-encode-logic-text
-cat-encode-logic-text: $(encode-logic-text)
-	@cat $(encode-logic-text)
-
 .PHONY: cat-candidate
 cat-candidate: $(initialize-candidate-text)
 	@cat $(initialize-candidate-text)
@@ -137,28 +109,13 @@ $(host): $(config)
 $(port): $(config)
 	@yq -r '.port' $(config) | tr -d '\n' > $(port)
 
-.PHONY: $(unspent-resources-int)
-$(unspent-resources-int): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources | jq -r 'try .unspentResources[]' | $(base64_to_atom) > $(unspent-resources-int)
+.PHONY: $(unspent-resources)
+$(unspent-resources): $(anoma-build) $(host) $(port)
+	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources | jq -r 'try .unspentResources[]' > $(unspent-resources)
 
-.PHONY: $(get-latest-root-int)
-$(get-latest-root-int): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root | jq -r '.root' | $(base64_to_atom) > $(get-latest-root-int)
-
-$(encode-logic-text): $(anoma-build) $(counter-logic-proved)
-	juvix dev nockma encode --from bytes --to text < $(counter-logic-proved) > $(encode-logic-text)
-
-$(encode-logic-int): $(anoma-build) $(counter-logic-proved)
-	@base64 < $(counter-logic-proved) | $(base64_to_atom) > $(encode-logic-int)
-
-$(initialize-args): $(anoma-build) $(encode-logic-int)
-	$(make_args) $(encode-logic-int) > $(initialize-args)
-
-$(get-count-args): $(anoma-build) $(unspent-resources-int)
-	$(make_args) $(unspent-resources-int) > $(get-count-args)
-
-$(increment-args): $(anoma-build) $(encode-logic-int) $(get-latest-root-int) $(unspent-resources-int)
-	$(make_args) $(encode-logic-int) $(unspent-resources-int) $(get-latest-root-int) > $(increment-args)
+.PHONY: $(get-latest-root)
+$(get-latest-root): $(anoma-build) $(host) $(port)
+	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root | jq -r '.root' > $(get-latest-root)
 
 $(anoma-build):
 	@mkdir -p $(anoma-build)
@@ -175,32 +132,23 @@ $(increment-nockma): $(anoma-build) $(all-juvix)
 $(get-count-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(get-count-juvix) -o $(get-count-nockma)
 
-$(initialize-proved): $(initialize-args) $(initialize-nockma) $(config)
-	juvix dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved) --args $(initialize-args)
+$(initialize-proved): $(counter-logic-proved) $(initialize-nockma) $(config)
+	juvix dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved) --arg "bytes:$(counter-logic-proved)"
 
-$(increment-proved): $(increment-nockma) $(config) $(increment-args)
-	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved) --args $(increment-args)
+$(increment-proved): $(increment-nockma) $(unspent-resources) $(get-latest-root) $(config) $(counter-logic-proved)
+	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved) --arg "bytes:$(counter-logic-proved)" --arg "base64:$(unspent-resources)" --arg "base64:$(get-latest-root)"
 
-$(get-count-proved): $(get-count-args) $(get-count-nockma) $(config)
-	juvix dev anoma -c $(config) prove $(get-count-nockma) -o $(get-count-proved) --args $(get-count-args)
+$(get-count-proved): $(unspent-resources) $(get-count-nockma) $(config)
+	juvix dev anoma -c $(config) prove $(get-count-nockma) -o $(get-count-proved) --arg "base64:$(unspent-resources)"
 
 $(get-count-result): $(get-count-proved)
 	juvix dev nockma encode --from bytes --to text < $(get-count-proved) > $(get-count-result)
 
-$(counter-logic-nockma): $(all-juvix)
-	@juvix compile anoma $(counter-logic-juvix) -o $(counter-logic-nockma)
+$(counter-logic-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(counter-logic-juvix) -o $(counter-logic-nockma)
 
 $(counter-logic-proved): $(counter-logic-nockma) $(config)
-	@juvix dev anoma -c $(config) prove $(counter-logic-nockma) -o $(counter-logic-proved)
-
-$(initialize-paul-candidate): $(initialize-paul-proved) $(config)
-	juvix dev anoma -c $(config) prove $(initialize-paul-proved) -o $(initialize-paul-candidate)
-
-$(initialize-paul-candidate-text): $(initialize-paul-candidate) $(config)
-	juvix dev nockma encode --from bytes --to text < $(initialize-paul-candidate) > $(initialize-paul-candidate-text)
-
-$(initialize-paul-transaction-function-text): $(initialize-paul-candidate-text)
-	sed '0,/0/{s/0//}' $(initialize-paul-candidate-text) > $(initialize-paul-transaction-function-text)
+	juvix dev anoma -c $(config) prove $(counter-logic-nockma) -o $(counter-logic-proved)
 
 $(initialize-candidate): $(initialize-proved) $(config)
 	juvix dev anoma -c $(config) prove $(initialize-proved) -o $(initialize-candidate)
