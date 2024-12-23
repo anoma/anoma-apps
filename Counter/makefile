@@ -1,15 +1,15 @@
 # dependencies:
-# 	- python3
 # 	- jq
 # 	- yq
 # 	- grpcurl
-# 	- base64
 # how to run:
 # - set anoma-path variable in this file to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
 # - make run-node # keep this running in a separate terminal
-# - make encode-logic-clipboard-linux # then replace the value of valid-counter?-encoded in EncodedLogic.juvix
 # - make counter-initialize
-# TODO
+# - make counter-get
+# - make counter-increment
+# - make counter-get
+# Note that one needs to wait for at least 2 seconds between each make counter-{initialize|increment} invocation so that a block is created in the node.
 anoma-path = ~/projects/anoma
 base-path = Simple
 
@@ -75,8 +75,8 @@ counter-initialize: $(initialize-proved) $(config)
 counter-increment: $(increment-proved) $(config)
 	juvix dev anoma -c $(config) add-transaction $(increment-proved)
 
-.PHONY: get-count
-get-count: $(get-count-result)
+.PHONY: counter-get
+counter-get: $(get-count-result)
 	@cat $(get-count-result)
 	@echo ""
 
