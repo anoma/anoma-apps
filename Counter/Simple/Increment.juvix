@@ -8,7 +8,6 @@ import Anoma open;
 import Anoma.State.CommitmentTree open;
 import Applib.Helpers open;
 import Applib.Identities open;
-import Counter.Simple.Increment.Encoded open;
 
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
@@ -19,11 +18,12 @@ import BaseLayer.ResourceMachine open;
 --- @param standardInputs The transaction function standard inputs.
 --- @return The transaction object incrementing a counter.
 increment
-  (standardInputs : StandardInputs) (currentCounter : Resource) : Transaction :=
+  (logic : Logic) (standardInputs : StandardInputs) (currentCounter : Resource) : Transaction :=
   let
     nonce := generateNonce (StandardInputs.randSeed standardInputs);
     newCounter :=
       mkCounter@{
+        logic;
         nonce;
         count := Resource.value currentCounter + 1;
       };
@@ -34,19 +34,10 @@ increment
        created := [newCounter];
      };
 
-{-
-main
-(standardInputs : StandardInputs)
-(currentCounter : Resource)
-: TransactionRequest :=
-increment standardInputs currentCounter |> TransactionRequest.fromTransaction;
--}
-
-currentResource : Resource := anomaDecode currentCounterResourceEncoded;
-
--- TODO WORKAROUND (see above).
-main : TransactionRequest :=
+main (logicEncoded currentCounterEncoded latestRoot : Nat): TransactionRequest :=
   let
+    logic : Logic := anomaDecode logicEncoded;
+    currentCounter : Resource := anomaDecode currentCounterEncoded;
     std :=
       mkStandardInputs@{
         caller := Universal.identity;
@@ -54,4 +45,4 @@ main : TransactionRequest :=
         randSeed := 0;
       };
     (nonce1, nonce2) := generateNoncePair (StandardInputs.randSeed std);
-  in increment std currentResource |> TransactionRequest.fromTransaction;
+  in increment logic std currentCounter |> TransactionRequest.fromTransaction;

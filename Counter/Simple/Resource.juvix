@@ -8,20 +8,16 @@ import Anoma.Builtin.System open;
 
 import Applib.Identities open;
 import BaseLayer.ResourceMachine open;
-import Counter.Simple.Resource.EncodedLogic open;
 import Applib.Helpers open;
-
-valid-counter?-decoded : Instance -> Witness -> Bool :=
-  anomaDecode valid-counter?-encoded;
 
 --- Constructs a counter with a quantity of 1 that can be consumed by the universal identity (and everyone who has composed their identity with it).
 --- @param count The intial count.
 --- @param ephemeral Whether the resource is ephemeral or not.
 --- @return The constructed counter resource.
 mkCounter
-  (nonce : Nonce) {count : Nat := 0} {ephemeral : Bool := false} : Resource :=
+  (logic : Logic) (nonce : Nonce) {count : Nat := 0} {ephemeral : Bool := false} : Resource :=
   mkResource@{
-    logic := valid-counter?-decoded;
+    logic;
     label := "SimpleCounter" |> anomaEncode;
     value := count;
     quantity := 1;

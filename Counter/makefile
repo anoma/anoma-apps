@@ -10,7 +10,7 @@
 # - make encode-logic-clipboard-linux # then replace the value of valid-counter?-encoded in EncodedLogic.juvix
 # - make counter-initialize
 # TODO
-anoma-path = ~/projects/anoma
+anoma-path = ~/heliax/anoma
 base-path = Simple
 script-path = ../scripts
 
@@ -19,11 +19,13 @@ increment = Increment
 counter-logic = Logic
 
 base64_to_atom = $(script-path)/base64_to_atom.py
+make_args = $(script-path)/make_args.py
 anoma-build = anoma-build
 
 initialize-juvix = $(base-path)/$(initialize).juvix
 initialize-nockma = $(anoma-build)/$(initialize).nockma
 initialize-proved = $(anoma-build)/$(initialize).proved.nockma
+initialize-args = $(anoma-build)/$(initialize).args
 
 initialize-paul-proved = $(anoma-build)/$(initialize)-paul.proved.nockma
 initialize-paul-candidate = $(anoma-build)/$(initialize)-paul.candidate.nockma
@@ -37,13 +39,14 @@ initialize-transaction-function-text = $(anoma-build)/$(initialize).transaction-
 increment-juvix = $(base-path)/$(increment).juvix
 increment-nockma = $(anoma-build)/$(increment).nockma
 increment-proved = $(anoma-build)/$(increment).proved.nockma
+increment-args = $(anoma-build)/$(increment).args
 
 counter-logic-juvix = $(base-path)/$(counter-logic).juvix
 counter-logic-nockma = $(anoma-build)/$(counter-logic).nockma
 counter-logic-proved = $(anoma-build)/$(counter-logic).proved.nockma
 
 encode-logic-int = $(anoma-build)/encode-logic.int
-encode-logic-text = $(anoma-build)/encode-logic.txt
+encode-logic-text = $(anoma-build)//encode-logic.txt
 unspent-resources-int = $(anoma-build)/unspent-resources.int
 get-latest-root-int = $(anoma-build)/latest-root.int
 
@@ -134,6 +137,12 @@ $(encode-logic-text): $(anoma-build) $(counter-logic-proved)
 $(encode-logic-int): $(anoma-build) $(counter-logic-proved)
 	@base64 < $(counter-logic-proved) | $(base64_to_atom) > $(encode-logic-int)
 
+$(initialize-args): $(anoma-build) $(encode-logic-int)
+	$(make_args) $(encode-logic-int) > $(initialize-args)
+
+$(increment-args): $(anoma-build) $(encode-logic-int) $(get-latest-root-int) $(unspent-resources-int)
+	$(make_args) $(encode-logic-int) $(unspent-resources-int) $(get-latest-root-int) > $(increment-args)
+
 $(anoma-build):
 	@mkdir -p $(anoma-build)
 
@@ -146,11 +155,11 @@ $(initialize-nockma): $(anoma-build) $(all-juvix)
 $(increment-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(increment-juvix) -o $(increment-nockma)
 
-$(initialize-proved): $(initialize-nockma) $(config)
-	juvix dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved)
+$(initialize-proved): $(initialize-args) $(initialize-nockma) $(config)
+	juvix dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved) --args $(initialize-args)
 
-$(increment-proved): $(increment-nockma) $(config)
-	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved)
+$(increment-proved): $(increment-nockma) $(config) $(increment-args)
+	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved) --args $(increment-args)
 
 $(counter-logic-nockma): $(all-juvix)
 	@juvix compile anoma $(counter-logic-juvix) -o $(counter-logic-nockma)

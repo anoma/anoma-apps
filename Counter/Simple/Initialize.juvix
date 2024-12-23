@@ -16,12 +16,13 @@ import BaseLayer.ResourceMachine open;
 --- Initializes a counter that can be incremented by everyone.
 --- @param standardInputs The transaction function standard inputs.
 --- @return The transaction object initializing a counter.
-initialize (standardInputs : StandardInputs) : Transaction :=
+initialize (logic : Logic) (standardInputs : StandardInputs) : Transaction :=
   let
     (nonce1, nonce2) :=
       generateNoncePair (StandardInputs.randSeed standardInputs);
     initialCounter :=
       mkCounter@{
+        logic;
         nonce := nonce2;
         ephemeral := false;
       };
@@ -30,6 +31,7 @@ initialize (standardInputs : StandardInputs) : Transaction :=
        consumed :=
          [
            mkCounter@{
+             logic;
              nonce := nonce1;
              ephemeral := true;
            };
@@ -44,7 +46,8 @@ std : StandardInputs :=
     randSeed := 0;
   };
 
-tx : Transaction := initialize std;
-
 -- TODO Require `StandardInputs` as input arguments.
-main : TransactionRequest := TransactionRequest.fromTransaction tx;
+main (logicEncoded : Nat) : TransactionRequest :=
+  let logic : Logic := anomaDecode logicEncoded
+  in
+  TransactionRequest.fromTransaction (initialize logic std);
