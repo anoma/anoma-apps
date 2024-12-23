@@ -12,29 +12,21 @@
 # TODO
 anoma-path = ~/projects/anoma
 base-path = Simple
-script-path = ../scripts
 
 initialize = Initialize
 increment = Increment
 get-count = GetCount
 counter-logic = Logic
 
-base64_to_atom = $(script-path)/base64_to_atom.py
 anoma-build = anoma-build
 
 initialize-juvix = $(base-path)/$(initialize).juvix
 initialize-nockma = $(anoma-build)/$(initialize).nockma
 initialize-proved = $(anoma-build)/$(initialize).proved.nockma
-initialize-args = $(anoma-build)/$(initialize).args
-
-initialize-candidate = $(anoma-build)/$(initialize).candidate.nockma
-initialize-candidate-text = $(initialize-candidate).txt
-initialize-transaction-function-text = $(anoma-build)/$(initialize).transaction-function.nockma.txt
 
 increment-juvix = $(base-path)/$(increment).juvix
 increment-nockma = $(anoma-build)/$(increment).nockma
 increment-proved = $(anoma-build)/$(increment).proved.nockma
-increment-args = $(anoma-build)/$(increment).args
 
 counter-logic-juvix = $(base-path)/$(counter-logic).juvix
 counter-logic-nockma = $(anoma-build)/$(counter-logic).nockma
@@ -43,7 +35,6 @@ counter-logic-proved = $(anoma-build)/$(counter-logic).proved.nockma
 get-count-juvix = $(base-path)/$(get-count).juvix
 get-count-nockma = $(anoma-build)/$(get-count).nockma
 get-count-proved = $(anoma-build)/$(get-count).proved.nockma
-get-count-args = $(anoma-build)/$(get-count).args
 get-count-result = $(anoma-build)/$(get-count).result
 
 unspent-resources = $(anoma-build)/unspent-resources
@@ -93,16 +84,6 @@ get-count: $(get-count-result)
 cat-config: $(config)
 	@cat $(config)
 
-.PHONY: cat-transaction-function
-cat-transaction-function: $(initialize-transaction-function-text)
-	@cat $(initialize-transaction-function-text)
-
-.PHONY: cat-candidate
-cat-candidate: $(initialize-candidate-text)
-	@cat $(initialize-candidate-text)
-
-# TODO Improve script or use JS/TS helpers.
-
 $(host): $(config)
 	@yq -r '.url' $(config) | tr -d '\n' > $(host)
 
@@ -126,17 +107,17 @@ $(config): $(anoma-build) $(anoma-config)
 $(initialize-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(initialize-juvix) -o $(initialize-nockma)
 
-$(increment-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(increment-juvix) -o $(increment-nockma)
-
-$(get-count-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(get-count-juvix) -o $(get-count-nockma)
-
 $(initialize-proved): $(counter-logic-proved) $(initialize-nockma) $(config)
 	juvix dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved) --arg "bytes:$(counter-logic-proved)"
 
+$(increment-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(increment-juvix) -o $(increment-nockma)
+
 $(increment-proved): $(increment-nockma) $(unspent-resources) $(get-latest-root) $(config) $(counter-logic-proved)
 	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved) --arg "bytes:$(counter-logic-proved)" --arg "base64:$(unspent-resources)" --arg "base64:$(get-latest-root)"
+
+$(get-count-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(get-count-juvix) -o $(get-count-nockma)
 
 $(get-count-proved): $(unspent-resources) $(get-count-nockma) $(config)
 	juvix dev anoma -c $(config) prove $(get-count-nockma) -o $(get-count-proved) --arg "base64:$(unspent-resources)"
@@ -149,12 +130,3 @@ $(counter-logic-nockma): $(anoma-build) $(all-juvix)
 
 $(counter-logic-proved): $(counter-logic-nockma) $(config)
 	juvix dev anoma -c $(config) prove $(counter-logic-nockma) -o $(counter-logic-proved)
-
-$(initialize-candidate): $(initialize-proved) $(config)
-	juvix dev anoma -c $(config) prove $(initialize-proved) -o $(initialize-candidate)
-
-$(initialize-candidate-text): $(initialize-candidate) $(config)
-	juvix dev nockma encode --from bytes --to text < $(initialize-candidate) > $(initialize-candidate-text)
-
-$(initialize-transaction-function-text): $(initialize-candidate-text)
-	sed '0,/0/{s/0//}' $(initialize-candidate-text) > $(initialize-transaction-function-text)
