@@ -3,6 +3,7 @@
 # 2. make run-node # keep this running in a separate terminal
 # 3. make create-consumable-resource # this creates a new counter identity. Set the counter_id to setup a new counter identity.
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
+ANOMA_DEBUG ?=
 
 # Change this to create a new counter identity
 counter_id ?= 0
@@ -29,6 +30,9 @@ consumable-transaction-proved = $(anoma-build)/$(consumable-transaction).proved.
 
 all-juvix = $(shell find . -name '*.juvix')
 
+$(anoma-build):
+	@mkdir -p $(anoma-build)
+
 .PHONY: clean
 clean:
 	juvix clean
@@ -38,16 +42,21 @@ clean:
 create-consumable-resource: $(config) $(consumable-transaction-proved)
 	juvix dev anoma -c $(config) add-transaction $(consumable-transaction-proved)
 
-.PHONY: run-node
-run-node:
+.PHONY: node-start
+node-start:
+ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
 		mix run --no-halt $(root)/../../start-config.exs
+else
+	juvix dev anoma start --anoma-dir $(ANOMA_PATH)
+endif
 
-$(anoma-build):
-	@mkdir -p $(anoma-build)
-
-$(config): $(anoma-build) $(anoma-config)
-	@cp $(anoma-config) $(config)
+$(config): $(anoma-build)
+ifdef ANOMA_DEBUG
+	cp $(anoma-config) $(config)
+else
+	juvix dev anoma print-config > $(config)
+endif
 
 $(random-32bytes): $(anoma-build)
 	dd bs=1 count=32 < /dev/urandom > $(random-32bytes)
