@@ -11,7 +11,8 @@
 # - make counter-get
 # Note that one needs to wait for at least 2 seconds between each make counter-{initialize|increment} invocation so that a block is created in the node.
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
-anoma-path = ~/projects/anoma
+ANOMA_DEBUG ?=
+
 base-path = Simple
 
 initialize = Initialize
@@ -56,7 +57,12 @@ clean:
 
 .PHONY: node-start
 node-start:
+ifdef ANOMA_DEBUG
+	cd $(ANOMA_PATH) && \
+		mix run --no-halt $(root)/../start-config.exs
+else
 	juvix dev anoma start --anoma-dir $(ANOMA_PATH)
+endif
 
 .PHONY: get-latest-root
 get-latest-root: $(get-latest-root)
@@ -101,7 +107,11 @@ $(anoma-build):
 	@mkdir -p $(anoma-build)
 
 $(config): $(anoma-build)
+ifdef ANOMA_DEBUG
+	cp $(ANOMA_PATH)/config.yaml $(config)
+else
 	juvix dev anoma print-config > $(config)
+endif
 
 $(initialize-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(initialize-juvix) -o $(initialize-nockma)
