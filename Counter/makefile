@@ -3,13 +3,14 @@
 # 	- yq
 # 	- grpcurl
 # how to run:
-# - set anoma-path variable in this file to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
-# - make run-node # keep this running in a separate terminal
+# - set ANOMA_PATH environment variable to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
+# - make node-start
 # - make counter-initialize
 # - make counter-get
 # - make counter-increment
 # - make counter-get
 # Note that one needs to wait for at least 2 seconds between each make counter-{initialize|increment} invocation so that a block is created in the node.
+ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 anoma-path = ~/projects/anoma
 base-path = Simple
 
@@ -42,7 +43,6 @@ get-latest-root = $(anoma-build)/latest-root
 
 root = $(shell pwd)
 config = $(anoma-build)/config.yaml
-anoma-config = $(anoma-path)/config.yaml
 
 port = $(anoma-build)/port
 host = $(anoma-build)/host
@@ -54,10 +54,9 @@ clean:
 	juvix clean
 	rm -rf $(anoma-build)
 
-.PHONY: run-node
-run-node:
-	cd $(anoma-path) && \
-		mix run --no-halt $(root)/../start-config.exs
+.PHONY: node-start
+node-start:
+	juvix dev anoma start --anoma-dir $(ANOMA_PATH)
 
 .PHONY: get-latest-root
 get-latest-root: $(get-latest-root)
@@ -101,8 +100,8 @@ $(get-latest-root): $(anoma-build) $(host) $(port)
 $(anoma-build):
 	@mkdir -p $(anoma-build)
 
-$(config): $(anoma-build) $(anoma-config)
-	@cp $(anoma-config) $(config)
+$(config): $(anoma-build)
+	juvix dev anoma print-config > $(config)
 
 $(initialize-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(initialize-juvix) -o $(initialize-nockma)
