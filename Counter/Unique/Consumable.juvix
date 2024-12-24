@@ -1,0 +1,24 @@
+module Counter.Unique.Consumable;
+
+import Stdlib.Prelude open;
+import Anoma open;
+import BaseLayer.ResourceMachine open;
+import Applib.Identities open;
+
+alwaysValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
+  true;
+
+-- randSeed is expected to be a Nock atom encoding a 32 byte seed.
+main (randSeed : Nat) : Resource :=
+  let
+    nonce : Nonce := generateNonce (mkRandSeed (fromAnomaContents 32 randSeed));
+  in mkResource@{
+       label := 0;
+       logic := alwaysValidLogic;
+       ephemeral := false;
+       quantity := 1;
+       value := 0;
+       nullifierKeyCommitment := toAnomaContents Universal.pub;
+       nonce := Nonce.toNat nonce;
+       randSeed := 0;
+     };
