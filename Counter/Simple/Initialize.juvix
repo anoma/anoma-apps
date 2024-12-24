@@ -8,6 +8,7 @@ import Anoma open;
 import Anoma.State.CommitmentTree open;
 import Applib.Helpers open;
 import Applib.Identities open;
+import Extra.Encoded open;
 
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
@@ -47,7 +48,7 @@ std : StandardInputs :=
   };
 
 -- TODO Require `StandardInputs` as input arguments.
-main (logicEncoded : Nat) : TransactionRequest :=
-  let logic : Logic := anomaDecode logicEncoded
-  in
-  TransactionRequest.fromTransaction (initialize logic std);
+main (logicEncoded : Encoded Logic) : TransactionRequest :=
+  let
+    logic := Encoded.decode logicEncoded;
+  in TransactionRequest.fromTransaction (initialize logic std);

@@ -1,13 +1,11 @@
 module Counter.Simple.Increment;
 
 import Stdlib.Prelude open;
-import Stdlib.Debug.Fail open using {failwith};
-import Stdlib.Data.Set as Set open using {Set};
-import Stdlib.Data.Map as Map;
 import Anoma open;
 import Anoma.State.CommitmentTree open;
 import Applib.Helpers open;
 import Applib.Identities open;
+import Extra.Encoded open;
 
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
@@ -18,7 +16,10 @@ import BaseLayer.ResourceMachine open;
 --- @param standardInputs The transaction function standard inputs.
 --- @return The transaction object incrementing a counter.
 increment
-  (logic : Logic) (standardInputs : StandardInputs) (currentCounter : Resource) : Transaction :=
+  (logic : Logic)
+  (standardInputs : StandardInputs)
+  (currentCounter : Resource)
+  : Transaction :=
   let
     nonce := generateNonce (StandardInputs.randSeed standardInputs);
     newCounter :=
@@ -34,10 +35,14 @@ increment
        created := [newCounter];
      };
 
-main (logicEncoded currentCounterEncoded latestRoot : Nat): TransactionRequest :=
+main
+  (logicEncoded : Encoded Logic)
+  (currentCounterEncoded : Encoded Resource)
+  (latestRoot : Nat)
+  : TransactionRequest :=
   let
-    logic : Logic := anomaDecode logicEncoded;
-    currentCounter : Resource := anomaDecode currentCounterEncoded;
+    logic := Encoded.decode logicEncoded;
+    currentCounter := Encoded.decode currentCounterEncoded;
     std :=
       mkStandardInputs@{
         caller := Universal.identity;
