@@ -1,0 +1,10 @@
+--- This module contains functions that should be moved to Anoma.System.Builtins
+module Extra.Anoma;
+
+import Stdlib.Prelude open;
+
+builtin anoma-is-nullifier
+axiom isNullifier : Nat -> Bool;
+
+builtin anoma-is-commitment
+axiom isCommitment : Nat -> Bool;

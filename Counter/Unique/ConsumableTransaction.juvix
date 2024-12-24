@@ -2,22 +2,10 @@ module Counter.Unique.ConsumableTransaction;
 
 import Stdlib.Prelude open;
 import Anoma open;
+import Extra.Encoded open;
 import BaseLayer.ResourceMachine open;
 import BaseLayer.TransactionRequest open;
 import Applib.Helpers open using {mkActionHelper};
-
-module Encoded;
-  module Internal;
-    type Encoded A := mkEncoded Nat;
-  end;
-
-  open Internal using {Encoded} public;
-
-  decode {A} : (encoded : Encoded A) -> A
-    | (Internal.mkEncoded n) := anomaDecode n;
-end;
-
-open Encoded using {Encoded};
 
 --- Returns a ;Transaction; that creates the passed ;Resource;
 createConsumableTransaction (resource : Resource) : Transaction :=

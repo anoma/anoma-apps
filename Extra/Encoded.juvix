@@ -1,0 +1,18 @@
+--- This module should be moved and used in applib
+module Extra.Encoded;
+
+import Stdlib.Prelude open;
+import Anoma open;
+
+module Encoded;
+  module Internal;
+    type Encoded A := mkEncoded Nat;
+  end;
+
+  open Internal using {Encoded} public;
+
+  decode {A} : (encoded : Encoded A) -> A
+    | (Internal.mkEncoded n) := anomaDecode n;
+end;
+
+open Encoded using {Encoded} public;

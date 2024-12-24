@@ -1,0 +1,7 @@
+module Counter.Unique.Initialize;
+
+import Stdlib.Prelude open;
+import Anoma open;
+import BaseLayer.ResourceMachine open;
+import BaseLayer.TransactionRequest open;
+import Applib.Helpers open using {mkActionHelper};

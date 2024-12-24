@@ -1,0 +1,46 @@
+module Counter.Unique.Logic;
+
+import Stdlib.Prelude open;
+import Anoma.Builtin.System open;
+import BaseLayer.ResourceMachine open;
+import Applib.Helpers open;
+import Applib.Identities open;
+import Extra.Anoma open;
+
+initialize-correct? (self : Resource) (publicInputs : Instance) : Bool :=
+  let
+    quantity := Resource.quantity self;
+    labelNullifier := Resource.label self;
+    nullifiers := Instance.nullifiers publicInputs;
+  in quantity == 1 && isMember labelNullifier nullifiers;
+
+same-kind? : List Resource -> Bool
+  | nil := true
+  | (x :: xs) := all \{y := kind y == kind x} xs;
+
+incremented? : Resource -> Resource -> Bool
+  | consumed created := Resource.value consumed + 1 == Resource.value created;
+
+-- consumed := Set.fromList [consumable; ephCounter];
+--    created := Set.fromList [ephConsumable; newCounter];
+
+increment-correct? (self : Resource) (private : Witness) : Bool :=
+  case Witness.consumed private, Witness.created private of
+    | [consumed], [created] :=
+      same-kind? [self; consumed; created] && incremented? consumed created
+    | _, _ := false;
+
+counter-correct? (publicInputs : Instance) (privateInputs : Witness) : Bool :=
+  let
+    tag := Instance.tag publicInputs;
+  in if
+    | isNullifier tag :=
+      case Witness.consumed privateInputs, Witness.created privateInputs of {
+        | [consumable; ephCounter], [ephConsumable; newCounter] :=
+          initialize-correct? ephCounter publicInputs
+        | [prevCounter], [nextCounter] :=
+          increment-correct? prevCounter privateInputs
+        | _ := false
+      }
+    | isCommitment tag := false
+    | else := false;
