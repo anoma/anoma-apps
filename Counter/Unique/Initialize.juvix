@@ -5,3 +5,62 @@ import Anoma open;
 import BaseLayer.ResourceMachine open;
 import BaseLayer.TransactionRequest open;
 import Applib.Helpers open using {mkActionHelper};
+import Extra open;
+import Counter.Unique.Resource open;
+import Applib.Helpers open;
+import Applib.Identities open;
+import Anoma.State.CommitmentTree open using {mkRoot};
+import Stdlib.Debug open;
+
+initialize
+  (randSeed : Nat)
+  (consumable : Resource)
+  (logic : Logic)
+  (latestRoot : Nat)
+  : Transaction :=
+  let
+    prng := mkPrng randSeed;
+    (ephCounterNonce, prng') := randomNonce prng;
+    (counterNonce, prng'') := randomNonce prng';
+    uniqueLabel := mkUniqueCounterLabel consumable;
+    ephCounter :=
+      mkCounter@{
+        logic;
+        uniqueLabel;
+        nonce := ephCounterNonce;
+        count := 0;
+        ephemeral := true;
+      };
+    newCounter :=
+      mkCounter@{
+        logic;
+        nonce := counterNonce;
+        ephemeral := false;
+        uniqueLabel;
+        count := 0;
+      };
+    ephConsumable := consumable@Resource{ephemeral := true};
+    standardInputs :=
+      mkStandardInputs@{
+        caller := Universal.identity;
+        currentRoot := mkRoot latestRoot;
+        randSeed := FromNatural.fromNat randSeed;
+      };
+  in prepareStandardTransaction@{
+       standardInputs;
+       consumed := [consumable; ephCounter];
+       created := [ephConsumable; newCounter];
+     };
+
+main
+  (randSeed : Nat)
+  (consumable : Encoded Resource)
+  (logic : Encoded Logic)
+  (latestRoot : Nat)
+  : TransactionRequest :=
+  initialize
+      randSeed
+      (Encoded.decode consumable)
+      (Encoded.decode logic)
+      latestRoot
+    |> TransactionRequest.fromTransaction;

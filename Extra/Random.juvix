@@ -1,0 +1,6 @@
+module Extra.Random;
+
+import Stdlib.Prelude open;
+import Anoma.Builtin.System open;
+
+mkPrng (seed : Nat) : PRNG := pseudoRandomNumberGeneratorInit seed;

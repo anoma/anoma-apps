@@ -2,9 +2,17 @@
 module Extra.Anoma;
 
 import Stdlib.Prelude open;
+import Anoma.Builtin.System open;
+import Anoma.Builtin.ByteArray open;
+import Anoma.Resource.Types open;
 
 builtin anoma-is-nullifier
 axiom isNullifier : Nat -> Bool;
 
 builtin anoma-is-commitment
 axiom isCommitment : Nat -> Bool;
+
+randomNonce (prng : PRNG) : Pair Nonce PRNG :=
+  first
+    (Nonce.from32SizedByteArray)
+    (pseudoRandomNumberGeneratorNextBytes 32 prng);

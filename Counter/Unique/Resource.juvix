@@ -1,0 +1,39 @@
+module Counter.Unique.Resource;
+
+import Stdlib.Prelude open;
+import Anoma.Resource.Types open using {Nonce; module Nonce};
+import Anoma.Builtin.System open;
+import Anoma.Builtin.ByteArray open;
+import BaseLayer.ResourceMachine open;
+import Applib.Identities open;
+import Extra open;
+
+--- The counter label being a wrapper around a nullifier.
+type CounterLabel :=
+  mkCounterLabel@{
+    nullifier : Nat;
+  };
+
+mkUniqueCounterLabel (consumable : Resource) : CounterLabel :=
+  mkCounterLabel (nullifier consumable);
+
+deriving instance
+EqCounterLabel : Eq CounterLabel;
+
+mkCounter
+  (logic : Logic)
+  (uniqueLabel : CounterLabel)
+  (nonce : Nonce)
+  (count : Nat)
+  (ephemeral : Bool)
+  : Resource :=
+  mkResource@{
+    logic;
+    label := anomaEncode uniqueLabel;
+    nonce := Nonce.toNat nonce;
+    ephemeral;
+    randSeed := 0;
+    value := count;
+    quantity := 1;
+    nullifierKeyCommitment := toAnomaContents Universal.pub;
+  };
