@@ -1,0 +1,12 @@
+module Extra.Mtl.MonadError;
+
+import Stdlib.Prelude open;
+
+trait
+type MonadError (Err : Type) (M : Type -> Type) :=
+  mkMonadError@{
+    monad : Monad M;
+    throw : {A : Type} -> Err -> M A;
+  };
+
+open MonadError public;

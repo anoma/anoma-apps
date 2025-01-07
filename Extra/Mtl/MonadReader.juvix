@@ -1,0 +1,13 @@
+module Extra.Mtl.MonadReader;
+
+import Stdlib.Prelude open;
+
+trait
+type MonadReader (S : Type) (M : Type -> Type) :=
+  mkMonadReader@{
+    monad : Monad M;
+    ask : M S;
+    reader : {A : Type} → (S → A) → M A;
+  };
+
+open MonadReader public;
