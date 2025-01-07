@@ -1,0 +1,10 @@
+module Extra.Monad.Random;
+
+import Stdlib.Prelude open;
+import Anoma open;
+
+trait
+type Random (M : Type -> Type) := mkRandom@{
+  genRandomBytes : Nat -> M ByteArray;
+  -- withLocalRandom : {A : Type} -> M A -> M A;
+};

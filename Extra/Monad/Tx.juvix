@@ -1,0 +1,6 @@
+module Extra.Monad.Tx;
+
+import Anoma open;
+
+-- Temporary name
+syntax alias Tx := ReaderState ;

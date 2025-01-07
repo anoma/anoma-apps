@@ -1,0 +1,160 @@
+module Extra.Mtl.ReaderT;
+
+import Stdlib.Prelude open;
+import Extra.Mtl.MonadTrans open;
+import Extra.Mtl.MonadTrans open using {module MonadTrans as MMonadTrans};
+
+type ReaderT (S : Type) (M : Type → Type) (A : Type) :=
+  mkReaderT {runReaderT : S → M A};
+
+runReader
+  {S A : Type}
+  {M : Type → Type}
+  (r : S)
+  (m : ReaderT S M A)
+  : M A := ReaderT.runReaderT m r;
+
+instance
+ReaderT-Functor
+  {S : Type}
+  {M : Type → Type}
+  {{func : Functor M}}
+  : Functor (ReaderT S M) :=
+  mkFunctor@{
+    <$>
+      {A B : Type} (f : A → B) : ReaderT S M A → ReaderT S M B
+      | (mkReaderT g) :=
+        -- NOTE we cannot use unqualified <$> or the scoper gets confused
+        let
+          open MFunctor;
+        in mkReaderT λ {s := λ {a := f a} MFunctor.<$> g s}
+  };
+
+instance
+ReaderT-Monad
+  {S : Type}
+  {M : Type → Type}
+  {{mon : Monad M}}
+  : Monad (ReaderT S M) :=
+  mkMonad@{
+    functor :=
+      ReaderT-Functor@{
+        func := MMonad.functor
+      };
+    return {A : Type} (a : A) : ReaderT S M A :=
+      mkReaderT λ {s := MMonad.return a};
+    >>=
+      {A B : Type}
+      (x : ReaderT S M A)
+      (f : A → ReaderT S M B)
+      : ReaderT S M B :=
+      mkReaderT
+        λ {s := runReader s x MMonad.>>= λ {a := runReader s (f a)}}
+  };
+
+import Extra.Mtl.MonadReader open;
+import Extra.Mtl.MonadError open;
+import Extra.Mtl.MonadError open using {module MonadError as MMonadError};
+import Extra.Mtl.MonadReader open using {module MonadReader as MMonadReader};
+import Stdlib.Data.Unit open;
+import Stdlib.Function open;
+
+instance
+ReaderT-MonadReader
+  {S : Type}
+  {M : Type → Type}
+  {{Monad M}}
+  : MonadReader S (ReaderT S M) :=
+  mkMonadReader@{
+    monad := ReaderT-Monad;
+    ask : ReaderT S M S := mkReaderT λ {s := MMonad.return s};
+    reader {A : Type} (f : S → A) : ReaderT S M A :=
+      mkReaderT (MMonad.return << f)
+  };
+
+import Extra.Mtl.MonadState open;
+import Extra.Mtl.StateT open;
+import Extra.Mtl.Identity open;
+import Stdlib.Data.Pair open;
+
+liftReaderT
+  {R A : Type}
+  {M : Type → Type}
+  (m : M A)
+  : ReaderT R M A := mkReaderT (const m);
+
+instance
+ReaderT-MonadTrans {R : Type} : MonadTrans (ReaderT R) :=
+  mkMonadTrans@{
+    lift
+      {A : Type}
+      {M : Type -> Type}
+      {{Monad M}}
+      (x : M A)
+      : ReaderT R M A := liftReaderT x
+  };
+
+liftStateT
+  {S A : Type}
+  {M : Type → Type}
+  {{Monad M}}
+  (m : M A)
+  : StateT S M A :=
+  mkStateT
+    λ {s := m MMonad.>>= λ {a := MMonad.return (a, s)}};
+
+liftExceptT
+  {Err A : Type}
+  {M : Type → Type}
+  {{mon : Monad M}}
+  (m : M A)
+  : ExceptT Err M A :=
+  mkExceptT (fmap {{Monad.getFunctor mon}} right m);
+
+import Stdlib.Data.Nat open;
+
+askNat {M : Type → Type} {{Monad M}} : ReaderT Nat M Nat :=
+  ask;
+
+monadic : ReaderT Nat (StateT Nat Identity) Nat :=
+  askNat
+    >>= λ {n :=
+      liftReaderT (modify λ {m := m * n}) >>> liftReaderT get};
+
+main : Nat :=
+  runIdentity (evalState 2 (runReader 5 monadic));
+
+example : ExceptT Nat (StateT Nat Identity) Nat :=
+  liftExceptT get
+    >>= λ {x :=
+      if
+        | x == 0 := throw 999
+        | else := return 333};
+
+exampleClassy
+  {M : Type -> Type}
+  {{monErrM : MonadError Nat M}}
+  {{MonadState Nat M}}
+  : M Nat :=
+  let
+    mon : Monad M := MMonadError.monad {{monErrM}};
+  in (>>=)
+    {{mon}}
+    get
+    λ {x :=
+      if
+        | x == 0 := throw 999
+        | else := return {{mon}} 333};
+
+-- runClassy : Either Nat Nat := runIdentity (evalState 0 (runExcept exampleClassy))
+
+-- FIXME fails instance termination
+-- instance
+-- StateT-MonadReader {R S : Type}
+--   {M : Type → Type}
+--   {{mreader : MonadReader R M}} : MonadReader R (StateT S M) :=
+--   mkMonadReader@{
+--     monad := StateT-Monad@{mon := MMonadReader.monad {{mreader}}};
+--     reader {A : Type} : (R → A) → StateT S M A := liftStateT << MMonadReader.reader;
+--     ask : StateT S M R := liftStateT MMonadReader.ask;
+--   };

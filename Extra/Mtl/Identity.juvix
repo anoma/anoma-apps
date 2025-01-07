@@ -1,0 +1,31 @@
+module Extra.Mtl.Identity;
+
+import Stdlib.Prelude open;
+
+type Identity (a : Type) := mkIdentity {runIdentity : a};
+
+open Identity public;
+
+instance
+Identity-Functor : Functor Identity :=
+  mkFunctor@{
+    map {A B : Type} (f : A -> B) : Identity A -> Identity B
+      | (mkIdentity a) := mkIdentity (f a)
+  };
+
+instance
+Identity-Applicative : Applicative Identity :=
+  mkApplicative@{
+    pure := mkIdentity;
+    ap {A B} : Identity (A -> B) -> Identity A -> Identity B
+      | (mkIdentity f) (mkIdentity x) := mkIdentity (f x);
+  };
+
+instance
+Identity-Monad : Monad Identity :=
+  mkMonad@{
+    bind
+      {A B : Type}
+      : Identity A -> (A -> Identity B) -> Identity B
+      | (mkIdentity a) f := f a
+  };
