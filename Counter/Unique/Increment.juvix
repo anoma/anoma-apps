@@ -1,0 +1,60 @@
+module Counter.Unique.Increment;
+
+import Stdlib.Prelude open;
+import Anoma open;
+import Stdlib.Debug.Fail open;
+import BaseLayer.ResourceMachine open;
+import BaseLayer.TransactionRequest open;
+import Applib.Helpers open using {mkActionHelper};
+import Extra open;
+import Counter.Unique.Resource open;
+import Applib.Helpers open;
+import Applib.Identities open;
+import Anoma.State.CommitmentTree open using {mkRoot};
+import Stdlib.Debug open;
+
+increment
+  (randSeed : Nat)
+  (currentCounter : Resource)
+  (logic : Logic)
+  (latestRoot : Nat)
+  : Transaction :=
+  if
+    | not (hasCounterKind currentCounter logic) :=
+      failwith "The input resource has the wrong kind"
+    | else :=
+      let
+        (nonce, _) := mkPrng randSeed |> randomNonce;
+        uniqueLabel := mkUniqueCounterLabel currentCounter;
+        newCounter :=
+          mkCounter@{
+            logic;
+            nonce;
+            uniqueLabel;
+            count := Resource.value currentCounter + 1;
+            ephemeral := false;
+          };
+        standardInputs :=
+          mkStandardInputs@{
+            caller := Universal.identity;
+            currentRoot := mkRoot latestRoot;
+            randSeed := FromNatural.fromNat randSeed;
+          };
+      in prepareStandardTransaction@{
+           standardInputs;
+           consumed := [currentCounter];
+           created := [newCounter];
+         };
+
+main
+  (randSeed : Nat)
+  (currentCounter : Encoded Resource)
+  (logic : Encoded Logic)
+  (latestRoot : Nat)
+  : TransactionRequest :=
+  increment
+      randSeed
+      (Encoded.decode currentCounter)
+      (Encoded.decode logic)
+      latestRoot
+    |> TransactionRequest.fromTransaction;

@@ -37,3 +37,13 @@ mkCounter
     quantity := 1;
     nullifierKeyCommitment := toAnomaContents Universal.pub;
   };
+
+hasCounterKind (resource : Resource) (logic : Logic) : Bool :=
+  let dummyCounter := mkCounter@{
+    logic;
+    uniqueLabel := Resource.label resource |> anomaDecode;
+    nonce := Nonce.fromNat 0;
+    count := 0;
+    ephemeral := true}
+  in
+  kind resource == kind dummyCounter;

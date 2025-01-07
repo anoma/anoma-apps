@@ -12,6 +12,7 @@ consumable = Consumable
 consumable-transaction = ConsumableTransaction
 logic = Logic
 initialize = Initialize
+increment = Increment
 
 base-path = .
 
@@ -41,6 +42,11 @@ initialize-juvix = $(base-path)/$(initialize).juvix
 initialize-nockma = $(anoma-build-dir)/$(initialize).nockma
 initialize-proved = $(anoma-build-dir)/$(initialize).proved.nockma
 
+increment-juvix = $(base-path)/$(increment).juvix
+increment-nockma = $(anoma-build-dir)/$(increment).nockma
+increment-proved = $(anoma-build-dir)/$(increment).proved.nockma
+
+current-counter = $(anoma-build-dir)/current-counter
 get-latest-root = $(anoma-build-dir)/latest-root
 
 port = $(anoma-build-dir)/port
@@ -93,6 +99,11 @@ $(random-32bytes): $(anoma-build)
 $(random-32bytes-initialize): $(anoma-build)
 	dd bs=1 count=32 < /dev/urandom > $(random-32bytes-initialize)
 
+.PHONY: $(current-counter)
+$(current-counter): $(anoma-build) $(host) $(port)
+	echo "current-counter target is not implemented"
+	exit 1
+
 $(consumable-nockma): $(anoma-build) $(consumable-juvix)
 	juvix compile anoma $(consumable-juvix) -o $(consumable-nockma)
 
@@ -112,16 +123,26 @@ $(logic-nockma): $(anoma-build) $(all-juvix)
 $(logic-proved): $(logic-nockma) $(config)
 	juvix dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
 
-$(initialize-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(initialize-juvix) -o $(initialize-nockma)
-
 .PHONY: $(get-latest-root) $(host) $(port)
 $(get-latest-root): $(anoma-build) $(host) $(port)
 	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root | jq -r '.root' > $(get-latest-root)
+
+$(initialize-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(initialize-juvix) -o $(initialize-nockma)
 
 $(initialize-proved): $(initialize-nockma) $(logic-proved) $(random-32bytes-initialize) $(consumable-proved) $(get-latest-root) $(config)
 	juvix dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved) \
 	--arg "bytes:$(random-32bytes-initialize)" \
 	--arg "bytes:$(consumable-proved)" \
+    --arg "bytes:$(logic-proved)" \
+	--arg "base64:$(get-latest-root)"
+
+$(increment-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(increment-juvix) -o $(increment-nockma)
+
+$(increment-proved): $(increment-nockma) $(logic-proved) $(random-32bytes-increment) $(current-counter) $(get-latest-root) $(config)
+	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved) \
+	--arg "bytes:$(random-32bytes-increment)" \
+	--arg "base64:$(current-counter)" \
     --arg "bytes:$(logic-proved)" \
 	--arg "base64:$(get-latest-root)"
