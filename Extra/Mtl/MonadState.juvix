@@ -5,12 +5,12 @@ import Stdlib.Prelude open;
 trait
 type MonadState (S : Type) (M : Type -> Type) :=
   mkMonadState@{
-    monad : Monad M;
+    {{monad}} : Monad M;
     get : M S;
     put : S -> M Unit;
   };
 
-open MonadState public;
+open MonadState hiding {monad} public;
 
 modify
   {S : Type}

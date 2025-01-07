@@ -59,8 +59,8 @@ ReaderT-MonadReader
   mkMonadReader@{
     monad := ReaderT-Monad;
     ask : ReaderT S M S := mkReaderT λ{s := Applicative.pure s};
-    reader {A : Type} (f : S → A) : ReaderT S M A :=
-      mkReaderT (Applicative.pure << f);
+    local {A : Type} (f : S → S) : ReaderT S M A -> ReaderT S M A
+      | (mkReaderT l) := mkReaderT \{s := l (f s)};
   };
 
 import Extra.Mtl.MonadState open;

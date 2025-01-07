@@ -1,6 +1,24 @@
 module Extra.Random;
 
 import Stdlib.Prelude open;
-import Anoma.Builtin.System open;
+import Anoma.Builtin.System as Builtin;
+import Anoma open;
+import Extra.Mtl.StateT open;
 
-mkPrng (seed : Nat) : PRNG := pseudoRandomNumberGeneratorInit seed;
+mkPrng (seed : Nat) : PRNG := Builtin.pseudoRandomNumberGeneratorInit seed;
+
+trait
+type Random (M : Type -> Type) :=
+  mkRandom@{
+    {{monad}} : Monad M;
+    genRandomBytes : Nat -> M ByteArray;
+  };
+
+instance
+StateT-Random {M : Type -> Type} {{Monad M}} : Random (StateT PRNG M) :=
+  mkRandom@{
+    genRandomBytes (n : Nat) : StateT PRNG M ByteArray :=
+      mkStateT
+        \{prng :=
+          Applicative.pure (pseudoRandomNumberGeneratorNextBytes n prng)};
+  };

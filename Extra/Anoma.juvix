@@ -1,10 +1,12 @@
 --- This module contains functions that should be moved to Anoma.System.Builtins
 module Extra.Anoma;
 
+import Extra.Random open;
 import Stdlib.Prelude open;
 import Anoma.Builtin.System open;
 import Anoma.Builtin.ByteArray open;
 import Anoma.Resource.Types open;
+import Extra.Mtl.StateT open;
 
 builtin anoma-is-nullifier
 axiom isNullifier : Nat -> Bool;
@@ -16,3 +18,9 @@ randomNonce (prng : PRNG) : Pair Nonce PRNG :=
   first
     (Nonce.from32SizedByteArray)
     (pseudoRandomNumberGeneratorNextBytes 32 prng);
+
+randomNonce' {R : Type -> Type} {{Random R}} : R Nonce :=
+  do {
+    bytes <- Random.genRandomBytes 32;
+    pure (Nonce.from32SizedByteArray bytes);
+  };

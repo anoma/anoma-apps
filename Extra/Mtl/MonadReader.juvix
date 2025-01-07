@@ -5,9 +5,9 @@ import Stdlib.Prelude open;
 trait
 type MonadReader (S : Type) (M : Type -> Type) :=
   mkMonadReader@{
-    monad : Monad M;
+    {{monad}} : Monad M;
     ask : M S;
-    reader : {A : Type} → (S → A) → M A;
+    local : {A : Type} → (S -> S) -> M A → M A;
   };
 
-open MonadReader public;
+open MonadReader hiding {monad} public;

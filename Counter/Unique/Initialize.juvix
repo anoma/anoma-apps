@@ -12,7 +12,10 @@ import Applib.Identities open;
 import Anoma.State.CommitmentTree open using {mkRoot};
 import Stdlib.Debug open;
 
-initialize
+import Extra.Mtl as Mtl open;
+import Extra.Tx open;
+
+initialize-old
   (randSeed : Nat)
   (consumable : Resource)
   (logic : Logic)
@@ -51,6 +54,54 @@ initialize
        consumed := [consumable; ephCounter];
        created := [ephConsumable; newCounter];
      };
+
+-- TODO remove randSeed from standardInputs?
+initialize
+  (randSeed : Nat)
+  (consumable : Resource)
+  (logic : Logic)
+  (latestRoot : Nat)
+  : Transaction :=
+  let
+    standardInputs :=
+      mkStandardInputs@{
+        caller := Universal.identity;
+        currentRoot := mkRoot latestRoot;
+        randSeed := FromNatural.fromNat randSeed;
+      };
+  in runTx
+    randSeed
+    standardInputs
+    do {
+      ephCounterNonce <- genRandomNonce;
+      counterNonce <- genRandomNonce;
+      let
+        uniqueLabel := mkUniqueCounterLabel consumable;
+        ephCounter :=
+          mkCounter@{
+            logic;
+            uniqueLabel;
+            nonce := ephCounterNonce;
+            count := 0;
+            ephemeral := true;
+          };
+        newCounter :=
+          mkCounter@{
+            logic;
+            nonce := counterNonce;
+            ephemeral := false;
+            uniqueLabel;
+            count := 0;
+          };
+        ephConsumable := consumable@Resource{ephemeral := true};
+      in
+      pure
+        prepareStandardTransaction@{
+          standardInputs;
+          consumed := [consumable; ephCounter];
+          created := [ephConsumable; newCounter];
+        };
+    };
 
 main
   (randSeed : Nat)

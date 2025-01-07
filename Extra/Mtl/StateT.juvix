@@ -19,6 +19,13 @@ evalState
   (m : StateT S M A)
   : M A := Functor.map fst (runState s m);
 
+state
+  {A S}
+  {M : Type -> Type}
+  {{Applicative M}}
+  (f : S -> Pair A S)
+  : StateT S M A := mkStateT \{s := Applicative.pure (f s)};
+
 instance
 StateT-Functor
   {S : Type} {M : Type → Type} {{func : Functor M}} : Functor (StateT S M) :=
