@@ -3,32 +3,39 @@ module HelloWorld.Interface.Transaction;
 import Anoma open;
 import Applib open;
 import Stdlib.Prelude open;
+import Extra.Random open;
 
 import Anoma.State.CommitmentTree open;
 import BaseLayer.ResourceMachine open;
 import HelloWorld.Resource open;
 import BaseLayer.TransactionRequest open;
+import Extra.Tx open;
 
-initialize (standardInputs : StandardInputs) : Transaction :=
-  let
-    (nonce1, nonce2) :=
-      generateNoncePair (StandardInputs.randSeed standardInputs);
-  in prepareTransaction@{
-       consumed :=
-         [
-           mkHelloWorldResource@{
-             nonce := nonce1;
-             ephemeral := true;
-           };
-         ];
-       created :=
-         [
-           mkHelloWorldResource@{
-             nonce := nonce2;
-             ephemeral := false;
-           };
-         ];
-     };
+initialize (randSeed : Nat) (standardInputs : StandardInputs) : Transaction :=
+  runTx
+    randSeed
+    standardInputs
+    do {
+      nonce1 <- genRandomNonce;
+      nonce2 <- genRandomNonce;
+      pure
+        prepareTransaction@{
+          consumed :=
+            [
+              mkHelloWorldResource@{
+                nonce := nonce1;
+                ephemeral := true;
+              };
+            ];
+          created :=
+            [
+              mkHelloWorldResource@{
+                nonce := nonce2;
+                ephemeral := false;
+              };
+            ];
+        };
+    };
 
 prepareTransaction (consumed created : List Resource) : Transaction :=
   mkTransactionHelper@{
@@ -45,9 +52,8 @@ std : StandardInputs :=
   mkStandardInputs@{
     caller := Universal.identity;
     currentRoot := mkRoot 0;
-    randSeed := 0;
   };
 
-tx : Transaction := initialize std;
+tx : Transaction := initialize 0 std;
 
 main : TransactionRequest := TransactionRequest.fromTransaction tx;

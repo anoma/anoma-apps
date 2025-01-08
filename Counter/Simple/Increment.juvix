@@ -10,30 +10,39 @@ import Extra.Encoded open;
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
 import BaseLayer.ResourceMachine open;
+import Extra.Tx open;
 
 --- Increments the counter value by 1.
 --- @param currentCounter The current counter to increment.
 --- @param standardInputs The transaction function standard inputs.
 --- @return The transaction object incrementing a counter.
 increment
+  (randSeed : Nat)
   (logic : Logic)
   (standardInputs : StandardInputs)
   (currentCounter : Resource)
   : Transaction :=
-  let
-    nonce := generateNonce (StandardInputs.randSeed standardInputs);
-    newCounter :=
-      mkCounter@{
-        logic;
-        nonce;
-        count := Resource.value currentCounter + 1;
-      };
+  runTx
+    randSeed
+    standardInputs
+    do {
+      nonce <- genRandomNonce;
+      let
+        newCounter :=
+          mkCounter@{
+            logic;
+            nonce;
+            count := Resource.value currentCounter + 1;
+          };
 
-  in prepareStandardTransaction@{
-       standardInputs;
-       consumed := [currentCounter];
-       created := [newCounter];
-     };
+      in
+      pure
+        prepareStandardTransaction@{
+          standardInputs;
+          consumed := [currentCounter];
+          created := [newCounter];
+        };
+    };
 
 main
   (logicEncoded : Encoded Logic)
@@ -47,7 +56,5 @@ main
       mkStandardInputs@{
         caller := Universal.identity;
         currentRoot := mkRoot latestRoot;
-        randSeed := 0;
       };
-    (nonce1, nonce2) := generateNoncePair (StandardInputs.randSeed std);
-  in increment logic std currentCounter |> TransactionRequest.fromTransaction;
+  in increment 0 logic std currentCounter |> TransactionRequest.fromTransaction;

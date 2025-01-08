@@ -11,51 +11,8 @@ import Applib.Helpers open;
 import Applib.Identities open;
 import Anoma.State.CommitmentTree open using {mkRoot};
 import Stdlib.Debug open;
-
-import Extra.Mtl as Mtl open;
 import Extra.Tx open;
 
-initialize-old
-  (randSeed : Nat)
-  (consumable : Resource)
-  (logic : Logic)
-  (latestRoot : Nat)
-  : Transaction :=
-  let
-    prng := mkPrng randSeed;
-    (ephCounterNonce, prng') := randomNonce prng;
-    (counterNonce, prng'') := randomNonce prng';
-    uniqueLabel := mkUniqueCounterLabel consumable;
-    ephCounter :=
-      mkCounter@{
-        logic;
-        uniqueLabel;
-        nonce := ephCounterNonce;
-        count := 0;
-        ephemeral := true;
-      };
-    newCounter :=
-      mkCounter@{
-        logic;
-        nonce := counterNonce;
-        ephemeral := false;
-        uniqueLabel;
-        count := 0;
-      };
-    ephConsumable := consumable@Resource{ephemeral := true};
-    standardInputs :=
-      mkStandardInputs@{
-        caller := Universal.identity;
-        currentRoot := mkRoot latestRoot;
-        randSeed := FromNatural.fromNat randSeed;
-      };
-  in prepareStandardTransaction@{
-       standardInputs;
-       consumed := [consumable; ephCounter];
-       created := [ephConsumable; newCounter];
-     };
-
--- TODO remove randSeed from standardInputs?
 initialize
   (randSeed : Nat)
   (consumable : Resource)
@@ -67,7 +24,6 @@ initialize
       mkStandardInputs@{
         caller := Universal.identity;
         currentRoot := mkRoot latestRoot;
-        randSeed := FromNatural.fromNat randSeed;
       };
   in runTx
     randSeed

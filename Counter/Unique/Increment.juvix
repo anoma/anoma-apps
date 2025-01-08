@@ -37,7 +37,6 @@ increment
           mkStandardInputs@{
             caller := Universal.identity;
             currentRoot := mkRoot latestRoot;
-            randSeed := FromNatural.fromNat randSeed;
           };
       in prepareStandardTransaction@{
            standardInputs;

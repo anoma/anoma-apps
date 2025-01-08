@@ -13,42 +13,53 @@ import Extra.Encoded open;
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
 import BaseLayer.ResourceMachine open;
+import Extra.Tx open;
 
 --- Initializes a counter that can be incremented by everyone.
 --- @param standardInputs The transaction function standard inputs.
 --- @return The transaction object initializing a counter.
-initialize (logic : Logic) (standardInputs : StandardInputs) : Transaction :=
-  let
-    (nonce1, nonce2) :=
-      generateNoncePair (StandardInputs.randSeed standardInputs);
-    initialCounter :=
-      mkCounter@{
-        logic;
-        nonce := nonce2;
-        ephemeral := false;
-      };
-  in prepareStandardTransaction@{
-       standardInputs;
-       consumed :=
-         [
-           mkCounter@{
-             logic;
-             nonce := nonce1;
-             ephemeral := true;
-           };
-         ];
-       created := [initialCounter];
-     };
+initialize
+  (randSeed : Nat)
+  (logic : Logic)
+  (standardInputs : StandardInputs)
+  : Transaction :=
+  runTx
+    randSeed
+    standardInputs
+    do {
+      nonce1 <- genRandomNonce;
+      nonce2 <- genRandomNonce;
+      let
+        initialCounter :=
+          mkCounter@{
+            logic;
+            nonce := nonce2;
+            ephemeral := false;
+          };
+      in
+      pure
+        prepareStandardTransaction@{
+          standardInputs;
+          consumed :=
+            [
+              mkCounter@{
+                logic;
+                nonce := nonce1;
+                ephemeral := true;
+              };
+            ];
+          created := [initialCounter];
+        };
+    };
 
 std : StandardInputs :=
   mkStandardInputs@{
     caller := Universal.identity;
     currentRoot := mkRoot 0;
-    randSeed := 0;
   };
 
 -- TODO Require `StandardInputs` as input arguments.
 main (logicEncoded : Encoded Logic) : TransactionRequest :=
   let
     logic := Encoded.decode logicEncoded;
-  in TransactionRequest.fromTransaction (initialize logic std);
+  in TransactionRequest.fromTransaction (initialize 0 logic std);
