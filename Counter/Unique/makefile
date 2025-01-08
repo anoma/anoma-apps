@@ -14,6 +14,7 @@ logic = Logic
 initialize = Initialize
 increment = Increment
 counter-kind = CounterKind
+get-count = GetCount
 
 base-path = .
 
@@ -26,6 +27,7 @@ anoma-config = $(ANOMA_PATH)/config.yaml
 
 random-32bytes = $(anoma-build-dir)/random-32bytes-$(counter_id)
 random-32bytes-initialize = $(anoma-build-dir)/random-32bytes-initialize-$(counter_id)
+random-32bytes-increment = $(anoma-build-dir)/random-32bytes-increment-$(counter_id)
 
 consumable-juvix = $(base-path)/$(consumable).juvix
 consumable-nockma = $(anoma-build-dir)/$(consumable).nockma
@@ -33,7 +35,7 @@ consumable-proved = $(anoma-build-dir)/$(consumable)-$(counter_id).proved.nockma
 
 consumable-transaction-juvix = $(base-path)/$(consumable-transaction).juvix
 consumable-transaction-nockma = $(anoma-build-dir)/$(consumable-transaction).nockma
-consumable-transaction-proved = $(anoma-build-dir)/$(consumable-transaction).proved.nockma
+consumable-transaction-proved = $(anoma-build-dir)/$(consumable-transaction)-$(counter_id).proved.nockma
 
 logic-juvix = $(base-path)/$(logic).juvix
 logic-nockma = $(anoma-build-dir)/$(logic).nockma
@@ -41,18 +43,25 @@ logic-proved = $(anoma-build-dir)/$(logic).proved.nockma
 
 initialize-juvix = $(base-path)/$(initialize).juvix
 initialize-nockma = $(anoma-build-dir)/$(initialize).nockma
-initialize-proved = $(anoma-build-dir)/$(initialize).proved.nockma
+initialize-proved = $(anoma-build-dir)/$(initialize)-$(counter_id).proved.nockma
 
 increment-juvix = $(base-path)/$(increment).juvix
 increment-nockma = $(anoma-build-dir)/$(increment).nockma
-increment-proved = $(anoma-build-dir)/$(increment).proved.nockma
+increment-proved = $(anoma-build-dir)/$(increment)-$(counter_id).proved.nockma
 
 counter-kind-juvix = $(base-path)/$(counter-kind).juvix
 counter-kind-nockma = $(anoma-build-dir)/$(counter-kind).nockma
 counter-kind-proved = $(anoma-build-dir)/$(counter-kind)-$(counter_id).proved.nockma
 counter-kind-proved-b64 = $(anoma-build-dir)/$(counter-kind)-$(counter_id).proved.nockma.b64
 
-current-counter = $(anoma-build-dir)/current-counter
+get-count-juvix = $(base-path)/$(get-count).juvix
+get-count-nockma = $(anoma-build-dir)/$(get-count).nockma
+get-count-proved = $(anoma-build-dir)/$(get-count)-$(counter_id).proved.nockma
+get-count-result = $(anoma-build-dir)/$(get-count)-$(counter_id).result
+
+current-counter-request = $(anoma-build-dir)/current-counter-request-$(counter_id).json
+
+current-counter = $(anoma-build-dir)/current-counter-$(counter_id)
 get-latest-root = $(anoma-build-dir)/latest-root
 
 port = $(anoma-build-dir)/port
@@ -76,6 +85,15 @@ create-consumable-resource: $(config) $(consumable-transaction-proved)
 .PHONY: counter-initialize
 counter-initialize: $(initialize-proved) $(config)
 	juvix dev anoma -c $(config) add-transaction $(initialize-proved)
+
+.PHONY: counter-increment
+counter-increment: $(increment-proved) $(config)
+	juvix dev anoma -c $(config) add-transaction $(increment-proved)
+
+.PHONY: counter-get
+counter-get: $(get-count-result)
+	@cat $(get-count-result)
+	@echo ""
 
 .PHONY: node-start
 node-start:
@@ -105,10 +123,22 @@ $(random-32bytes): $(anoma-build)
 $(random-32bytes-initialize): $(anoma-build)
 	dd bs=1 count=32 < /dev/urandom > $(random-32bytes-initialize)
 
+$(random-32bytes-increment): $(anoma-build)
+	dd bs=1 count=32 < /dev/urandom > $(random-32bytes-increment)
+
+$(current-counter-request): $(anoma-build) $(counter-kind-proved-b64)
+	jq -n --arg KIND $$(cat $(counter-kind-proved-b64)) \
+	'{node_info: {node_id: ""}, filters: [{kind: $$KIND}]}' \
+	> $(current-counter-request)
+
 .PHONY: $(current-counter)
-$(current-counter): $(anoma-build) $(host) $(port)
-	echo "current-counter target is not implemented"
-	exit 1
+$(current-counter): $(anoma-build) $(host) $(port) $(current-counter-request)
+	@grpcurl -plaintext \
+	-d @ \
+	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	< $(current-counter-request) \
+	| jq -r 'try .resources[]' \
+	> $(current-counter)
 
 $(consumable-nockma): $(anoma-build) $(consumable-juvix)
 	juvix compile anoma $(consumable-juvix) -o $(consumable-nockma)
@@ -156,6 +186,7 @@ $(increment-proved): $(increment-nockma) $(logic-proved) $(random-32bytes-increm
 $(counter-kind-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(counter-kind-juvix) -o $(counter-kind-nockma)
 
+.PHONY: $(counter-kind-proved)
 $(counter-kind-proved): $(counter-kind-nockma) $(logic-proved) $(consumable-proved) $(config)
 	juvix dev anoma -c $(config) prove $(counter-kind-nockma) -o $(counter-kind-proved) \
 	--arg "bytes:$(consumable-proved)" \
@@ -163,3 +194,12 @@ $(counter-kind-proved): $(counter-kind-nockma) $(logic-proved) $(consumable-prov
 
 $(counter-kind-proved-b64): $(counter-kind-proved)
 	juvix dev nockma encode --from bytes --to base64 < $(counter-kind-proved) > $(counter-kind-proved-b64)
+
+$(get-count-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(get-count-juvix) -o $(get-count-nockma)
+
+$(get-count-proved): $(current-counter) $(get-count-nockma) $(config)
+	juvix dev anoma -c $(config) prove $(get-count-nockma) -o $(get-count-proved) --arg "base64:$(current-counter)"
+
+$(get-count-result): $(get-count-proved)
+	juvix dev nockma encode --from bytes --to text < $(get-count-proved) > $(get-count-result)

@@ -25,12 +25,11 @@ increment
     | else :=
       let
         (nonce, _) := mkPrng randSeed |> randomNonce;
-        uniqueLabel := mkUniqueCounterLabel currentCounter;
         newCounter :=
           mkCounter@{
             logic;
             nonce;
-            uniqueLabel;
+            uniqueLabel := currentCounter |> Resource.label |> anomaDecode;
             count := Resource.value currentCounter + 1;
             ephemeral := false;
           };

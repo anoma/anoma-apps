@@ -6,5 +6,5 @@ import Counter.Unique.Resource open;
 import Anoma.Builtin.System open;
 import Extra open;
 
-main (consumable : Encoded Resource) (logic : Encoded Logic) : Nat :=
-  counterKind (Encoded.decode consumable) (Encoded.decode logic) |> anomaEncode;
+main (consumable : Encoded Resource) (logic : Encoded Logic) : Kind :=
+  counterKind (Encoded.decode consumable) (Encoded.decode logic);
