@@ -13,6 +13,7 @@ consumable-transaction = ConsumableTransaction
 logic = Logic
 initialize = Initialize
 increment = Increment
+counter-kind = CounterKind
 
 base-path = .
 
@@ -45,6 +46,11 @@ initialize-proved = $(anoma-build-dir)/$(initialize).proved.nockma
 increment-juvix = $(base-path)/$(increment).juvix
 increment-nockma = $(anoma-build-dir)/$(increment).nockma
 increment-proved = $(anoma-build-dir)/$(increment).proved.nockma
+
+counter-kind-juvix = $(base-path)/$(counter-kind).juvix
+counter-kind-nockma = $(anoma-build-dir)/$(counter-kind).nockma
+counter-kind-proved = $(anoma-build-dir)/$(counter-kind)-$(counter_id).proved.nockma
+counter-kind-proved-b64 = $(anoma-build-dir)/$(counter-kind)-$(counter_id).proved.nockma.b64
 
 current-counter = $(anoma-build-dir)/current-counter
 get-latest-root = $(anoma-build-dir)/latest-root
@@ -146,3 +152,14 @@ $(increment-proved): $(increment-nockma) $(logic-proved) $(random-32bytes-increm
 	--arg "base64:$(current-counter)" \
     --arg "bytes:$(logic-proved)" \
 	--arg "base64:$(get-latest-root)"
+
+$(counter-kind-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(counter-kind-juvix) -o $(counter-kind-nockma)
+
+$(counter-kind-proved): $(counter-kind-nockma) $(logic-proved) $(consumable-proved) $(config)
+	juvix dev anoma -c $(config) prove $(counter-kind-nockma) -o $(counter-kind-proved) \
+	--arg "bytes:$(consumable-proved)" \
+    --arg "bytes:$(logic-proved)"
+
+$(counter-kind-proved-b64): $(counter-kind-proved)
+	juvix dev nockma encode --from bytes --to base64 < $(counter-kind-proved) > $(counter-kind-proved-b64)

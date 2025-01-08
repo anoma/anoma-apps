@@ -1,0 +1,10 @@
+module Counter.Unique.CounterKind;
+
+import Stdlib.Prelude open;
+import BaseLayer.ResourceMachine open;
+import Counter.Unique.Resource open;
+import Anoma.Builtin.System open;
+import Extra open;
+
+main (consumable : Encoded Resource) (logic : Encoded Logic) : Nat :=
+  counterKind (Encoded.decode consumable) (Encoded.decode logic) |> anomaEncode;
