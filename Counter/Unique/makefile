@@ -52,7 +52,7 @@ increment-proved = $(anoma-build-dir)/$(increment)-$(counter_id).proved.nockma
 counter-kind-juvix = $(base-path)/$(counter-kind).juvix
 counter-kind-nockma = $(anoma-build-dir)/$(counter-kind).nockma
 counter-kind-proved = $(anoma-build-dir)/$(counter-kind)-$(counter_id).proved.nockma
-counter-kind-proved-b64 = $(anoma-build-dir)/$(counter-kind)-$(counter_id).proved.nockma.b64
+counter-kind-proved-cued-b64 = $(anoma-build-dir)/$(counter-kind)-$(counter_id).proved.nockma.b64
 
 get-count-juvix = $(base-path)/$(get-count).juvix
 get-count-nockma = $(anoma-build-dir)/$(get-count).nockma
@@ -126,8 +126,8 @@ $(random-32bytes-initialize): $(anoma-build)
 $(random-32bytes-increment): $(anoma-build)
 	dd bs=1 count=32 < /dev/urandom > $(random-32bytes-increment)
 
-$(current-counter-request): $(anoma-build) $(counter-kind-proved-b64)
-	jq -n --arg KIND $$(cat $(counter-kind-proved-b64)) \
+$(current-counter-request): $(anoma-build) $(counter-kind-proved-cued-b64)
+	jq -n --arg KIND $$(cat $(counter-kind-proved-cued-b64)) \
 	'{node_info: {node_id: ""}, filters: [{kind: $$KIND}]}' \
 	> $(current-counter-request)
 
@@ -192,8 +192,8 @@ $(counter-kind-proved): $(counter-kind-nockma) $(logic-proved) $(consumable-prov
 	--arg "bytes:$(consumable-proved)" \
     --arg "bytes:$(logic-proved)"
 
-$(counter-kind-proved-b64): $(counter-kind-proved)
-	juvix dev nockma encode --from bytes --to base64 < $(counter-kind-proved) > $(counter-kind-proved-b64)
+$(counter-kind-proved-cued-b64): $(counter-kind-proved)
+	juvix dev nockma encode --cue --from bytes --to base64 < $(counter-kind-proved) > $(counter-kind-proved-cued-b64)
 
 $(get-count-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(get-count-juvix) -o $(get-count-nockma)
