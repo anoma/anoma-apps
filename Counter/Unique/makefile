@@ -1,7 +1,20 @@
 # how to run:
 # 1. set ANOMA_PATH environment variable to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
 # 2. make run-node # keep this running in a separate terminal
-# 3. make create-consumable-resource # this creates a new counter identity. Set the counter_id to setup a new counter identity.
+# 3. make counter_id=0 create-consumable-resource # this creates a new counter identity for a counter with id=0
+# 4. make counter_id=0 counter-initialize # initialize the counter with id=0
+# 5. make counter_id=0 counter-get # get the initial value of the counter (0)
+# 6. make counter_id=0 counter-increment # increment the counter with id=0
+# 7. make counter_id=0 counter-get # get the current value of counter with id=0 (1)
+# 8. make counter_id=1 create-consumable-resource # this creates a new counter identity for a counter with id=1
+# 9. make counter_id=1 counter-initialize # initialize with counter with id=1
+#10. make counter_id=1 counter-get # get the current value of counter with id=1 (0)
+#11. make counter_id=1 counter-increment # increment the counter with id=1
+#12. make counter_id=1 counter-get # get the current value of counter with id=1 (1)
+#13. make counter_id=0 counter-increment # increment the counter with id=0
+#14. make counter_id=0 counter-increment # increment the counter with id=0
+#15. make counter_id=0 counter-get # get the current value of counter with id=0 (3)
+#16. make counter_id=1 counter-get # get the current value of counter with id=1 (1)
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
 
