@@ -6,7 +6,7 @@ import Stdlib.Prelude open;
 import Anoma.Builtin.System open;
 import Anoma.Builtin.ByteArray open;
 import Anoma.Resource.Types open;
-import Extra.Mtl.StateT open;
+import Mtl open;
 
 builtin anoma-is-nullifier
 axiom isNullifier : Nat -> Bool;

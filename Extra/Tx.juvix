@@ -1,7 +1,7 @@
 module Extra.Tx;
 
 import Stdlib.Prelude open;
-import Extra.Mtl as Mtl open;
+import Mtl open;
 import BaseLayer.ResourceMachine open;
 import Extra.Anoma as Anoma;
 import Extra.Random open;

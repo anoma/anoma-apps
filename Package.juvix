@@ -14,5 +14,6 @@ package : Package :=
           "anoma"
           "anoma-applib"
           "a20db447bc80f8fc42cb389143623f3535a3ad07";
+        github "anoma" "juvix-mtl" "v0.0.1";
       ];
   };

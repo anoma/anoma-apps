@@ -3,7 +3,7 @@ module Extra.Random;
 import Stdlib.Prelude open;
 import Anoma.Builtin.System as Builtin;
 import Anoma open;
-import Extra.Mtl.StateT open;
+import Mtl open;
 
 mkPrng (seed : Nat) : PRNG := Builtin.pseudoRandomNumberGeneratorInit seed;
 
