@@ -49,4 +49,4 @@ mkHelloWorldTransaction (nonce : Nat) (label : String) : Transaction :=
 
 --- The function that is run to produce a Transaction to send to Anoma.
 main : TransactionRequest :=
-  TransactionRequest.fromTransaction (mkHelloWorldTransaction 0 "Hello Maurice!\n");
+  TransactionRequest.fromTransaction (mkHelloWorldTransaction 0 "Hello World!\n");
