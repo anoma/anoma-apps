@@ -1,7 +1,0 @@
-module HelloWorld.Interface.Projection;
-
-import Stdlib.Prelude open;
-import Anoma open;
-
-getLabel (resource : Resource) : String :=
-  Resource.label resource |> anomaDecode;

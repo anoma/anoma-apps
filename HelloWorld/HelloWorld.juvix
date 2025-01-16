@@ -1,0 +1,52 @@
+module HelloWorld;
+
+import Stdlib.Prelude open;
+import Anoma open;
+import Applib.Identities open;
+import Applib.Helpers open;
+import Anoma.State.CommitmentTree open using {mkRoot};
+import BaseLayer.ResourceMachine open;
+import BaseLayer.TransactionRequest open;
+import BaseLayer.ResourceMachine open;
+
+--- A logic function that is always valid.
+logic (publicInputs : Instance) (privateInputs : Witness) : Bool := true;
+
+--- Creates a new ;Resource; that stores a ;String; message.
+--- @param nonce A number used to ensure resource uniqueness
+--- @param message The message to store in the ;Resource;.
+mkHelloWorldResource
+  (nonce : Nat) (message : String) {ephemeral : Bool := false} : Resource :=
+  mkResource@{
+    label := anomaEncode message;
+    logic;
+    value := 0;
+    quantity := 1;
+    nonce;
+    ephemeral;
+    randSeed := 0;
+    nullifierKeyCommitment := 0;
+  };
+
+--- Produces a ;Transaction; that creates a HelloWorld ;Resource;
+--- @param nonce A number used to ensure ;Resource; uniqueness.
+--- @param message The message to store in the ;Resource;
+mkHelloWorldTransaction (nonce : Nat) (label : String) : Transaction :=
+  let
+    newResource := mkHelloWorldResource nonce label;
+    standardInputs :=
+      mkStandardInputs@{
+        caller := Universal.identity;
+        currentRoot := mkRoot 0;
+      };
+  in prepareStandardTransaction@{
+       standardInputs;
+       -- A Transaction must be balanced, so we consume an ephemeral resource of
+       -- the same kind as the one we're creating.
+       consumed := [newResource@Resource{ephemeral := true}];
+       created := [newResource];
+     };
+
+--- The function that is run to produce a Transaction to send to Anoma.
+main : TransactionRequest :=
+  TransactionRequest.fromTransaction (mkHelloWorldTransaction 0 "Hello Maurice!\n");
