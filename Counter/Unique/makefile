@@ -1,6 +1,10 @@
+# dependencies:
+# 	- jq
+# 	- yq
+# 	- grpcurl
 # how to run:
 # 1. set ANOMA_PATH environment variable to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
-# 2. make run-node # keep this running in a separate terminal
+# 2. make node-start # This will start an Anoma node in the background
 # 3. make counter_id=0 create-consumable-resource # this creates a new counter identity for a counter with id=0
 # 4. make counter_id=0 counter-initialize # initialize the counter with id=0
 # 5. make counter_id=0 counter-get # get the initial value of the counter (0)
@@ -15,6 +19,8 @@
 #14. make counter_id=0 counter-increment # increment the counter with id=0
 #15. make counter_id=0 counter-get # get the current value of counter with id=0 (3)
 #16. make counter_id=1 counter-get # get the current value of counter with id=1 (1)
+# ..
+# Run: make node-stop to stop the Anoma node
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
 
@@ -115,6 +121,13 @@ ifdef ANOMA_DEBUG
 		mix run --no-halt $(root)/../../start-config.exs
 else
 	juvix dev anoma start --anoma-dir $(ANOMA_PATH)
+endif
+
+.PHONY: node-stop
+node-stop:
+ifdef ANOMA_DEBUG
+else
+	juvix dev anoma stop
 endif
 
 $(config): $(anoma-build)

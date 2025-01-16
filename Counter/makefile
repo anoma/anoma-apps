@@ -10,6 +10,7 @@
 # - make counter-increment
 # - make counter-get
 # Note that one needs to wait for at least 2 seconds between each make counter-{initialize|increment} invocation so that a block is created in the node.
+# Run: make node-stop to stop the Anoma node
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
 
@@ -62,6 +63,13 @@ ifdef ANOMA_DEBUG
 		mix run --no-halt $(root)/../start-config.exs
 else
 	juvix dev anoma start --anoma-dir $(ANOMA_PATH)
+endif
+
+.PHONY: node-stop
+node-stop:
+ifdef ANOMA_DEBUG
+else
+	juvix dev anoma stop
 endif
 
 .PHONY: get-latest-root
