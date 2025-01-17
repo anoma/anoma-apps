@@ -1,3 +1,0 @@
-module Extra.Todo;
-
-axiom todo {A} : A;
