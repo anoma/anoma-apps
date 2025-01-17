@@ -8,8 +8,7 @@ import BaseLayer.TransactionRequest open;
 import Applib.Helpers open using {mkActionHelper};
 import Extra open;
 import Counter.Unique.Resource open;
-import Applib.Helpers open;
-import Applib.Identities open;
+import Applib open;
 import Anoma.State.CommitmentTree open using {mkRoot};
 import Stdlib.Debug open;
 
@@ -19,30 +18,36 @@ increment
   (logic : Logic)
   (latestRoot : Nat)
   : Transaction :=
-  if
-    | not (hasCounterKind currentCounter logic) :=
-      failwith "The input resource has the wrong kind"
-    | else :=
-      let
-        (nonce, _) := mkPrng randSeed |> randomNonce;
-        newCounter :=
-          mkCounter@{
-            logic;
-            nonce;
-            uniqueLabel := currentCounter |> Resource.label |> anomaDecode;
-            count := Resource.value currentCounter + 1;
-            ephemeral := false;
+  let
+    standardInputs :=
+      mkStandardInputs@{
+        caller := Universal.identity;
+        currentRoot := mkRoot latestRoot;
+      };
+  in runTx
+    randSeed
+    standardInputs
+    if
+      | not (hasCounterKind currentCounter logic) :=
+        failwith "The input resource has the wrong kind"
+      | else :=
+        do {
+          nonce <- genRandomNonce;
+          let
+            newCounter :=
+              mkCounter@{
+                logic;
+                nonce;
+                uniqueLabel := currentCounter |> Resource.label |> anomaDecode;
+                count := Resource.value currentCounter + 1;
+                ephemeral := false;
+              };
+          in
+          prepareStandardTransaction@{
+            consumed := [currentCounter];
+            created := [newCounter];
           };
-        standardInputs :=
-          mkStandardInputs@{
-            caller := Universal.identity;
-            currentRoot := mkRoot latestRoot;
-          };
-      in prepareStandardTransaction@{
-           standardInputs;
-           consumed := [currentCounter];
-           created := [newCounter];
-         };
+        };
 
 main
   (randSeed : Nat)

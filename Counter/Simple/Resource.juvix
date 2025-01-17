@@ -15,7 +15,11 @@ import Applib.Helpers open;
 --- @param ephemeral Whether the resource is ephemeral or not.
 --- @return The constructed counter resource.
 mkCounter
-  (logic : Logic) (nonce : Nonce) {count : Nat := 0} {ephemeral : Bool := false} : Resource :=
+  (logic : Logic)
+  (nonce : Nonce)
+  {count : Nat := 0}
+  {ephemeral : Bool := false}
+  : Resource :=
   mkResource@{
     logic;
     label := "SimpleCounter" |> anomaEncode;
