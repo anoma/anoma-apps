@@ -3,7 +3,6 @@ module HelloWorld.Interface.Transaction;
 import Anoma open;
 import Applib open;
 import Stdlib.Prelude open;
-import Extra.Random open;
 
 import Anoma.State.CommitmentTree open;
 import BaseLayer.ResourceMachine open;
