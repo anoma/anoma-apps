@@ -1,14 +1,8 @@
 module Counter.Unique.Increment;
 
 import Stdlib.Prelude open;
-import Anoma open;
-import Stdlib.Debug.Fail open;
-import BaseLayer.ResourceMachine open;
-import BaseLayer.TransactionRequest open;
-import Counter.Unique.Resource open;
-import Anoma.Builtin.System open;
 import Applib open;
-import Anoma.State.CommitmentTree open using {mkRoot};
+import Counter.Unique.Resource open;
 import Stdlib.Debug open;
 
 increment

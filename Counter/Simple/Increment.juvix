@@ -1,13 +1,8 @@
 module Counter.Simple.Increment;
 
 import Stdlib.Prelude open;
-import Anoma open;
-import Anoma.State.CommitmentTree open;
 import Applib open;
-
 import Counter.Simple.Resource open;
-import BaseLayer.TransactionRequest open;
-import BaseLayer.ResourceMachine open;
 
 --- Increments the counter value by 1.
 --- @param currentCounter The current counter to increment.

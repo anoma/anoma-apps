@@ -1,9 +1,6 @@
 module Counter.Unique.ConsumableTransaction;
 
 import Stdlib.Prelude open;
-import Anoma open;
-import BaseLayer.ResourceMachine open;
-import BaseLayer.TransactionRequest open;
 import Applib open;
 
 --- Returns a ;Transaction; that creates the passed ;Resource;

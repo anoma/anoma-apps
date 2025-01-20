@@ -1,9 +1,7 @@
 module Counter.Unique.Consumable;
 
 import Stdlib.Prelude open;
-import Anoma open;
-import BaseLayer.ResourceMachine open;
-import Applib.Identities open;
+import Applib open;
 
 alwaysValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
   true;

@@ -1,15 +1,8 @@
 module Counter.Simple.Initialize;
 
 import Stdlib.Prelude open;
-import Stdlib.Debug.Fail open using {failwith};
-import Stdlib.Data.Set as Set open using {Set};
-import Stdlib.Data.Map as Map;
-import Anoma open;
-import Anoma.State.CommitmentTree open;
-import Counter.Simple.Resource open;
-import BaseLayer.TransactionRequest open;
-import BaseLayer.ResourceMachine open;
 import Applib open;
+import Counter.Simple.Resource open;
 
 --- Initializes a counter that can be incremented by everyone.
 --- @param standardInputs The transaction function standard inputs.

@@ -1,10 +1,6 @@
 module Counter.Unique.Resource;
 
 import Stdlib.Prelude open;
-import Anoma.Resource.Types open using {Nonce; module Nonce};
-import Anoma.Builtin.System open;
-import Anoma.Builtin.ByteArray open;
-import BaseLayer.ResourceMachine open;
 import Applib open;
 
 --- The counter label being a wrapper around a nullifier.

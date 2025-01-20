@@ -1,16 +1,8 @@
 module Counter.Unique.Initialize;
 
 import Stdlib.Prelude open;
-import Anoma open;
-import BaseLayer.ResourceMachine open;
-import BaseLayer.TransactionRequest open;
-import Applib.Helpers open using {mkActionHelper};
-import Counter.Unique.Resource open;
-import Applib.Helpers open;
-import Applib.Identities open;
-import Anoma.State.CommitmentTree open using {mkRoot};
-import Stdlib.Debug open;
 import Applib open;
+import Counter.Unique.Resource open;
 
 initialize
   (randSeed : Nat)

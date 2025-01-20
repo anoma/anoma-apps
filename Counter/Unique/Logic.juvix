@@ -1,8 +1,6 @@
 module Counter.Unique.Logic;
 
 import Stdlib.Prelude open;
-import Anoma.Builtin.System open;
-import BaseLayer.ResourceMachine open;
 import Applib open;
 
 initialize-correct? (self : Resource) (publicInputs : Instance) : Bool :=

@@ -1,13 +1,8 @@
 module HelloWorld.Interface.Transaction;
 
-import Anoma open;
-import Applib open;
 import Stdlib.Prelude open;
-
-import Anoma.State.CommitmentTree open;
-import BaseLayer.ResourceMachine open;
+import Applib open;
 import HelloWorld.Resource open;
-import BaseLayer.TransactionRequest open;
 
 initialize (randSeed : Nat) (standardInputs : StandardInputs) : Transaction :=
   runTx

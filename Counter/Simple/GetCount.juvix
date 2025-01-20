@@ -1,8 +1,7 @@
 module Counter.Simple.GetCount;
 
 import Stdlib.Prelude open;
-import Anoma open;
-import Anoma.Builtin.System open;
+import Applib open;
 
 main (currentCounterEncoded : Encoded Resource) : Nat :=
   currentCounterEncoded |> decode |> Resource.value;

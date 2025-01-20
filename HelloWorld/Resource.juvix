@@ -1,14 +1,7 @@
 module HelloWorld.Resource;
 
 import Stdlib.Prelude open;
-import Stdlib.Data.Set as Set open;
-
-import Anoma open;
-import BaseLayer.ResourceMachine open;
-import Anoma.Builtin.System open;
-
-import Applib.Identities open;
-import Applib.Helpers open;
+import Applib open;
 
 --- A dummy logic function that always returns true.
 logic (publicInputs : Instance) (privateInputs : Witness) : Bool := true;
