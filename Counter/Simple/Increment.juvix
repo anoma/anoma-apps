@@ -3,14 +3,12 @@ module Counter.Simple.Increment;
 import Stdlib.Prelude open;
 import Anoma open;
 import Anoma.State.CommitmentTree open;
-import Applib.Helpers open;
-import Applib.Identities open;
+import Applib open;
 import Extra.Encoded open;
 
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
 import BaseLayer.ResourceMachine open;
-import Extra.Tx open;
 
 --- Increments the counter value by 1.
 --- @param currentCounter The current counter to increment.
@@ -36,12 +34,10 @@ increment
           };
 
       in
-      pure
-        prepareStandardTransaction@{
-          standardInputs;
-          consumed := [currentCounter];
-          created := [newCounter];
-        };
+      prepareStandardTransaction@{
+        consumed := [currentCounter];
+        created := [newCounter];
+      };
     };
 
 main

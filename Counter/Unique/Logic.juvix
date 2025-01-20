@@ -35,7 +35,9 @@ counter-correct? (publicInputs : Instance) (privateInputs : Witness) : Bool :=
       case Witness.consumed privateInputs, Witness.created privateInputs of {
         | [consumable; ephCounter], [ephConsumable; newCounter] :=
           -- This is called for consumable and ephCounter
-          initialize-correct? ephCounter publicInputs
+            initialize-correct?
+            ephCounter
+            publicInputs
         | [prevCounter], [nextCounter] :=
           increment-correct? prevCounter privateInputs
         | _ := false

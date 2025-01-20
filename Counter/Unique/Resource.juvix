@@ -39,21 +39,25 @@ mkCounter
   };
 
 counterKind (consumable : Resource) (logic : Logic) : Kind :=
-  let dummyCounter := mkCounter@{
-    logic;
-    uniqueLabel := mkUniqueCounterLabel consumable;
-    nonce := Nonce.fromNat 0;
-    count := 0;
-    ephemeral := true}
-  in
-  kind dummyCounter;
+  let
+    dummyCounter :=
+      mkCounter@{
+        logic;
+        uniqueLabel := mkUniqueCounterLabel consumable;
+        nonce := Nonce.fromNat 0;
+        count := 0;
+        ephemeral := true;
+      };
+  in kind dummyCounter;
 
 hasCounterKind (resource : Resource) (logic : Logic) : Bool :=
-  let dummyCounter := mkCounter@{
-    logic;
-    uniqueLabel := Resource.label resource |> anomaDecode;
-    nonce := Nonce.fromNat 0;
-    count := 0;
-    ephemeral := true}
-  in
-  kind resource == kind dummyCounter;
+  let
+    dummyCounter :=
+      mkCounter@{
+        logic;
+        uniqueLabel := Resource.label resource |> anomaDecode;
+        nonce := Nonce.fromNat 0;
+        count := 0;
+        ephemeral := true;
+      };
+  in kind resource == kind dummyCounter;

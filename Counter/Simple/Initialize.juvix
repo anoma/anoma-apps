@@ -6,14 +6,11 @@ import Stdlib.Data.Set as Set open using {Set};
 import Stdlib.Data.Map as Map;
 import Anoma open;
 import Anoma.State.CommitmentTree open;
-import Applib.Helpers open;
-import Applib.Identities open;
 import Extra.Encoded open;
-
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
 import BaseLayer.ResourceMachine open;
-import Extra.Tx open;
+import Applib open;
 
 --- Initializes a counter that can be incremented by everyone.
 --- @param standardInputs The transaction function standard inputs.
@@ -37,19 +34,17 @@ initialize
             ephemeral := false;
           };
       in
-      pure
-        prepareStandardTransaction@{
-          standardInputs;
-          consumed :=
-            [
-              mkCounter@{
-                logic;
-                nonce := nonce1;
-                ephemeral := true;
-              };
-            ];
-          created := [initialCounter];
-        };
+      prepareStandardTransaction@{
+        consumed :=
+          [
+            mkCounter@{
+              logic;
+              nonce := nonce1;
+              ephemeral := true;
+            };
+          ];
+        created := [initialCounter];
+      };
     };
 
 std : StandardInputs :=

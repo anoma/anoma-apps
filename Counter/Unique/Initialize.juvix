@@ -11,7 +11,7 @@ import Applib.Helpers open;
 import Applib.Identities open;
 import Anoma.State.CommitmentTree open using {mkRoot};
 import Stdlib.Debug open;
-import Extra.Tx open;
+import Applib open;
 
 initialize
   (randSeed : Nat)
@@ -51,12 +51,10 @@ initialize
           };
         ephConsumable := consumable@Resource{ephemeral := true};
       in
-      pure
-        prepareStandardTransaction@{
-          standardInputs;
-          consumed := [consumable; ephCounter];
-          created := [ephConsumable; newCounter];
-        };
+      prepareStandardTransaction@{
+        consumed := [consumable; ephCounter];
+        created := [ephConsumable; newCounter];
+      };
     };
 
 main

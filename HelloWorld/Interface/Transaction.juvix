@@ -3,13 +3,11 @@ module HelloWorld.Interface.Transaction;
 import Anoma open;
 import Applib open;
 import Stdlib.Prelude open;
-import Extra.Random open;
 
 import Anoma.State.CommitmentTree open;
 import BaseLayer.ResourceMachine open;
 import HelloWorld.Resource open;
 import BaseLayer.TransactionRequest open;
-import Extra.Tx open;
 
 initialize (randSeed : Nat) (standardInputs : StandardInputs) : Transaction :=
   runTx
