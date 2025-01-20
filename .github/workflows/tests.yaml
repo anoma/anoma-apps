@@ -7,29 +7,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  kudos-tests:
-    name: Kudos
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Kudos
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v3
-      - name: Download latest nightly Juvix binary
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
-        with:
-          repo: anoma/juvix
-          cache: enable
-      - name: Clean
-        run: juvix clean --global && juvix clean && juvix dependencies update
-      - name: Type Check
-        run: juvix typecheck
-      - name: Format Check
-        run: juvix format
-      #- name: Run Example
-      #  run: juvix eval Example.juvix
-
   hello-world-tests:
     name: Hello World
     runs-on: ubuntu-latest
