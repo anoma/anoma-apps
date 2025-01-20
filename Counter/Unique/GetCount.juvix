@@ -2,7 +2,6 @@ module Counter.Unique.GetCount;
 
 import Stdlib.Prelude open;
 import Anoma open;
-import Extra.Encoded open;
 
 main (currentCounterEncoded : Encoded Resource) : Nat :=
-  currentCounterEncoded |> Encoded.decode |> Resource.value;
+  currentCounterEncoded |> decode |> Resource.value;

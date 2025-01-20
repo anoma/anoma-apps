@@ -14,7 +14,7 @@ import Applib.Helpers open;
 logic (publicInputs : Instance) (privateInputs : Witness) : Bool := true;
 
 --- A label containing the string "Hello world!".
-label : Nat := anomaEncode "Hello world!";
+label : Nat := builtinAnomaEncode "Hello world!";
 
 mkHelloWorldResource (nonce : Nonce) {ephemeral : Bool := false} : Resource :=
   mkResource@{

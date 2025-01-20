@@ -6,7 +6,6 @@ import Stdlib.Data.Set as Set open using {Set};
 import Stdlib.Data.Map as Map;
 import Anoma open;
 import Anoma.State.CommitmentTree open;
-import Extra.Encoded open;
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
 import BaseLayer.ResourceMachine open;
@@ -56,5 +55,5 @@ std : StandardInputs :=
 -- TODO Require `StandardInputs` as input arguments.
 main (logicEncoded : Encoded Logic) : TransactionRequest :=
   let
-    logic := Encoded.decode logicEncoded;
+    logic := decode logicEncoded;
   in TransactionRequest.fromTransaction (initialize 0 logic std);

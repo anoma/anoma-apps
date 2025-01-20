@@ -5,7 +5,6 @@ import Anoma open;
 import BaseLayer.ResourceMachine open;
 import BaseLayer.TransactionRequest open;
 import Applib.Helpers open using {mkActionHelper};
-import Extra open;
 import Counter.Unique.Resource open;
 import Applib.Helpers open;
 import Applib.Identities open;
@@ -65,7 +64,7 @@ main
   : TransactionRequest :=
   initialize
       randSeed
-      (Encoded.decode consumable)
-      (Encoded.decode logic)
+      (decode consumable)
+      (decode logic)
       latestRoot
     |> TransactionRequest.fromTransaction;

@@ -5,9 +5,8 @@ import Anoma open;
 import Stdlib.Debug.Fail open;
 import BaseLayer.ResourceMachine open;
 import BaseLayer.TransactionRequest open;
-import Applib.Helpers open using {mkActionHelper};
-import Extra open;
 import Counter.Unique.Resource open;
+import Anoma.Builtin.System open;
 import Applib open;
 import Anoma.State.CommitmentTree open using {mkRoot};
 import Stdlib.Debug open;
@@ -38,7 +37,7 @@ increment
               mkCounter@{
                 logic;
                 nonce;
-                uniqueLabel := currentCounter |> Resource.label |> anomaDecode;
+                uniqueLabel := currentCounter |> Resource.label |> builtinAnomaDecode;
                 count := Resource.value currentCounter + 1;
                 ephemeral := false;
               };
@@ -57,7 +56,7 @@ main
   : TransactionRequest :=
   increment
       randSeed
-      (Encoded.decode currentCounter)
-      (Encoded.decode logic)
+      (decode currentCounter)
+      (decode logic)
       latestRoot
     |> TransactionRequest.fromTransaction;

@@ -4,7 +4,6 @@ import Stdlib.Prelude open;
 import Anoma open;
 import Anoma.State.CommitmentTree open;
 import Applib open;
-import Extra.Encoded open;
 
 import Counter.Simple.Resource open;
 import BaseLayer.TransactionRequest open;
@@ -46,8 +45,8 @@ main
   (latestRoot : Nat)
   : TransactionRequest :=
   let
-    logic := Encoded.decode logicEncoded;
-    currentCounter := Encoded.decode currentCounterEncoded;
+    logic := decode logicEncoded;
+    currentCounter := decode currentCounterEncoded;
     std :=
       mkStandardInputs@{
         caller := Universal.identity;

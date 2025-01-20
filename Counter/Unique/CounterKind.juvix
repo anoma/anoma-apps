@@ -3,8 +3,8 @@ module Counter.Unique.CounterKind;
 import Stdlib.Prelude open;
 import BaseLayer.ResourceMachine open;
 import Counter.Unique.Resource open;
-import Anoma.Builtin.System open;
-import Extra open;
+import Anoma open;
+import Applib open;
 
 main (consumable : Encoded Resource) (logic : Encoded Logic) : Kind :=
-  counterKind (Encoded.decode consumable) (Encoded.decode logic);
+  counterKind (decode consumable) (decode logic);

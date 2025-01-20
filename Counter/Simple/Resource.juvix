@@ -22,7 +22,7 @@ mkCounter
   : Resource :=
   mkResource@{
     logic;
-    label := "SimpleCounter" |> anomaEncode;
+    label := "SimpleCounter" |> builtinAnomaEncode;
     value := count;
     quantity := 1;
     ephemeral;

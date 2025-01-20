@@ -2,6 +2,7 @@ module HelloWorld.Interface.Projection;
 
 import Stdlib.Prelude open;
 import Anoma open;
+import Anoma.Builtin.System open;
 
 getLabel (resource : Resource) : String :=
-  Resource.label resource |> anomaDecode;
+  Resource.label resource |> builtinAnomaDecode;
