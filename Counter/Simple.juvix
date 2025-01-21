@@ -1,4 +1,0 @@
-module Counter.Simple;
-
-import Counter.Simple.Resource open public;
-import Counter.Simple.Initialize open public;

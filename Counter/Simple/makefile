@@ -13,7 +13,7 @@
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
 
-base-path = Simple
+base-path = .
 
 initialize = Initialize
 increment = Increment

@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+-- TODO fix tests
+
 # Assumption: A fresh node has been started using "make run-node"
 #
 set -e
