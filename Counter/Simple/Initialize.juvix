@@ -1,60 +1,44 @@
 module Counter.Simple.Initialize;
 
 import Stdlib.Prelude open;
-import Stdlib.Debug.Fail open using {failwith};
-import Stdlib.Data.Set as Set open using {Set};
-import Stdlib.Data.Map as Map;
-import Anoma open;
-import Anoma.State.CommitmentTree open;
-import Extra.Encoded open;
-import Counter.Simple.Resource open;
-import BaseLayer.TransactionRequest open;
-import BaseLayer.ResourceMachine open;
 import Applib open;
+import Counter.Simple.Resource open;
 
 --- Initializes a counter that can be incremented by everyone.
---- @param standardInputs The transaction function standard inputs.
+--- @param txContext The transaction function standard inputs.
 --- @return The transaction object initializing a counter.
 initialize
-  (randSeed : Nat)
-  (logic : Logic)
-  (standardInputs : StandardInputs)
-  : Transaction :=
-  runTx
-    randSeed
-    standardInputs
-    do {
-      nonce1 <- genRandomNonce;
-      nonce2 <- genRandomNonce;
-      let
-        initialCounter :=
+  {M : Type -> Type} {{Monad M}} {{Tx M}} (logic : Logic) : M Transaction :=
+  do {
+    nonce1 <- genRandomNonce;
+    nonce2 <- genRandomNonce;
+    let
+      initialCounter :=
+        mkCounter@{
+          logic;
+          nonce := nonce2;
+          ephemeral := false;
+        };
+    in
+    prepareStandardTransaction@{
+      consumed :=
+        [
           mkCounter@{
             logic;
-            nonce := nonce2;
-            ephemeral := false;
+            nonce := nonce1;
+            ephemeral := true;
           };
-      in
-      prepareStandardTransaction@{
-        consumed :=
-          [
-            mkCounter@{
-              logic;
-              nonce := nonce1;
-              ephemeral := true;
-            };
-          ];
-        created := [initialCounter];
-      };
+        ];
+      created := [initialCounter];
     };
+  };
 
-std : StandardInputs :=
-  mkStandardInputs@{
+ctx : TxContext :=
+  mkTxContext@{
     caller := Universal.identity;
     currentRoot := mkRoot 0;
   };
 
--- TODO Require `StandardInputs` as input arguments.
+-- TODO Require `TxContext` as input arguments.
 main (logicEncoded : Encoded Logic) : TransactionRequest :=
-  let
-    logic := Encoded.decode logicEncoded;
-  in TransactionRequest.fromTransaction (initialize 0 logic std);
+  buildTransactionRequest 0 ctx (initialize (decode logicEncoded));

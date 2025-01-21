@@ -1,16 +1,12 @@
 module Counter.Unique.Logic;
 
 import Stdlib.Prelude open;
-import Anoma.Builtin.System open;
-import BaseLayer.ResourceMachine open;
-import Applib.Helpers open;
-import Applib.Identities open;
-import Extra.Anoma open;
+import Applib open;
 
 initialize-correct? (self : Resource) (publicInputs : Instance) : Bool :=
   let
     quantity := Resource.quantity self;
-    labelNullifier := Resource.label self |> anomaDecode;
+    labelNullifier := Resource.label self |> builtinAnomaDecode;
     nullifiers := Instance.nullifiers publicInputs;
   in quantity == 1 && isMember labelNullifier nullifiers;
 

@@ -13,7 +13,7 @@
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
 
-base-path = Simple
+base-path = .
 
 initialize = Initialize
 increment = Increment
@@ -59,7 +59,7 @@ clean:
 node-start:
 ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
-		mix run --no-halt $(root)/../start-config.exs
+		mix run --no-halt $(root)/../../start-config.exs
 else
 	juvix dev anoma start --anoma-dir $(ANOMA_PATH)
 endif

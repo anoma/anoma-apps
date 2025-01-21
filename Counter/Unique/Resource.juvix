@@ -1,12 +1,7 @@
 module Counter.Unique.Resource;
 
 import Stdlib.Prelude open;
-import Anoma.Resource.Types open using {Nonce; module Nonce};
-import Anoma.Builtin.System open;
-import Anoma.Builtin.ByteArray open;
-import BaseLayer.ResourceMachine open;
-import Applib.Identities open;
-import Extra open;
+import Applib open;
 
 --- The counter label being a wrapper around a nullifier.
 type CounterLabel :=
@@ -29,7 +24,7 @@ mkCounter
   : Resource :=
   mkResource@{
     logic;
-    label := anomaEncode uniqueLabel;
+    label := builtinAnomaEncode uniqueLabel;
     nonce := Nonce.toNat nonce;
     ephemeral;
     randSeed := 0;
@@ -55,7 +50,7 @@ hasCounterKind (resource : Resource) (logic : Logic) : Bool :=
     dummyCounter :=
       mkCounter@{
         logic;
-        uniqueLabel := Resource.label resource |> anomaDecode;
+        uniqueLabel := Resource.label resource |> builtinAnomaDecode;
         nonce := Nonce.fromNat 0;
         count := 0;
         ephemeral := true;

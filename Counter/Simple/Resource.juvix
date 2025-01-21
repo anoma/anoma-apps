@@ -1,14 +1,7 @@
 module Counter.Simple.Resource;
 
 import Stdlib.Prelude open;
-
-import Anoma.Resource.Types open;
-import Anoma.Builtin.ByteArray open;
-import Anoma.Builtin.System open;
-
-import Applib.Identities open;
-import BaseLayer.ResourceMachine open;
-import Applib.Helpers open;
+import Applib open;
 
 --- Constructs a counter with a quantity of 1 that can be consumed by the universal identity (and everyone who has composed their identity with it).
 --- @param count The intial count.
@@ -22,7 +15,7 @@ mkCounter
   : Resource :=
   mkResource@{
     logic;
-    label := "SimpleCounter" |> anomaEncode;
+    label := "SimpleCounter" |> builtinAnomaEncode;
     value := count;
     quantity := 1;
     ephemeral;

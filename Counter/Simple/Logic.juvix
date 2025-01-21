@@ -1,9 +1,8 @@
 module Counter.Simple.Logic;
 
 import Stdlib.Prelude open;
+import Applib open;
 import Counter.Simple.Resource open;
-import BaseLayer.ResourceMachine open;
-import Anoma.Builtin.System open;
 
 type LogicWrapper :=
   mkLogicWrapper@{

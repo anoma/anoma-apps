@@ -1,53 +1,45 @@
 module Counter.Unique.Increment;
 
 import Stdlib.Prelude open;
-import Anoma open;
-import Stdlib.Debug.Fail open;
-import BaseLayer.ResourceMachine open;
-import BaseLayer.TransactionRequest open;
-import Applib.Helpers open using {mkActionHelper};
-import Extra open;
-import Counter.Unique.Resource open;
 import Applib open;
-import Anoma.State.CommitmentTree open using {mkRoot};
+import Counter.Unique.Resource open;
 import Stdlib.Debug open;
 
 increment
-  (randSeed : Nat)
+  {M : Type -> Type}
+  {{Monad M}}
+  {{Tx M}}
   (currentCounter : Resource)
   (logic : Logic)
-  (latestRoot : Nat)
-  : Transaction :=
-  let
-    standardInputs :=
-      mkStandardInputs@{
-        caller := Universal.identity;
-        currentRoot := mkRoot latestRoot;
-      };
-  in runTx
-    randSeed
-    standardInputs
-    if
-      | not (hasCounterKind currentCounter logic) :=
-        failwith "The input resource has the wrong kind"
-      | else :=
-        do {
-          nonce <- genRandomNonce;
-          let
-            newCounter :=
-              mkCounter@{
-                logic;
-                nonce;
-                uniqueLabel := currentCounter |> Resource.label |> anomaDecode;
-                count := Resource.value currentCounter + 1;
-                ephemeral := false;
-              };
-          in
-          prepareStandardTransaction@{
-            consumed := [currentCounter];
-            created := [newCounter];
-          };
+  : M Transaction :=
+  if
+    | not (hasCounterKind currentCounter logic) :=
+      failwith "The input resource has the wrong kind"
+    | else :=
+      do {
+        nonce <- genRandomNonce;
+        let
+          newCounter :=
+            mkCounter@{
+              logic;
+              nonce;
+              uniqueLabel :=
+                currentCounter |> Resource.label |> builtinAnomaDecode;
+              count := Resource.value currentCounter + 1;
+              ephemeral := false;
+            };
+        in
+        prepareStandardTransaction@{
+          consumed := [currentCounter];
+          created := [newCounter];
         };
+      };
+
+txContext (latestRoot : Nat) : TxContext :=
+  mkTxContext@{
+    caller := Universal.identity;
+    currentRoot := mkRoot latestRoot;
+  };
 
 main
   (randSeed : Nat)
@@ -55,9 +47,7 @@ main
   (logic : Encoded Logic)
   (latestRoot : Nat)
   : TransactionRequest :=
-  increment
-      randSeed
-      (Encoded.decode currentCounter)
-      (Encoded.decode logic)
-      latestRoot
-    |> TransactionRequest.fromTransaction;
+  buildTransactionRequest
+    randSeed
+    (txContext latestRoot)
+    (increment (decode currentCounter) (decode logic));

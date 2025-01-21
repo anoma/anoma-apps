@@ -1,61 +1,50 @@
 module Counter.Unique.Initialize;
 
 import Stdlib.Prelude open;
-import Anoma open;
-import BaseLayer.ResourceMachine open;
-import BaseLayer.TransactionRequest open;
-import Applib.Helpers open using {mkActionHelper};
-import Extra open;
-import Counter.Unique.Resource open;
-import Applib.Helpers open;
-import Applib.Identities open;
-import Anoma.State.CommitmentTree open using {mkRoot};
-import Stdlib.Debug open;
 import Applib open;
+import Counter.Unique.Resource open;
 
 initialize
-  (randSeed : Nat)
+  {M : Type -> Type}
+  {{Monad M}}
+  {{Tx M}}
   (consumable : Resource)
   (logic : Logic)
-  (latestRoot : Nat)
-  : Transaction :=
-  let
-    standardInputs :=
-      mkStandardInputs@{
-        caller := Universal.identity;
-        currentRoot := mkRoot latestRoot;
-      };
-  in runTx
-    randSeed
-    standardInputs
-    do {
-      ephCounterNonce <- genRandomNonce;
-      counterNonce <- genRandomNonce;
-      let
-        uniqueLabel := mkUniqueCounterLabel consumable;
-        ephCounter :=
-          mkCounter@{
-            logic;
-            uniqueLabel;
-            nonce := ephCounterNonce;
-            count := 0;
-            ephemeral := true;
-          };
-        newCounter :=
-          mkCounter@{
-            logic;
-            nonce := counterNonce;
-            ephemeral := false;
-            uniqueLabel;
-            count := 0;
-          };
-        ephConsumable := consumable@Resource{ephemeral := true};
-      in
-      prepareStandardTransaction@{
-        consumed := [consumable; ephCounter];
-        created := [ephConsumable; newCounter];
-      };
+  : M Transaction :=
+  do {
+    ephCounterNonce <- genRandomNonce;
+    counterNonce <- genRandomNonce;
+    let
+      uniqueLabel := mkUniqueCounterLabel consumable;
+      ephCounter :=
+        mkCounter@{
+          logic;
+          uniqueLabel;
+          nonce := ephCounterNonce;
+          count := 0;
+          ephemeral := true;
+        };
+      newCounter :=
+        mkCounter@{
+          logic;
+          nonce := counterNonce;
+          ephemeral := false;
+          uniqueLabel;
+          count := 0;
+        };
+      ephConsumable := consumable@Resource{ephemeral := true};
+    in
+    prepareStandardTransaction@{
+      consumed := [consumable; ephCounter];
+      created := [ephConsumable; newCounter];
     };
+  };
+
+txContext (latestRoot : Nat) : TxContext :=
+  mkTxContext@{
+    caller := Universal.identity;
+    currentRoot := mkRoot latestRoot;
+  };
 
 main
   (randSeed : Nat)
@@ -63,9 +52,7 @@ main
   (logic : Encoded Logic)
   (latestRoot : Nat)
   : TransactionRequest :=
-  initialize
-      randSeed
-      (Encoded.decode consumable)
-      (Encoded.decode logic)
-      latestRoot
-    |> TransactionRequest.fromTransaction;
+  buildTransactionRequest
+    randSeed
+    (txContext latestRoot)
+    (initialize (decode consumable) (decode logic));

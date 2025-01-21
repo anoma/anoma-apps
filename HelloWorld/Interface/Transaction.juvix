@@ -1,39 +1,31 @@
 module HelloWorld.Interface.Transaction;
 
-import Anoma open;
-import Applib open;
 import Stdlib.Prelude open;
-
-import Anoma.State.CommitmentTree open;
-import BaseLayer.ResourceMachine open;
+import Applib open;
 import HelloWorld.Resource open;
-import BaseLayer.TransactionRequest open;
 
-initialize (randSeed : Nat) (standardInputs : StandardInputs) : Transaction :=
-  runTx
-    randSeed
-    standardInputs
-    do {
-      nonce1 <- genRandomNonce;
-      nonce2 <- genRandomNonce;
-      pure
-        prepareTransaction@{
-          consumed :=
-            [
-              mkHelloWorldResource@{
-                nonce := nonce1;
-                ephemeral := true;
-              };
-            ];
-          created :=
-            [
-              mkHelloWorldResource@{
-                nonce := nonce2;
-                ephemeral := false;
-              };
-            ];
-        };
-    };
+initialize {M : Type -> Type} {{Monad M}} {{Tx M}} : M Transaction :=
+  do {
+    nonce1 <- genRandomNonce;
+    nonce2 <- genRandomNonce;
+    pure
+      prepareTransaction@{
+        consumed :=
+          [
+            mkHelloWorldResource@{
+              nonce := nonce1;
+              ephemeral := true;
+            };
+          ];
+        created :=
+          [
+            mkHelloWorldResource@{
+              nonce := nonce2;
+              ephemeral := false;
+            };
+          ];
+      };
+  };
 
 prepareTransaction (consumed created : List Resource) : Transaction :=
   mkTransactionHelper@{
@@ -46,12 +38,10 @@ prepareTransaction (consumed created : List Resource) : Transaction :=
       ];
   };
 
-std : StandardInputs :=
-  mkStandardInputs@{
+ctx : TxContext :=
+  mkTxContext@{
     caller := Universal.identity;
     currentRoot := mkRoot 0;
   };
 
-tx : Transaction := initialize 0 std;
-
-main : TransactionRequest := TransactionRequest.fromTransaction tx;
+main : TransactionRequest := buildTransactionRequest 0 ctx initialize;
