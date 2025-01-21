@@ -6,45 +6,44 @@ import Counter.Simple.Resource open;
 
 --- Increments the counter value by 1.
 --- @param currentCounter The current counter to increment.
---- @param standardInputs The transaction function standard inputs.
+--- @param txContext The transaction function standard inputs.
 --- @return The transaction object incrementing a counter.
 increment
-  (randSeed : Nat)
+  {M : Type -> Type}
+  {{Monad M}}
+  {{Tx M}}
   (logic : Logic)
-  (standardInputs : StandardInputs)
   (currentCounter : Resource)
-  : Transaction :=
-  runTx
-    randSeed
-    standardInputs
-    do {
-      nonce <- genRandomNonce;
-      let
-        newCounter :=
-          mkCounter@{
-            logic;
-            nonce;
-            count := Resource.value currentCounter + 1;
-          };
+  : M Transaction :=
+  do {
+    nonce <- genRandomNonce;
+    let
+      newCounter :=
+        mkCounter@{
+          logic;
+          nonce;
+          count := Resource.value currentCounter + 1;
+        };
 
-      in
-      prepareStandardTransaction@{
-        consumed := [currentCounter];
-        created := [newCounter];
-      };
+    in
+    prepareStandardTransaction@{
+      consumed := [currentCounter];
+      created := [newCounter];
     };
+  };
+
+ctx (latestRoot : Nat) : TxContext :=
+  mkTxContext@{
+    caller := Universal.identity;
+    currentRoot := mkRoot latestRoot;
+  };
 
 main
   (logicEncoded : Encoded Logic)
   (currentCounterEncoded : Encoded Resource)
   (latestRoot : Nat)
   : TransactionRequest :=
-  let
-    logic := decode logicEncoded;
-    currentCounter := decode currentCounterEncoded;
-    std :=
-      mkStandardInputs@{
-        caller := Universal.identity;
-        currentRoot := mkRoot latestRoot;
-      };
-  in increment 0 logic std currentCounter |> TransactionRequest.fromTransaction;
+  buildTransactionRequest
+    0
+    (ctx latestRoot)
+    (increment (decode logicEncoded) (decode currentCounterEncoded));

@@ -6,41 +6,40 @@ import Counter.Unique.Resource open;
 import Stdlib.Debug open;
 
 increment
-  (randSeed : Nat)
+  {M : Type -> Type}
+  {{Monad M}}
+  {{Tx M}}
   (currentCounter : Resource)
   (logic : Logic)
-  (latestRoot : Nat)
-  : Transaction :=
-  let
-    standardInputs :=
-      mkStandardInputs@{
-        caller := Universal.identity;
-        currentRoot := mkRoot latestRoot;
-      };
-  in runTx
-    randSeed
-    standardInputs
-    if
-      | not (hasCounterKind currentCounter logic) :=
-        failwith "The input resource has the wrong kind"
-      | else :=
-        do {
-          nonce <- genRandomNonce;
-          let
-            newCounter :=
-              mkCounter@{
-                logic;
-                nonce;
-                uniqueLabel := currentCounter |> Resource.label |> builtinAnomaDecode;
-                count := Resource.value currentCounter + 1;
-                ephemeral := false;
-              };
-          in
-          prepareStandardTransaction@{
-            consumed := [currentCounter];
-            created := [newCounter];
-          };
+  : M Transaction :=
+  if
+    | not (hasCounterKind currentCounter logic) :=
+      failwith "The input resource has the wrong kind"
+    | else :=
+      do {
+        nonce <- genRandomNonce;
+        let
+          newCounter :=
+            mkCounter@{
+              logic;
+              nonce;
+              uniqueLabel :=
+                currentCounter |> Resource.label |> builtinAnomaDecode;
+              count := Resource.value currentCounter + 1;
+              ephemeral := false;
+            };
+        in
+        prepareStandardTransaction@{
+          consumed := [currentCounter];
+          created := [newCounter];
         };
+      };
+
+txContext (latestRoot : Nat) : TxContext :=
+  mkTxContext@{
+    caller := Universal.identity;
+    currentRoot := mkRoot latestRoot;
+  };
 
 main
   (randSeed : Nat)
@@ -48,9 +47,7 @@ main
   (logic : Encoded Logic)
   (latestRoot : Nat)
   : TransactionRequest :=
-  increment
-      randSeed
-      (decode currentCounter)
-      (decode logic)
-      latestRoot
-    |> TransactionRequest.fromTransaction;
+  buildTransactionRequest
+    randSeed
+    (txContext latestRoot)
+    (increment (decode currentCounter) (decode logic));

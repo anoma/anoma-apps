@@ -4,10 +4,7 @@ import Stdlib.Prelude open;
 import Applib open;
 import HelloWorld.Resource open;
 
-initialize (randSeed : Nat) (standardInputs : StandardInputs) : Transaction :=
-  runTx
-    randSeed
-    standardInputs
+initialize {M : Type -> Type} {{Monad M}} {{Tx M}} : M Transaction :=
     do {
       nonce1 <- genRandomNonce;
       nonce2 <- genRandomNonce;
@@ -41,12 +38,10 @@ prepareTransaction (consumed created : List Resource) : Transaction :=
       ];
   };
 
-std : StandardInputs :=
-  mkStandardInputs@{
+ctx : TxContext :=
+  mkTxContext@{
     caller := Universal.identity;
     currentRoot := mkRoot 0;
   };
 
-tx : Transaction := initialize 0 std;
-
-main : TransactionRequest := TransactionRequest.fromTransaction tx;
+main : TransactionRequest := buildTransactionRequest 0 ctx initialize;
