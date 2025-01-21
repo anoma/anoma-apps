@@ -5,27 +5,27 @@ import Applib open;
 import HelloWorld.Resource open;
 
 initialize {M : Type -> Type} {{Monad M}} {{Tx M}} : M Transaction :=
-    do {
-      nonce1 <- genRandomNonce;
-      nonce2 <- genRandomNonce;
-      pure
-        prepareTransaction@{
-          consumed :=
-            [
-              mkHelloWorldResource@{
-                nonce := nonce1;
-                ephemeral := true;
-              };
-            ];
-          created :=
-            [
-              mkHelloWorldResource@{
-                nonce := nonce2;
-                ephemeral := false;
-              };
-            ];
-        };
-    };
+  do {
+    nonce1 <- genRandomNonce;
+    nonce2 <- genRandomNonce;
+    pure
+      prepareTransaction@{
+        consumed :=
+          [
+            mkHelloWorldResource@{
+              nonce := nonce1;
+              ephemeral := true;
+            };
+          ];
+        created :=
+          [
+            mkHelloWorldResource@{
+              nonce := nonce2;
+              ephemeral := false;
+            };
+          ];
+      };
+  };
 
 prepareTransaction (consumed created : List Resource) : Transaction :=
   mkTransactionHelper@{
