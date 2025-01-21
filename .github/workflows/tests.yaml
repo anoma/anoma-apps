@@ -6,55 +6,115 @@ on:
   pull_request:
   workflow_dispatch:
 
-jobs:
-  hello-world-tests:
-    name: Hello World
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: HelloWorld
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v3
-      - name: Download latest nightly Juvix binary
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
-        with:
-          repo: anoma/juvix
-          cache: enable
-      - name: Clean
-        run: juvix clean --global && juvix clean && juvix dependencies update
-      - name: Type Check
-        run: juvix typecheck
-      - name: Format Check
-        run: juvix format
-      - name: Run tests
-        run:
-          cd tests
-          ./all-tests.sh
+env:
+  ANOMA_VERSION: 7fdd77377317ff0e29676a403b384cb1f2dc4729
 
-  counter-tests:
-    name: Counters
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Counters/Counter
+jobs:
+  build-test:
+    runs-on: ubuntu-22.04
     steps:
+      - name: Free disk space
+        run: |
+          echo "/usr/local"
+          du -hsc /usr/local/*
+          sudo rm -rf \
+            /usr/local/aws-sam-cil \
+            /usr/local/julia* || :
+          echo "end /usr/local"
+          echo "/usr/local/lib"
+          du -hsc /usr/local/lib/*
+          sudo rm -rf \
+            /usr/local/lib/android \
+            /usr/local/lib/heroku \
+            /usr/local/lib/node_modules || :
+          echo "end /usr/local/lib"
+          echo "/usr/local/share"
+          du -hsc /usr/local/share/*
+          sudo rm -rf \
+            /usr/local/share/chromium \
+            /usr/local/share/powershell || :
+          echo "end /usr/local/share"
+          echo "/opt/hostedtoolcache/"
+          du -hsc /opt/hostedtoolcache/*
+          sudo rm -rf \
+            /opt/hostedtoolcache/CodeQL \
+            /opt/hostedtoolcache/go \
+            /opt/hostedtoolcache/PyPy \
+            /opt/hostedtoolcache/node || :
+          echo "end /opt/hostedtoolcache/*"
+          sudo apt purge -y \
+            firefox \
+            google-chrome-stable \
+            microsoft-edge-stable
+          df -h
+
       - name: checkout code
         uses: actions/checkout@v3
+
       - name: Download latest nightly Juvix binary
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
-          repo: anoma/juvix
+          repo: anoma/juvix-nightly-builds
           cache: enable
-      - name: Clean
-        run: juvix clean --global && juvix clean && juvix dependencies update
-      - name: Type Check
-        run: juvix typecheck
-      - name: Format Check
-        run: juvix format
+
+      - name: Checkout Anoma repo
+        uses: actions/checkout@v4
+        with:
+          repository: anoma/anoma
+          ref: ${{ env.ANOMA_VERSION }}
+          path: anoma
+
+      - name: Set up Elixir
+        id: beam
+        uses: erlef/setup-beam@v1.18.2
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.1"
+
+      # Anoma requires a newer version of protoc than is available from apt
+      - name: Install protoc
+        run: |
+          curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v29.0/protoc-29.0-linux-x86_64.zip && \
+          unzip protoc-29.0-linux-x86_64.zip -d $HOME/.local
+
+      - name: Cache anoma
+        id: cache-anoma
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/anoma
+          key: "${{ runner.os }}-${{ env.ANOMA_VERSION }}-anoma"
+
+      - name: Install Protobuf Elixir dependencies
+        shell: bash
+        working-directory: ${{ github.workspace }}/anoma
+        run: |
+          version=$(echo -n $(elixir -e "$(<mix.lock) |> Map.get(:protobuf) |> elem(2) |> IO.puts"))
+          echo "version: ${version}"
+          mix escript.install hex protobuf "$version" --force
+
+      - name: Build anoma
+        if: steps.cache-anoma.outputs.cache-hit != 'true'
+        working-directory: ${{ github.workspace }}/anoma
+        run: |
+          mix local.hex --force
+          echo "$HOME/.mix/escripts" >> $GITHUB_PATH
+          mix deps.get
+          mix compile
+          mix do --app anoma_client escript.build
+
+      - name: Install grpcurl
+        run: |
+          curl -sSL "https://github.com/fullstorydev/grpcurl/releases/download/v1.9.1/grpcurl_1.9.1_linux_x86_64.tar.gz" | tar -xz -C ~/.local/bin --no-wildcards grpcurl
+
+      - name: Set ANOMA_PATH
+        run: |
+          echo "ANOMA_PATH=${{ github.workspace }}/anoma" >> $GITHUB_ENV
+
+      - name: HelloWorld Run tests
+        run: cd HelloWorld/tests && ./all-tests.sh
+
       - name: Run Simple Counter tests
-        run:
-          cd Simple/tests && ./all-tests.sh
+        run: cd Counters/Counter/Simple/tests && ./all-tests.sh
+
       - name: Run Unique Counter tests
-        run:
-          cd Unique/tests && ./all-tests.sh
+        run: cd Counters/Counter/Unique/tests && ./all-tests.sh

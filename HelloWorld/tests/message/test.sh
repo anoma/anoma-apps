@@ -1,11 +1,10 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Assumption: There is no running anoma node
 
 set -e
 
 ANOMA_DEBUG=""
-
 make_dir=../../
 
 make -C $make_dir anoma-start
