@@ -59,7 +59,7 @@ clean:
 node-start:
 ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
-		mix run --no-halt $(root)/../start-config.exs
+		mix run --no-halt $(root)/../../start-config.exs
 else
 	juvix dev anoma start --anoma-dir $(ANOMA_PATH)
 endif
