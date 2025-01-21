@@ -1,6 +1,6 @@
 # how to run:
 # 1. set ANOMA_PATH environment variable to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
-# 2. make run-node # keep this running in a separate terminal
+# 2. make anoma-start # start an anoma node
 # 3. make counter_id=0 create-consumable-resource # this creates a new counter identity for a counter with id=0
 # 4. make counter_id=0 counter-initialize # initialize the counter with id=0
 # 5. make counter_id=0 counter-get # get the initial value of the counter (0)
@@ -107,6 +107,14 @@ counter-increment: $(increment-proved) $(config)
 counter-get: $(get-count-result)
 	@cat $(get-count-result)
 	@echo ""
+
+.PHONY: anoma-stop
+anoma-stop:
+ifdef ANOMA_DEBUG
+	@echo "ANOMA_DEBUG is incompatible with anoma-stop" && false
+else
+	juvix dev anoma stop
+endif
 
 .PHONY: anoma-start
 anoma-start:
