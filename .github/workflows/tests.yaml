@@ -27,3 +27,34 @@ jobs:
         run: juvix typecheck
       - name: Format Check
         run: juvix format
+      - name: Run tests
+        run:
+          cd tests
+          ./all-tests.sh
+
+  counter-tests:
+    name: Counters
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Counters/Counter
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+      - name: Download latest nightly Juvix binary
+        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        with:
+          repo: anoma/juvix
+          cache: enable
+      - name: Clean
+        run: juvix clean --global && juvix clean && juvix dependencies update
+      - name: Type Check
+        run: juvix typecheck
+      - name: Format Check
+        run: juvix format
+      - name: Run Simple Counter tests
+        run:
+          cd Simple/tests && ./all-tests.sh
+      - name: Run Unique Counter tests
+        run:
+          cd Unique/tests && ./all-tests.sh
