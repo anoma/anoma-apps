@@ -110,6 +110,7 @@ counter-get: $(get-count-result)
 
 .PHONY: anoma-start
 anoma-start:
+	rm -f $(config)
 ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
 		mix run --no-halt $(root)/../../start-config.exs
