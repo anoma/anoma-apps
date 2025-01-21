@@ -51,5 +51,5 @@ ctx : TxContext :=
   };
 
 --- The function that is run to produce a Transaction to send to Anoma.
-main : TransactionRequest :=
-  buildTransactionRequest 0 ctx (helloWorldTransaction 0 "Hello World!\n");
+main (message : String) : TransactionRequest :=
+  buildTransactionRequest 0 ctx (helloWorldTransaction 0 message);
