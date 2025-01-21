@@ -4,8 +4,7 @@ import PackageDescription.V2 open;
 
 package : Package :=
   defaultPackage@{
-    name := "anoma-devnet-apps";
-    main := just "Main.juvix";
+    name := "counters";
     dependencies :=
       [
         github "anoma" "juvix-stdlib" "v0.10.0";

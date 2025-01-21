@@ -4,7 +4,7 @@
 # 	- grpcurl
 # how to run:
 # - set ANOMA_PATH environment variable to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
-# - make node-start
+# - make anoma-start
 # - make counter-initialize
 # - make counter-get
 # - make counter-increment
@@ -55,8 +55,16 @@ clean:
 	juvix clean
 	rm -rf $(anoma-build)
 
-.PHONY: node-start
-node-start:
+.PHONY: anoma-stop
+anoma-stop:
+ifdef ANOMA_DEBUG
+	@echo "ANOMA_DEBUG is incompatible with anoma-stop" && false
+else
+	juvix dev anoma stop
+endif
+
+.PHONY: anoma-start
+anoma-start:
 ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
 		mix run --no-halt $(root)/../../start-config.exs

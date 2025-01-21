@@ -108,8 +108,8 @@ counter-get: $(get-count-result)
 	@cat $(get-count-result)
 	@echo ""
 
-.PHONY: node-start
-node-start:
+.PHONY: anoma-start
+anoma-start:
 ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
 		mix run --no-halt $(root)/../../start-config.exs
