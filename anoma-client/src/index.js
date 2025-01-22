@@ -16,6 +16,26 @@ export async function fetchBinary(url) {
   return await response.arrayBuffer();
 }
 
+export function serialize(x) {
+  return new Uint8Array(serial.jam(toNoun(x)).bytes());
+}
+
+function toNoun(x) {
+  if (x instanceof Uint8Array) {
+    return bits.bytesToAtom(x);
+  } else {
+    return noun.dwim(x);
+  }
+}
+
+export function deserializeToString(bs) {
+    const resultAtom = bits.bytesToAtom(bs);
+    const deserializedAtom = serial.cue(resultAtom);
+    const decoder = new TextDecoder('utf-8');
+    const decodedString = decoder.decode(new Uint8Array(deserializedAtom.bytes()));
+    return decodedString;
+}
+
 export class AnomaClient {
   constructor(grpcServer) {
     this.grpcServer = grpcServer;
@@ -27,7 +47,7 @@ export class AnomaClient {
   async listUnspentResources() {
     const request = new UnspentResources.Request();
     const res = await this.indexerClient.listUnspentResources(request, {});
-    return res.getUnspentResourcesList();
+    return res.getUnspentResourcesList_asU8();
   }
 
   async prove(program, args) {
@@ -36,18 +56,21 @@ export class AnomaClient {
     let inputArgs = [];
     for (const arg of args) {
       const input = new Input();
-      input.setJammed(arg);
+      // TODO: We serialize all arguments to match the behaviour of
+      // `juvix dev anoma prove`.
+      // This should be removed when `juvix dev anoma prove` is fixed.
+      // The args to this function should be serialized exactly once.
+      input.setJammed(serialize(arg));
       inputArgs.push(input);
     }
     request.setPrivateInputsList(inputArgs);
     request.setPublicInputsList([]);
     const response = await this.nockClient.prove(request, {});
-    if (response.error !== undefined) {
-      throw Error(`Prove request failed: $(response.error}`);
+    if (response.getError() !== undefined) {
+      const errStr = response.getError().toObject().error;
+      throw Error(`Prove request failed: ${errStr}`);
     }
-    const result = response.getSuccess().getResult();
-    const resultAtom = bits.bytesToAtom(result);
-    return serial.cue(resultAtom);
+    return response.getSuccess().getResult_asU8();
   }
 
   async addTransaction(transaction) {
