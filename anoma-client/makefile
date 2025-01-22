@@ -7,8 +7,6 @@ ANOMA_GRPC_PORT ?= $(error set ANOMA_GRPC_PORT)
 src ?= ./protobuf
 dst ?= ./src/grpc-client
 
-proxy-port = 8083
-
 node-modules-bin = node_modules/.bin
 protoc-gen-js = $(node-modules-bin)/protoc-gen-js
 protoc-gen-grpc-web = $(node-modules-bin)/protoc-gen-grpc-web

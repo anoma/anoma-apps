@@ -14,6 +14,6 @@ The client has been tested with `anoma/anoma:7fdd77377317ff0e29676a403b384cb1f2d
 Run the following in the root of the project:
 
 ``` sh
-npm run install
+npm install
 make gen-client
 ```
