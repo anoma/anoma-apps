@@ -25,6 +25,7 @@ build: $(add-message-program-dst) $(get-message-program-dst)
 
 .PHONY: clean
 clean:
+	make -C $(app-path) clean
 	rm -rf $(dst)
 	rm -rf $(anoma-build-dir)
 
@@ -36,6 +37,7 @@ stop: anoma-stop proxy-stop
 
 .PHONY: anoma-start
 anoma-start:
+	rm -f $(anoma-config)
 	make -C $(app-path) anoma-start
 
 .PHONY: anoma-stop
