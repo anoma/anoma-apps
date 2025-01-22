@@ -1,0 +1,7 @@
+.DS_Store
+.idea
+*.log
+tmp/
+node_modules/
+!dist/index.html
+anoma-build/
