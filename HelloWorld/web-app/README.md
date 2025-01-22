@@ -19,7 +19,7 @@ brew install node
 
 3. [envoy proxy](https://www.envoyproxy.io)
 
-``` sh
+```sh
 brew install envoy
 ```
 
@@ -31,7 +31,19 @@ brew install yq
 
 ### Quickstart
 
-After install the dependencies, run the following in the repository root.
+After installing the dependencies follow these steps:
+
+1. Setup `anoma-client`
+
+In the [`anoma-client`](../../anoma-client) directory (in the root of this repository) run:
+
+``` sh
+npm install
+```
+
+2. Run the web app
+
+Run the following in this directory.
 
 ``` sh
 npm install
@@ -45,5 +57,4 @@ You can stop Anoma and the proxy by running:
 
 ``` sh
 make stop
-
 ```
