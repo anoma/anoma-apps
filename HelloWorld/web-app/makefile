@@ -25,8 +25,14 @@ build: $(add-message-program-dst) $(get-message-program-dst)
 
 .PHONY: clean
 clean:
-	rm -rf dst
+	rm -rf $(dst)
 	rm -rf $(anoma-build-dir)
+
+.PHONY: start
+start: anoma-start proxy-start
+
+.PHONY: stop
+stop: anoma-stop proxy-stop
 
 .PHONY: anoma-start
 anoma-start:
