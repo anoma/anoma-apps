@@ -73,6 +73,12 @@ $(message-file): $(anoma-build)
 $(config): $(anoma-build)
 	@juvix dev anoma print-config > $(config)
 
+.PHONY: compile-add-message
+compile-add-message: $(nockma)
+
+.PHONY: compile-get-message
+compile-get-message: $(get-message-nockma)
+
 .PHONY: add-transaction
 add-transaction: $(proved) $(config)
 	@juvix dev anoma -c $(config) add-transaction $(proved)
