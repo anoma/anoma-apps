@@ -24,15 +24,14 @@ mkCounter
     randSeed := 0;
   };
 
-valid-counter? : Instance -> Witness -> Bool
-  | pub priv :=
-    case findResource (Instance.tag pub) priv of
-      | ConsumedRes self :=
-        if
-          | Resource.ephemeral self := Resource.quantity self == 1
-          | else := increment-correct? self priv
-      | CreatedRes self := not (Resource.ephemeral self)
-      | NonExisting := false;
+valid-counter? (pub : Instance) (priv : Witness) : Bool :=
+  case findResource (Instance.tag pub) priv of
+    | ConsumedRes self :=
+      if
+        | Resource.ephemeral self := Resource.quantity self == 1
+        | else := increment-correct? self priv
+    | CreatedRes self := not (Resource.ephemeral self)
+    | NonExisting := false;
 
 increment-correct? (self : Resource) (private : Witness) : Bool :=
   case Witness.consumed private, Witness.created private of
@@ -44,5 +43,5 @@ same-kind? : List Resource -> Bool
   | nil := true
   | (x :: xs) := all \{y := kind y == kind x} xs;
 
-incremented? : Resource -> Resource -> Bool
-  | consumed created := Resource.value consumed + 1 == Resource.value created;
+incremented? (consumed created : Resource) : Bool :=
+  Resource.value consumed + 1 == Resource.value created;

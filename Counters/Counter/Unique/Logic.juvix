@@ -14,8 +14,8 @@ same-kind? : List Resource -> Bool
   | nil := true
   | (x :: xs) := all \{y := kind y == kind x} xs;
 
-incremented? : Resource -> Resource -> Bool
-  | consumed created := Resource.value consumed + 1 == Resource.value created;
+incremented? (consumed created : Resource) : Bool :=
+  Resource.value consumed + 1 == Resource.value created;
 
 increment-correct? (self : Resource) (private : Witness) : Bool :=
   case Witness.consumed private, Witness.created private of
