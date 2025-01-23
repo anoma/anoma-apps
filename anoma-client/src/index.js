@@ -12,6 +12,7 @@ import * as Root from './grpc-client/indexer/blocks/root_pb'
 import * as Latest from './grpc-client/indexer/blocks/latest_pb'
 import * as AddIntent from './grpc-client/intents/add_intent_pb';
 import * as Intent from './grpc-client/intents/intent_pb';
+import * as Dump from './grpc-client/mempool/dump_pb';
 import { Input } from './grpc-client/nock/input_pb';
 import serial from './nock-js/serial';
 import noun from './nock-js/noun';
@@ -240,6 +241,17 @@ export class AnomaClient {
   }
 
   /**
+   * Get all transaction candidates currently in the Anoma mempool.
+   *
+   * @return {!Promise<!Array<!Uint8Array>>} A list of transaction candidates.
+   * */
+  async dumpMempool() {
+    const request = new DumpMempool.Request();
+    const response = await this.mempoolClient.dump(request, {});
+    return response.getTransactionCandidatesList_asU8();
+  }
+
+  /**
    * Get all intents from the intent pool.
    *
    * @return {!Promise<!Array<!Uint8Array>>} A list of intents.
@@ -280,7 +292,7 @@ export class AnomaClient {
    * @return {!Promise<!Block>} The latest block.
    * */
   async getLatest() {
-    const request = Latest.Request();
+    const request = new Latest.Request();
     const response = await this.blockServiceClient.latest(request, {});
     return response.getBlock();
   }
