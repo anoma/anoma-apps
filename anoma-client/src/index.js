@@ -9,7 +9,12 @@ import serial from './nock-js/serial';
 import noun from './nock-js/noun';
 import bits from './nock-js/bits';
 
-export async function fetchBinary(url) {
+/**
+ * Fetches data from a URL.
+ *
+ * @param {!string} url The source URL
+ * @return {!Uint8Array} The data in the response
+ * */
 export async function fetchBytes(url) {
   const response = await fetch(url);
   if (!response.ok) {
@@ -19,10 +24,24 @@ export async function fetchBytes(url) {
   return new Uint8Array(buf);
 }
 
+/**
+ * Nock serialize (i.e jam) a value.
+ *
+ * @param {!(string|number|Uint8Array)} x The value to serialize
+ * @return {!Uint8Array} The serialized data
+ * */
 export function serialize(x) {
   return new Uint8Array(serial.jam(toNoun(x)).bytes());
 }
 
+/**
+ * Transform a value to a nock-js noun
+ *
+ * A Uint8Array value must be the bytes of a nock atom.
+ *
+ * @param {!(string|number|Uint8Array)} x The value to transform.
+ * @return {!Noun} The corresponding nock-js Noun.
+ * */
 function toNoun(x) {
   if (x instanceof Uint8Array) {
     return bits.bytesToAtom(x);
@@ -31,6 +50,14 @@ function toNoun(x) {
   }
 }
 
+/**
+ * Nock deserialize (i.e cue) data to a String
+ *
+ * The data should be nock serialized utf-8 bytes.
+ *
+ * @param {!Uint8Array} bs The data to deserializze
+ * @return {!string} The deserialized string
+ * */
 export function deserializeToString(bs) {
     const resultAtom = bits.bytesToAtom(bs);
     const deserializedAtom = serial.cue(resultAtom);
@@ -48,12 +75,23 @@ export class AnomaClient {
     this.blockServiceClient = new BlockServicePromiseClient(grpcServer);
   }
 
+  /**
+   * Get all unspent resources.
+   *
+   * @return {!Array<Uint8Array>} A list of Resources
+   * */
   async listUnspentResources() {
     const request = new UnspentResources.Request();
     const res = await this.indexerClient.listUnspentResources(request, {});
     return res.getUnspentResourcesList_asU8();
   }
 
+  /**
+   * Get all resources of a specified kind
+   *
+   * @param {!Uint8Array} kind The kind to match.
+   * @return {!Array<Uint8Array>} The resources that match.
+   * */
   async filterKind(kind) {
     const request = new Filtered.Request();
     const filter = new Filtered.Filter();
@@ -63,6 +101,12 @@ export class AnomaClient {
     return response.getResourcesList_asU8();
   }
 
+  /**
+   * Submit a program to Anoma for proving
+   *
+   * @param {!Uint8Array} program The program to prove.
+   * @param {!Array<Uint8Array>} args Private inputs to the program.
+   * */
   async prove(program, args) {
     const request = new Prove.Request();
     request.setJammedProgram(program);
@@ -86,6 +130,11 @@ export class AnomaClient {
     return response.getSuccess().getResult_asU8();
   }
 
+  /**
+   * Submit a transaction to the Anoma mempool
+   *
+   * @param {!Uint8Array} transaction The transaction to submit.
+   * */
   async addTransaction(transaction) {
     const request = new AddTransaction.Request();
     request.setTransaction(transaction);
