@@ -10,6 +10,7 @@ import noun from './nock-js/noun.js';
 import bits from './nock-js/bits.js';
 
 export async function fetchBinary(url) {
+export async function fetchBytes(url) {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch binary data: ${response.statusText}`);
