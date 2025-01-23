@@ -12,7 +12,7 @@ async function addMessage(message) {
   const logicProgram = await fetchBytes(logic);
   const helloWorldProgram = await fetchBytes(helloWorld);
   const tx = await anomaClient.prove(helloWorldProgram, [logicProgram, message], []);
-  return await anomaClient.addTransaction(tx.data);
+  return await anomaClient.addTransactionCandidate(tx.data);
 }
 
 async function getMessages() {

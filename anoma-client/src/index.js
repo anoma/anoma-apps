@@ -229,13 +229,13 @@ export class AnomaClient {
   }
 
   /**
-   * Submit a transaction to the Anoma mempool.
+   * Submit a transaction candidate to the Anoma mempool.
    *
-   * @param {!Promise<!Uint8Array>} transaction - The transaction to submit.
+   * @param {!Promise<!Uint8Array>} tx - The transaction candidate to submit.
    * */
-  async addTransaction(transaction) {
+  async addTransactionCandidate(tx) {
     const request = new AddTransaction.Request();
-    request.setTransaction(transaction);
+    request.setTransaction(tx);
     return await this.mempoolClient.add(request, {});
   }
 
