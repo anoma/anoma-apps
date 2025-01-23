@@ -107,11 +107,11 @@ export class AnomaClient {
     return res.getCommitsList_asU8();
   }
 
-/**
-   * Get all nullifiers.
-   *
-   * @return {!Promise<!Array<!Uint8Array>>} A list of nullifiers.
-   * */
+  /**
+     * Get all nullifiers.
+     *
+     * @return {!Promise<!Array<!Uint8Array>>} A list of nullifiers.
+     * */
   async listNullifiers() {
     const request = new Nullifiers.Request();
     const res = await this.indexerClient.listNullifiers(request, {});
