@@ -15,6 +15,8 @@ ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 base-path = .
 base = HelloWorld
 get-message = GetMessage
+kind = AppIdentity
+logic = Logic
 message ?= "hello world\n"
 
 anoma-build-dir = anoma-build
@@ -25,6 +27,12 @@ config = $(anoma-build-dir)/config.yaml
 temp-file := $(anoma-build-dir)/temp_line
 message-file = $(anoma-build-dir)/message
 
+kind-juvix = $(base-path)/$(kind).juvix
+kind-nockma = $(anoma-build-dir)/$(kind).nockma
+kind-proved = $(anoma-build-dir)/$(kind).proved.nockma
+kind-proved-cued = $(anoma-build-dir)/$(kind).cued.nockma
+kind-proved-cued-b64 = $(anoma-build-dir)/$(kind).cued.nockma.b64
+
 juvix = $(base-path)/$(base).juvix
 nockma = $(anoma-build-dir)/$(base).nockma
 proved = $(anoma-build-dir)/$(base).proved.nockma
@@ -32,6 +40,12 @@ proved = $(anoma-build-dir)/$(base).proved.nockma
 get-message-juvix = $(base-path)/$(get-message).juvix
 get-message-nockma = $(anoma-build-dir)/$(get-message).nockma
 get-message-proved = $(anoma-build-dir)/$(get-message).proved.nockma
+
+logic-juvix = $(base-path)/$(logic).juvix
+logic-nockma = $(anoma-build-dir)/$(logic).nockma
+logic-proved = $(anoma-build-dir)/$(logic).proved.nockma
+
+filter-request = $(anoma-build-dir)/filter-request.json
 
 unspent-resources = $(anoma-build-dir)/unspent-resources
 last-message-txt = $(anoma-build-dir)/last-message.txt
@@ -79,6 +93,12 @@ compile-add-message: $(nockma)
 .PHONY: compile-get-message
 compile-get-message: $(get-message-nockma)
 
+.PHONY: compile-logic
+compile-logic: $(logic-proved)
+
+.PHONY: compute-kind
+compute-kind: $(kind-proved-cued)
+
 .PHONY: add-transaction
 add-transaction: $(proved) $(config)
 	@juvix dev anoma -c $(config) add-transaction $(proved)
@@ -105,15 +125,43 @@ get-all-messages: $(get-message-nockma) $(config) $(unspent-resources)
 $(nockma): $(juvix) $(anoma-build)
 	@juvix compile anoma $(juvix) -o $(nockma)
 
-$(proved): $(nockma) $(config) $(message-file)
-	@juvix dev anoma -c $(config) prove $(nockma) -o $(proved) --arg 'bytes:$(message-file)'
+$(proved): $(nockma) $(config) $(message-file) $(logic-proved)
+	juvix dev anoma -c $(config) prove $(nockma) -o $(proved) --arg 'bytes:$(logic-proved)' --arg 'bytes:$(message-file)'
+
+$(kind-nockma): $(kind-juvix) $(anoma-build)
+	@juvix compile anoma $(kind-juvix) -o $(kind-nockma)
+
+$(kind-proved): $(kind-nockma) $(config) $(logic-proved)
+	@juvix dev anoma -c $(config) prove $(kind-nockma) -o $(kind-proved) --arg 'bytes:$(logic-proved)'
+
+$(kind-proved-cued): $(kind-proved)
+	@juvix dev nockma encode --cue --from bytes --to bytes < $(kind-proved) > $(kind-proved-cued)
+
+$(kind-proved-cued-b64): $(kind-proved)
+	@juvix dev nockma encode --cue --from bytes --to base64 < $(kind-proved) > $(kind-proved-cued-b64)
+
+$(filter-request): $(kind-proved-cued-b64)
+	jq -n --arg KIND $$(cat $(kind-proved-cued-b64)) \
+	'{node_info: {node_id: ""}, filters: [{kind: $$KIND}]}' \
+	> $(filter-request)
 
 $(get-message-nockma): $(anoma-build) $(get-message-juvix)
 	@juvix compile anoma $(get-message-juvix) -o $(get-message-nockma)
 
+$(logic-nockma): $(anoma-build) $(logic-juvix)
+	juvix compile anoma $(logic-juvix) -o $(logic-nockma)
+
+$(logic-proved): $(logic-nockma) $(config)
+	juvix dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
+
 .PHONY: $(unspent-resources)
-$(unspent-resources): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources | jq -r '.unspentResources[] // error("no messages exist")' > $(unspent-resources)
+$(unspent-resources): $(anoma-build) $(host) $(port) $(filter-request)
+	@grpcurl -plaintext \
+	-d @ \
+	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	< $(filter-request) \
+	| jq -r 'if has("resources") then .resources[] else empty end' \
+	> $(unspent-resources)
 
 $(host): $(config)
 	@yq -r '.url' $(config) | tr -d '\n' > $(host)

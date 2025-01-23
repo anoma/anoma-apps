@@ -1,0 +1,18 @@
+module Logic;
+
+import Stdlib.Prelude open;
+import Applib open;
+
+--- A logic function that is always valid.
+logic (publicInputs : Instance) (privateInputs : Witness) : Bool := true;
+
+type LogicWrapper :=
+  mkLogicWrapper@{
+    logic : Logic;
+  };
+
+--- Compute the logic function for the HelloWorld ;Resource;
+main : LogicWrapper :=
+  mkLogicWrapper@{
+    logic;
+  };

@@ -1,0 +1,24 @@
+module AppIdentity;
+
+import Stdlib.Prelude open;
+import Applib open;
+
+--- The label for HelloWorld resources
+label : Nat := builtinAnomaEncode "HelloWorld";
+
+--- Compute the kind of the HelloWorld ;Resource;
+main (encodedLogic : Encoded Logic) : Kind :=
+  let
+    logic := Encode.decode encodedLogic;
+    dummyResource : Resource :=
+      mkResource@{
+        label;
+        logic;
+        value := 0;
+        quantity := 0;
+        nonce := 0;
+        ephemeral := true;
+        randSeed := 0;
+        nullifierKeyCommitment := 0;
+      };
+  in kind dummyResource;
