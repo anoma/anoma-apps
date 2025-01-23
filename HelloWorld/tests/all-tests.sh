@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
--e
+set -e
 
 pushd message
-./tests.sh
+./test.sh
 popd
 
 echo "All HelloWorld tests passed"
