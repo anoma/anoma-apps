@@ -13,7 +13,8 @@ export async function fetchBinary(url) {
   if (!response.ok) {
     throw new Error(`Failed to fetch binary data: ${response.statusText}`);
   }
-  return await response.arrayBuffer();
+  const buf = await response.arrayBuffer();
+  return new Uint8Array(buf);
 }
 
 export function serialize(x) {
