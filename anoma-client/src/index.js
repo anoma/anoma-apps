@@ -122,16 +122,15 @@ export class AnomaClient {
   async prove(program, args) {
     const request = new Prove.Request();
     request.setJammedProgram(program);
-    let inputArgs = [];
-    for (const arg of args) {
+    const inputArgs = args.map(arg => {
       const input = new Input();
       // TODO: We serialize all arguments to match the behaviour of
       // `juvix dev anoma prove`.
       // This should be removed when `juvix dev anoma prove` is fixed.
       // The args to this function should be serialized exactly once.
       input.setJammed(serialize(arg));
-      inputArgs.push(input);
-    }
+      return input;
+    });
     request.setPrivateInputsList(inputArgs);
     request.setPublicInputsList([]);
     const response = await this.nockClient.prove(request, {});
