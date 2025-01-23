@@ -11,8 +11,8 @@ const anomaClient = new AnomaClient(grpcServer);
 async function addMessage(message) {
   const logicProgram = await fetchBytes(logic);
   const helloWorldProgram = await fetchBytes(helloWorld);
-  const tx = await anomaClient.prove(helloWorldProgram, [logicProgram, message]);
-  return await anomaClient.addTransaction(tx);
+  const tx = await anomaClient.prove(helloWorldProgram, [logicProgram, message], []);
+  return await anomaClient.addTransaction(tx.data);
 }
 
 async function getMessages() {
@@ -24,8 +24,8 @@ async function getMessages() {
   const getMessageProgram = await fetchBytes(getMessage);
   let messages = [];
   for (const m of unspent) {
-    const result = await anomaClient.prove(getMessageProgram, [m]);
-    messages.push(deserializeToString(result));
+    const result = await anomaClient.prove(getMessageProgram, [m], []);
+    messages.push(deserializeToString(result.data));
   }
   return messages;
 }
