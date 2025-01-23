@@ -67,8 +67,8 @@ sendButton.addEventListener('click', async () => {
       throw Error("Please enter a message")
     }
     await addMessage(message.trim());
-  // } catch (error) {
-  //   responseContainer.innerHTML = `<p style="color: red;">${error}</p>`;
+  } catch (error) {
+    responseContainer.innerHTML = `<p style="color: red;">${error}</p>`;
   } finally {
     sendButton.disabled = false;
     sendButton.textContent = "Send Message";
