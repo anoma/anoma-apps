@@ -1,19 +1,23 @@
 import { AnomaClient, fetchBinary, serialize, deserializeToString } from 'anoma-client';
 import helloWorld from '../nockma/HelloWorld.nockma';
 import getMessage from '../nockma/GetMessage.nockma'
+import logic from '../nockma/Logic.proved.nockma'
+import appIdentity from '../nockma/AppIdentity.cued.nockma'
 import config from '../config.json'
 
 const grpcServer = `http://${config.proxyHost}:${config.proxyPort}`
 const anomaClient = new AnomaClient(grpcServer);
 
 async function addMessage(message) {
+  const logicProgram = await fetchBinary(logic);
   const helloWorldProgram = await fetchBinary(helloWorld);
-  const tx = await anomaClient.prove(helloWorldProgram, [message]);
+  const tx = await anomaClient.prove(helloWorldProgram, [logicProgram, message]);
   return await anomaClient.addTransaction(tx);
 }
 
 async function getMessages() {
-  const unspent = await anomaClient.listUnspentResources();
+  const kind = await fetchBinary(appIdentity);
+  const unspent = await anomaClient.filterKind(kind);
   if (unspent.length == 0) {
     throw Error("There are no stored messages");
   }
@@ -63,8 +67,8 @@ sendButton.addEventListener('click', async () => {
       throw Error("Please enter a message")
     }
     await addMessage(message.trim());
-  } catch (error) {
-    responseContainer.innerHTML = `<p style="color: red;">${error}</p>`;
+  // } catch (error) {
+  //   responseContainer.innerHTML = `<p style="color: red;">${error}</p>`;
   } finally {
     sendButton.disabled = false;
     sendButton.textContent = "Send Message";

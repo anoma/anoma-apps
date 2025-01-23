@@ -13,15 +13,21 @@ anoma-port = $(anoma-build-dir)/port
 
 add-message-program = HelloWorld.nockma
 get-message-program = GetMessage.nockma
+logic-program = Logic.proved.nockma
+kind = AppIdentity.cued.nockma
 
 add-message-program-src = $(src)/$(add-message-program)
 get-message-program-src = $(src)/$(get-message-program)
+logic-program-src = $(src)/$(logic-program)
+kind-src = $(src)/$(kind)
 
 add-message-program-dst = $(dst)/$(add-message-program)
 get-message-program-dst = $(dst)/$(get-message-program)
+logic-program-dst = $(dst)/$(logic-program)
+kind-dst = $(dst)/$(kind)
 
 .PHONY: build
-build: $(add-message-program-dst) $(get-message-program-dst)
+build: $(add-message-program-dst) $(get-message-program-dst) $(logic-program-dst) $(kind-dst)
 
 .PHONY: clean
 clean:
@@ -74,8 +80,20 @@ $(add-message-program-dst): $(dst) $(add-message-program-src)
 $(get-message-program-dst): $(dst) $(get-message-program-src)
 	cp $(get-message-program-src) $(get-message-program-dst)
 
+$(logic-program-dst): $(dst) $(logic-program-src)
+	cp $(logic-program-src) $(logic-program-dst)
+
+$(kind-dst): $(dst) $(kind-src)
+	cp $(kind-src) $(kind-dst)
+
 $(add-message-program-src):
 	make -C $(app-path) compile-add-message
 
 $(get-message-program-src):
 	make -C $(app-path) compile-get-message
+
+$(logic-program-src):
+	make -C $(app-path) compile-logic
+
+$(kind-src):
+	make -C $(app-path) compute-kind
