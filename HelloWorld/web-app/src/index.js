@@ -17,7 +17,7 @@ async function addMessage(message) {
 
 async function getMessages() {
   const kind = await fetchBytes(appIdentity);
-  const unspent = await anomaClient.filterKind(kind);
+  const unspent = await anomaClient.filter([kind], []);
   if (unspent.length == 0) {
     throw Error("There are no stored messages");
   }

@@ -87,16 +87,28 @@ export class AnomaClient {
   }
 
   /**
-   * Get all resources of a specified kind
+   * Get all resources that match the given filters
    *
-   * @param {!Uint8Array} kind The kind to match.
-   * @return {!Array<Uint8Array>} The resources that match.
+   * @param {!Array<Uint8Array>} kinds A list of resource kinds to match.
+   * @param {!Array<Uint8Array>} owners A list of resource owners to match.
+   * @return {!Array<Uint8Array} A list of matched resources.
    * */
-  async filterKind(kind) {
+  async filter(kinds, owners) {
     const request = new Filtered.Request();
-    const filter = new Filtered.Filter();
-    filter.setKind(kind);
-    request.setFiltersList([filter]);
+
+    const kindFilters = kinds.map(kind => {
+      const filter = new Filtered.Filter();
+      filter.setKind(kind);
+      return filter;
+    });
+
+    const ownerFilters = owners.map(owner => {
+      const filter = new Filtered.Filter();
+      filter.setOwner(owner);
+      return filter;
+    })
+
+    request.setFiltersList(kindFilters.concat(ownerFilters));
     const response = await this.blockServiceClient.filter(request, {});
     return response.getResourcesList_asU8();
   }
