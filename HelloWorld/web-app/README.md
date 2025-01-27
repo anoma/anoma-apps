@@ -46,10 +46,11 @@ npm install
 Run the following in this directory.
 
 ``` sh
-npm install
-make build  # build the Anoma application
+npm install # only for the first time
 export ANOMA_PATH=<path to Anoma node clone>
-make start   # start the Anoma node / client and the envoy proxy
+make anoma-start # start Anoma
+make build  # build the Anoma application
+make proxy-start   # start the envoy proxy
 npm run serve  # serve the webapp at http://localhost:9000
 ```
 
