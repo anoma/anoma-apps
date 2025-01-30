@@ -21,38 +21,29 @@ type ResourceRelationship :=
 isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
   let
     tag := Tag.fromNat (Instance.tag publicInputs);
-    customInputs := Witness.customInputs privateInputs;
   in case tag of
-    | Consumed nullifier :=
-      case findResourceByNullifier (unNullifier nullifier) privateInputs of {
-        | nothing := false
-        | just self :=
-          if
-            | Resource.ephemeral self :=
-              let
-                originator := Resource.label self;
-              in isAuthorizedBy@{
-                   signer := builtinAnomaDecode originator;
-                   origin := tag;
-                   publicInputs;
-                 }
-            | else :=
-              let
-                owner := Resource.value self;
-              in isAuthorizedBy@{
-                   signer := builtinAnomaDecode owner;
-                   origin := tag;
-                   publicInputs;
-                 }
-      }
-    | Created commitment :=
-      case findResourceByCommitment (unCommitment commitment) privateInputs of {
-        | nothing := false
-        | just self :=
-          if
-            | Resource.ephemeral self := todo
-            | else := true
-      };
+       | Created commitment := true
+       | Consumed nullifier :=
+         case findResourceByNullifier (unNullifier nullifier) privateInputs of
+           | nothing := false
+           | just self :=
+             if
+               | Resource.ephemeral self :=
+                 let
+                   originator := builtinAnomaDecode (Resource.label self);
+                 in isAuthorizedBy@{
+                      signer := originator;
+                      origin := tag;
+                      publicInputs;
+                    }
+               | else :=
+                 let
+                   owner := builtinAnomaDecode (Resource.value self);
+                 in isAuthorizedBy@{
+                      signer := owner;
+                      origin := tag;
+                      publicInputs;
+                    };
 
 create
   (nonce : Nonce)
@@ -68,16 +59,18 @@ create
     quantity;
     ephemeral;
     nullifierKeyCommitment :=
-      builtinAnomaEncode Universal.nullifierKeyCommitment;
+      -- builtinAnomaEncode Universal.nullifierKeyCommitment;
+
+        -- FIXME the owner should not be put here. We temporarily have it here
+        -- because the indexer looks at this field at the moment.
+        builtinAnomaEncode
+        owner;
     nonce := Nonce.toNat nonce;
     randSeed := 0;
   };
 
 isAuthorizedBy
-  (signer : ExternalIdentity)
-  (origin : Tag)
-  (publicInputs : Instance)
-  : Bool :=
+  (signer : ExternalIdentity) (origin : Tag) (publicInputs : Instance) : Bool :=
   case
     lookupAppData@{
       key := origin;
@@ -87,17 +80,20 @@ isAuthorizedBy
   of
     | nothing := false
     | just (message, signature) :=
-      (anomaVerifyDetached
-        (Signature.unSignature signature)
-        message
-        (ExternalIdentity.unExternalIdentity signer))
+      anomaVerifyDetached
+          (Signature.unSignature signature)
+          message
+          (ExternalIdentity.unExternalIdentity signer)
         && checkResourceRelationship@{
              message;
              origin;
-             nullifiers := Set.fromList (map mkNullifier (Instance.nullifiers publicInputs));
-             commitments := Set.fromList (map mkCommitment (Instance.commitments publicInputs));
+             nullifiers :=
+               Set.fromList
+                 (map mkNullifier (Instance.nullifiers publicInputs));
+             commitments :=
+               Set.fromList
+                 (map mkCommitment (Instance.commitments publicInputs));
            };
-
 
 --- Checks that a ;ResourceRelationship; message has the expected values.
 --- @param message The resource relationship message to check.
@@ -120,3 +116,167 @@ lookupAppData
   case Map.lookup (builtinAnomaEncode key) (AppData.toMap appData) of
     | nothing := nothing
     | just value := just (value |> AnomaAtom.toNat |> builtinAnomaDecode);
+
+mkActionHelper
+  (consumed created : List Resource)
+  (appData : AppData)
+  (customInputs : Nat)
+  : Action :=
+  let
+    nullifiers := map nullifier consumed;
+    commitments := map commitment created;
+
+    -- Compute proofs
+    logicProofs : List Proof :=
+      map
+      (resource, tag in zip (consumed ++ created) (nullifiers ++ commitments)) {
+        mkProofLogic@{
+          resource;
+          publicInputs :=
+            mkInstance@{
+              tag;
+              nullifiers;
+              commitments;
+              appData;
+            };
+          privateInputs :=
+            mkWitness@{
+              created;
+              consumed;
+              customInputs;
+            };
+        }
+      };
+
+    complianceProofs : List Proof := [];
+  in mkAction@{
+       commitments;
+       nullifiers;
+       proofs := complianceProofs ++ logicProofs;
+       appData;
+     };
+
+--   actionWithAuthorizationAppData {M : Type -> Type} {{Tx M}}
+--     (createdResources : List Resource) (consumedResources : List Resource) :  M Action := do {
+--         let
+--           -- Put maps into the custom inputs that map:
+--           -- - nullifiers to consumed resources
+--           -- - commitments to created resources
+--           tagsAndCustomInputs :=
+--             computeTagsAndCustomInputs@{
+--               consumed;
+--               created;
+--             };
+--           tags := TagsAndCustomInputs.tags tagsAndCustomInputs;
+--           pair := tagsToPair tags;
+--           nullifiers := fst pair;
+--           commitments := snd pair;
+
+--           -- Put signed messages and signatures by the owner in the app data.
+--           -- The signed messages link back to the original consumed resources, where the signature verification is part of the resource logic requiring the commitments of created resources to be part of the action.
+--           appData :=
+--             Set.map (nullifier in nullifiers) {
+--                 mkResourceRelationshipAppDataEntry@{
+--                   signer :=
+--                     Identity.internal (StandardInputs.caller standardInputs);
+--                   origin := Consumed nullifier;
+--                   mustBeConsumed := Set.empty;
+--                   mustBeCreated := commitments;
+--                 }
+--               }
+--               |> Map.fromSet;
+
+--         in mkActionHelper@{
+--              consumed;
+--              created;
+--              appData;
+--            };
+--     }};
+
+-- --- Initializes a Convertable typed ;Resource;.
+-- --- For tokens with fixed supply, a dummy is required.
+-- --- The function returns a StandardError if
+-- --- - a dummy is provided for tokens with Unbound supply.
+-- --- - no dummy is provided for tokens with Fixed supply.
+-- --- - the supply type is Capped which is not supported.
+-- initialize
+--   {M : Type -> Type}
+--   {{Tx M}}
+--   (toInitialize : Resource)
+--   (maybeDummy : Maybe Resource)
+--   : M Transaction := do {
+--   ctx <- getTxContext;
+--   nonce <- genRandomNonce;
+--   let
+--     self := Identity.external (TxContext.caller ctx);
+
+--     toConsumeEph : Resource :=
+--       toInitialize
+--         |> \{r := r@Resource{ephemeral := true; nullifierKeyCommitment := self;
+--          nonce
+--         }};
+
+--     action : Action := mkAction@{
+--       commitments := [toInitialize];
+--       nullifiers := [toConsumeEph];
+
+--     };
+
+--     tokenCreationTransaction :=
+--       mkTransactionHelper@{
+--         roots := Set.singleton (TxContext.currentRoot ctx);
+--         actions :=
+--           Set.singleton
+--             (ActionConvertable.toAction
+--               standardInputs
+--               (Set.singleton toConsumeEph)
+--               (Set.singleton toInitialize));
+--       };
+--   in case HasSupply.get toInitialize of
+--        | Unbound :=
+--          case maybeDummy of {
+--            | nothing := ok tokenCreationTransaction
+--            | just dummy :=
+--              throw
+--                mkDefaultError@{
+--                  msg :=
+--                    "A dummy resource is only required for resources with fixed supply.";
+--                }
+--          }
+--        | Capped :=
+--          throw
+--            mkDefaultError@{
+--              msg := "Tokens with capped supply are not supported yet.";
+--            }
+--        | Fixed expectedNullifier :=
+--          case maybeDummy of
+--            | nothing :=
+--              throw
+--                mkDefaultError@{
+--                  msg :=
+--                    "A resource to consume must be provided whose nullifier is referenced in the fixed supply type.";
+--                }
+--            | just dummy :=
+--              let
+--                actualNullifier :=
+--                  nullifier@{
+--                    resource := dummy;
+--                    nullifierKey := Universal.nullifierKey;
+--                  };
+--              in case actualNullifier == expectedNullifier of
+--                   | false :=
+--                     throw
+--                       mkDefaultError@{
+--                         msg :=
+--                           "The provided resource's nullifier does not match the one referenced in the fixed supply type.";
+--                       }
+--                   | true :=
+--                     ok
+--                       composeTransactions@{
+--                         tx1 := tokenCreationTransaction;
+--                         tx2 :=
+--                           Dummy.finalize@{
+--                             standardInputs;
+--                             dummy;
+--                           };
+--                       }};
