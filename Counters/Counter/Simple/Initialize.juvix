@@ -39,5 +39,5 @@ ctx : TxContext :=
     currentRoot := mkRoot 0;
   };
 
-main (logicEncoded : Encoded Logic) : TransactionRequest :=
-  buildTransactionRequest 0 ctx (initialize (decode logicEncoded));
+main (logic : Logic) : TransactionRequest :=
+  buildTransactionRequest 0 ctx (initialize logic);

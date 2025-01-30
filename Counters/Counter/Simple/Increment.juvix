@@ -39,11 +39,8 @@ ctx (latestRoot : Nat) : TxContext :=
   };
 
 main
-  (logicEncoded : Encoded Logic)
-  (currentCounterEncoded : Encoded Resource)
+  (logic : Logic)
+  (currentCounter : Resource)
   (latestRoot : Nat)
   : TransactionRequest :=
-  buildTransactionRequest
-    0
-    (ctx latestRoot)
-    (increment (decode logicEncoded) (decode currentCounterEncoded));
+  buildTransactionRequest 0 (ctx latestRoot) (increment logic currentCounter);

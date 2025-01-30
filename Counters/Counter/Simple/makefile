@@ -2,6 +2,7 @@
 # 	- jq
 # 	- yq
 # 	- grpcurl
+# 	- python3
 # how to run:
 # - set ANOMA_PATH environment variable to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
 # - make anoma-start
@@ -110,7 +111,11 @@ $(unspent-resources): $(anoma-build) $(host) $(port)
 
 .PHONY: $(get-latest-root)
 $(get-latest-root): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root | jq -r '.root' > $(get-latest-root)
+	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
+	| jq -r '.root' \
+    | python3 -c "import sys, base64; print(int.from_bytes(base64.b64decode(sys.stdin.read().strip()), 'little'), end='')" \
+	| juvix dev nockma encode --from text --to base64 \
+	> $(get-latest-root)
 
 $(anoma-build):
 	@mkdir -p $(anoma-build)
@@ -132,7 +137,11 @@ $(increment-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(increment-juvix) -o $(increment-nockma)
 
 $(increment-proved): $(increment-nockma) $(unspent-resources) $(get-latest-root) $(config) $(counter-logic-proved)
-	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved) --arg "bytes:$(counter-logic-proved)" --arg "base64:$(unspent-resources)" --arg "base64:$(get-latest-root)"
+	juvix dev anoma -c $(config) prove $(increment-nockma) \
+	-o $(increment-proved) \
+	--arg "bytes:$(counter-logic-proved)" \
+	--arg "base64:$(unspent-resources)" \
+	--arg "base64:$(get-latest-root)"
 
 $(get-count-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(get-count-juvix) -o $(get-count-nockma)
