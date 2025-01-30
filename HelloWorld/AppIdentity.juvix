@@ -7,9 +7,8 @@ import Applib open;
 label : Nat := builtinAnomaEncode "HelloWorld";
 
 --- Compute the kind of the HelloWorld ;Resource;
-main (encodedLogic : Encoded Logic) : Kind :=
+main (logic : Logic) : Kind :=
   let
-    logic := Encode.decode encodedLogic;
     -- Only the logic and label are used in the kind computation, we can use
     -- default values for other fields.
     dummyResource : Resource :=

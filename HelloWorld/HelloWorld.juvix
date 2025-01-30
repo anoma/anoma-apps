@@ -54,7 +54,5 @@ ctx : TxContext :=
   };
 
 --- The function that is run to produce a Transaction to send to Anoma.
-main (encodedLogic : Encoded Logic) (message : String) : TransactionRequest :=
-  let
-    logic : Logic := Encode.decode encodedLogic;
-  in buildTransactionRequest 0 ctx (helloWorldTransaction logic 0 message);
+main (logic : Logic) (message : String) : TransactionRequest :=
+  buildTransactionRequest 0 ctx (helloWorldTransaction logic 0 message);

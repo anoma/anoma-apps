@@ -2,6 +2,7 @@
 # 	- jq
 # 	- yq
 # 	- grpcurl
+# 	- python3
 
 # How to run:
 # 0. set ANOMA_PATH environment variable to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
@@ -82,7 +83,10 @@ endif
 
 .PHONY: $(message-file)
 $(message-file): $(anoma-build)
-	@echo $(message) > $(message-file)
+	@echo $(message) \
+	| python3 -c "import sys; print(int.from_bytes(sys.stdin.buffer.read(), 'little'), end='')" \
+	| juvix dev nockma encode --from text --to bytes \
+	> $(message-file)
 
 $(config): $(anoma-build)
 	@juvix dev anoma print-config > $(config)
