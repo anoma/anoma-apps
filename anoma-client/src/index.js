@@ -68,11 +68,7 @@ export class AnomaClient {
     let inputArgs = [];
     for (const arg of args) {
       const input = new Input();
-      // TODO: We serialize all arguments to match the behaviour of
-      // `juvix dev anoma prove`.
-      // This should be removed when `juvix dev anoma prove` is fixed.
-      // The args to this function should be serialized exactly once.
-      input.setJammed(serialize(arg));
+      input.setJammed(arg);
       inputArgs.push(input);
     }
     request.setPrivateInputsList(inputArgs);

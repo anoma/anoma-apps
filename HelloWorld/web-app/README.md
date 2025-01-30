@@ -4,10 +4,10 @@
 
 1. [Anoma node](https://github.com/anoma/anoma)
 
-This should be cloned at commit `7fdd77377317ff0e29676a403b384cb1f2dc4729` and
+This should be cloned at commit `5c7bd8121206fbebdc3f7f75fdea3697f09566a0` and
 the [setup instrucions](https://github.com/anoma/anoma?tab=readme-ov-file#compilation-from-sources) should be followed.
 
-2. [Juvix compiler nightly](https://github.com/anoma/juvix-nightly-builds/releases/tag/nightly-2025-01-22-0.6.9-88de274)
+2. [Juvix compiler nightly](https://github.com/anoma/juvix-nightly-builds/releases/tag/nightly-2025-01-30-0.6.9-27cc711)
 
 Download the nightly binary for your platform at the link and put it on your system PATH.
 
@@ -46,10 +46,11 @@ npm install
 Run the following in this directory.
 
 ``` sh
-npm install
-make build  # build the Anoma application
+npm install # only for the first time
 export ANOMA_PATH=<path to Anoma node clone>
-make start   # start the Anoma node / client and the envoy proxy
+make anoma-start # start Anoma
+make build  # build the Anoma application
+make proxy-start   # start the envoy proxy
 npm run serve  # serve the webapp at http://localhost:9000
 ```
 

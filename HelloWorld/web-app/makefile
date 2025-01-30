@@ -35,9 +35,6 @@ clean:
 	rm -rf $(dst)
 	rm -rf $(anoma-build-dir)
 
-.PHONY: start
-start: anoma-start proxy-start
-
 .PHONY: stop
 stop: anoma-stop proxy-stop
 

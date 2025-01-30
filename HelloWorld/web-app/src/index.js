@@ -11,7 +11,7 @@ const anomaClient = new AnomaClient(grpcServer);
 async function addMessage(message) {
   const logicProgram = await fetchBinary(logic);
   const helloWorldProgram = await fetchBinary(helloWorld);
-  const tx = await anomaClient.prove(helloWorldProgram, [logicProgram, message]);
+  const tx = await anomaClient.prove(helloWorldProgram, [logicProgram, serialize(message)]);
   return await anomaClient.addTransaction(tx);
 }
 
