@@ -249,10 +249,10 @@ txContext (latestRoot : Nat) : TxContext :=
 
 main
   (rngSeed : Nat)
-  (logic : Encoded Logic)
+  (logic : Logic)
   (quantity : Nat)
   : TransactionRequest :=
   buildTransactionRequest
     rngSeed
     (txContext 0)
-    (initialize quantity (decode logic));
+    (initialize quantity logic);

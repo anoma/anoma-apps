@@ -9,4 +9,4 @@ type LogicWrapper :=
     logic : Logic;
   };
 
-main (originator : ExternalIdentity) : LogicWrapper := mkLogicWrapper (isValidLogic originator);
+main : LogicWrapper := mkLogicWrapper isValidLogic;
