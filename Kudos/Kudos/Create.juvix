@@ -1,9 +1,11 @@
 module Kudos.Create;
 
 import Stdlib.Prelude open;
-import Stdlib.Data.Set open;
+import Stdlib.Data.Set as Set open using {Set};
+import Stdlib.Data.Map as Map open using {Map};
 import Applib open;
 import Anoma.Builtin.System open;
+import Anoma.Identity.External open;
 
 --- A message format specifiying resources that must be created and consumed within an ;Action;.
 --- @param origin The reference to the resource performing the check.
@@ -31,7 +33,7 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                 originator := Resource.label self;
               in isAuthorizedBy@{
                    signer := builtinAnomaDecode originator;
-                   origin := tag;
+                   origin := Tag.fromNat tag;
                    publicInputs;
                  }
             | else :=
@@ -39,7 +41,7 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                 owner := Resource.value self;
               in isAuthorizedBy@{
                    signer := builtinAnomaDecode owner;
-                   origin := tag;
+                   origin := Tag.fromNat tag;
                    publicInputs;
                  }
       }
@@ -81,20 +83,20 @@ isAuthorizedBy
     lookupAppData@{
       key := origin;
       Value := Pair ResourceRelationship Signature;
-      appData := Instance.app-data publicInputs;
+      appData := Instance.appData publicInputs;
     }
   of
     | nothing := false
     | just (message, signature) :=
       (anomaVerifyDetached
-        signature
+        (Signature.unSignature signature)
         message
-        signer)
+        (ExternalIdentity.unExternalIdentity signer))
         && checkResourceRelationship@{
              message;
              origin;
-             nullifiers := Instance.nullifiers publicInputs;
-             commitments := Instance.commitments publicInputs;
+             nullifiers := Set.fromList (map mkNullifier (Instance.nullifiers publicInputs));
+             commitments := Set.fromList (map mkCommitment (Instance.commitments publicInputs));
            };
 
 
@@ -111,16 +113,11 @@ checkResourceRelationship
   (commitments : Set Commitment)
   : Bool :=
   ResourceRelationship.origin message == origin
-    && isSubset (ResourceRelationship.mustBeConsumed message) nullifiers
-    && isSubset (ResourceRelationship.mustBeCreated message) commitments;
+    && Set.isSubset (ResourceRelationship.mustBeConsumed message) nullifiers
+    && Set.isSubset (ResourceRelationship.mustBeCreated message) commitments;
 
 lookupAppData
   {Key Value : Type} (key : Key) (appData : AppData) : Maybe Value :=
-  case
-    Map.lookup@{
-      key := anomaEncode key |> mkAppDataKey;
-      map := appData;
-    }
-  of
+  case Map.lookup (builtinAnomaEncode key) (AppData.toMap appData) of
     | nothing := nothing
-    | just value := just (value |> AppDataValue.data |> anomaDecode);
+    | just value := just (value |> AnomaAtom.toNat |> builtinAnomaDecode);
