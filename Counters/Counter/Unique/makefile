@@ -140,13 +140,25 @@ $(port): $(config)
 	@yq -r '.port' $(config) | tr -d '\n' > $(port)
 
 $(random-32bytes): $(anoma-build)
-	dd bs=1 count=32 < /dev/urandom > $(random-32bytes)
+	dd bs=1 count=32 \
+	< /dev/urandom \
+	| python3 -c "import sys; print(int.from_bytes(sys.stdin.buffer.read(), 'little'), end='')" \
+	| juvix dev nockma encode --from text --to bytes \
+	> $(random-32bytes)
 
 $(random-32bytes-initialize): $(anoma-build)
-	dd bs=1 count=32 < /dev/urandom > $(random-32bytes-initialize)
+	dd bs=1 count=32 \
+	< /dev/urandom \
+	| python3 -c "import sys; print(int.from_bytes(sys.stdin.buffer.read(), 'little'), end='')" \
+	| juvix dev nockma encode --from text --to bytes \
+	> $(random-32bytes-initialize)
 
 $(random-32bytes-increment): $(anoma-build)
-	dd bs=1 count=32 < /dev/urandom > $(random-32bytes-increment)
+	dd bs=1 count=32 \
+	< /dev/urandom \
+	| python3 -c "import sys; print(int.from_bytes(sys.stdin.buffer.read(), 'little'), end='')" \
+	| juvix dev nockma encode --from text --to bytes \
+	> $(random-32bytes-increment)
 
 $(current-counter-request): $(anoma-build) $(counter-kind-proved-cued-b64)
 	jq -n --arg KIND $$(cat $(counter-kind-proved-cued-b64)) \
@@ -183,7 +195,11 @@ $(logic-proved): $(logic-nockma) $(config)
 
 .PHONY: $(get-latest-root) $(host) $(port)
 $(get-latest-root): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root | jq -r '.root' > $(get-latest-root)
+	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
+	| jq -r '.root' \
+    | python3 -c "import sys, base64; print(int.from_bytes(base64.b64decode(sys.stdin.read().strip()), 'little'), end='')" \
+	| juvix dev nockma encode --from text --to base64 \
+	> $(get-latest-root)
 
 $(initialize-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(initialize-juvix) -o $(initialize-nockma)

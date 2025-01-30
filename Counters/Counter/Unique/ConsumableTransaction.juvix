@@ -23,8 +23,5 @@ createConsumableTransaction (resource : Resource) : Transaction :=
        deltaProof := deltaProof;
      };
 
-main (resourceEncoded : Encoded Resource) : TransactionRequest :=
-  resourceEncoded
-    |> decode
-    |> createConsumableTransaction
-    |> TransactionRequest.fromTransaction;
+main (resource : Resource) : TransactionRequest :=
+  resource |> createConsumableTransaction |> TransactionRequest.fromTransaction;

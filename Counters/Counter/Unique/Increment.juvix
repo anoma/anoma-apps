@@ -43,11 +43,11 @@ txContext (latestRoot : Nat) : TxContext :=
 
 main
   (randSeed : Nat)
-  (currentCounter : Encoded Resource)
-  (logic : Encoded Logic)
+  (currentCounter : Resource)
+  (logic : Logic)
   (latestRoot : Nat)
   : TransactionRequest :=
   buildTransactionRequest
     randSeed
     (txContext latestRoot)
-    (increment (decode currentCounter) (decode logic));
+    (increment currentCounter logic);

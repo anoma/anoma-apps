@@ -4,5 +4,5 @@ import Stdlib.Prelude open;
 import Applib open;
 import Counter.Unique.Resource open;
 
-main (consumable : Encoded Resource) (logic : Encoded Logic) : Kind :=
-  counterKind (decode consumable) (decode logic);
+main (consumable : Resource) (logic : Logic) : Kind :=
+  counterKind consumable logic;

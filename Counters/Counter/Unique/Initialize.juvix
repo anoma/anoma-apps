@@ -48,11 +48,11 @@ txContext (latestRoot : Nat) : TxContext :=
 
 main
   (randSeed : Nat)
-  (consumable : Encoded Resource)
-  (logic : Encoded Logic)
+  (consumable : Resource)
+  (logic : Logic)
   (latestRoot : Nat)
   : TransactionRequest :=
   buildTransactionRequest
     randSeed
     (txContext latestRoot)
-    (initialize (decode consumable) (decode logic));
+    (initialize consumable logic);
