@@ -1,0 +1,12 @@
+module Kudos.Logic;
+
+import Stdlib.Prelude open;
+import Applib open;
+import Kudos.Create open;
+
+type LogicWrapper :=
+  mkLogicWrapper@{
+    logic : Logic;
+  };
+
+main (originator : ExternalIdentity) : LogicWrapper := mkLogicWrapper (isValidLogic originator);

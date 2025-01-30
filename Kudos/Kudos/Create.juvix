@@ -1,0 +1,126 @@
+module Kudos.Create;
+
+import Stdlib.Prelude open;
+import Stdlib.Data.Set open;
+import Applib open;
+import Anoma.Builtin.System open;
+
+--- A message format specifiying resources that must be created and consumed within an ;Action;.
+--- @param origin The reference to the resource performing the check.
+--- @param mustBeConsumed The resources that must be consumed.
+--- @param mustBeCreated The resources that must be created.
+type ResourceRelationship :=
+  mkResourceRelationship@{
+    origin : Tag;
+    mustBeConsumed : Set Nullifier;
+    mustBeCreated : Set Commitment;
+  };
+
+isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
+  let
+    tag := Instance.tag publicInputs;
+    customInputs := Witness.customInputs privateInputs;
+  in if
+    | isNullifier tag :=
+      case findResourceByNullifier tag privateInputs of {
+        | nothing := false
+        | just self :=
+          if
+            | Resource.ephemeral self :=
+              let
+                originator := Resource.label self;
+              in isAuthorizedBy@{
+                   signer := builtinAnomaDecode originator;
+                   origin := tag;
+                   publicInputs;
+                 }
+            | else :=
+              let
+                owner := Resource.value self;
+              in isAuthorizedBy@{
+                   signer := builtinAnomaDecode owner;
+                   origin := tag;
+                   publicInputs;
+                 }
+      }
+    | isCommitment tag :=
+      case findResourceByCommitment tag privateInputs of {
+        | nothing := false
+        | just self :=
+          if
+            | Resource.ephemeral self := todo
+            | else := true
+      }
+    | else := false;
+
+create
+  (nonce : Nonce)
+  (quantity : Nat)
+  (originator owner : ExternalIdentity)
+  (logic : Logic)
+  {ephemeral : Bool := false}
+  : Resource :=
+  mkResource@{
+    logic;
+    label := builtinAnomaEncode originator;
+    value := builtinAnomaEncode owner;
+    quantity;
+    ephemeral;
+    nullifierKeyCommitment :=
+      builtinAnomaEncode Universal.nullifierKeyCommitment;
+    nonce := Nonce.toNat nonce;
+    randSeed := 0;
+  };
+
+isAuthorizedBy
+  (signer : ExternalIdentity)
+  (origin : Tag)
+  (publicInputs : Instance)
+  : Bool :=
+  case
+    lookupAppData@{
+      key := origin;
+      Value := Pair ResourceRelationship Signature;
+      appData := Instance.app-data publicInputs;
+    }
+  of
+    | nothing := false
+    | just (message, signature) :=
+      (anomaVerifyDetached
+        signature
+        message
+        signer)
+        && checkResourceRelationship@{
+             message;
+             origin;
+             nullifiers := Instance.nullifiers publicInputs;
+             commitments := Instance.commitments publicInputs;
+           };
+
+
+--- Checks that a ;ResourceRelationship; message has the expected values.
+--- @param message The resource relationship message to check.
+--- @param origin The expected origin.
+--- @param nullifiers The nullifier set that must contain the `mustBeConsumed` nullifiers as a subset.
+--- @param commitments The commitment set that must contain the `mustBeCreated` commitments as a subset.
+--- @return The check result.
+checkResourceRelationship
+  (message : ResourceRelationship)
+  (origin : Tag)
+  (nullifiers : Set Nullifier)
+  (commitments : Set Commitment)
+  : Bool :=
+  ResourceRelationship.origin message == origin
+    && isSubset (ResourceRelationship.mustBeConsumed message) nullifiers
+    && isSubset (ResourceRelationship.mustBeCreated message) commitments;
+
+lookupAppData
+  {Key Value : Type} (key : Key) (appData : AppData) : Maybe Value :=
+  case
+    Map.lookup@{
+      key := anomaEncode key |> mkAppDataKey;
+      map := appData;
+    }
+  of
+    | nothing := nothing
+    | just value := just (value |> AppDataValue.data |> anomaDecode);
