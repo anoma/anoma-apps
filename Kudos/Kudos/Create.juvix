@@ -46,7 +46,7 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                       publicInputs;
                     };
 
-create
+mkKudos
   (nonce : Nonce)
   (quantity : Nat)
   (originator owner : ExternalIdentity)
@@ -202,23 +202,30 @@ initialize
   {M : Type -> Type}
   {{Monad M}}
   {{Tx M}}
-  (toInitialize : Resource)
+  (quantity : Nat)
+  (logic : Logic)
   : M Transaction :=
   do {
     ctx <- getTxContext;
-    nonce <- Nonce.toNat <$> genRandomNonce;
+    nonce <- genRandomNonce;
     let
-      self : ExternalIdentity := Identity.external (TxContext.caller ctx);
+      caller : ExternalIdentity := Identity.external (TxContext.caller ctx);
+
+      toInitialize : Resource :=
+        mkKudos@{
+          nonce;
+          quantity;
+          originator := caller;
+          owner := caller;
+          logic;
+        };
 
       toConsumeEph : Resource :=
-        toInitialize
-          |> \{r :=
-            r@Resource{
-              ephemeral := true;
-              -- TODO this needs to agree with what the indexer function for owners does.
-              nullifierKeyCommitment := ExternalIdentity.toNat self;
-              nonce;
-            }};
+        toInitialize@Resource{
+          ephemeral := true;
+          -- TODO this needs to agree with what the indexer function for owners does.
+          nullifierKeyCommitment := ExternalIdentity.toNat caller;
+        };
     in
     action <- actionWithAuthorizationAppData@{
                 consumed := [toConsumeEph];
@@ -233,3 +240,19 @@ initialize
     in
     pure tokenCreationTransaction;
   };
+
+txContext (latestRoot : Nat) : TxContext :=
+  mkTxContext@{
+    caller := Universal.identity;
+    currentRoot := mkRoot latestRoot;
+  };
+
+main
+  (rngSeed : Nat)
+  (logic : Encoded Logic)
+  (quantity : Nat)
+  : TransactionRequest :=
+  buildTransactionRequest
+    rngSeed
+    (txContext 0)
+    (initialize quantity (decode logic));
