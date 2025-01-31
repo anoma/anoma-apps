@@ -64,6 +64,13 @@ kudos-initialize: $(create-proved) $(config)
 get-unspent-resources: $(unspent-resources)
 	@cat $(unspent-resources)
 
+.PHONY: did-it-work
+did-it-work:
+	rm -f $(config)
+	juvix dev anoma start --anoma-dir $(ANOMA_PATH) -f
+	make kudos-initialize
+	watch -n 0.5 make get-unspent-resources
+
 .PHONY: $(unspent-resources)
 $(unspent-resources): $(anoma-build) $(host) $(port)
 	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources | jq -r 'try .unspentResources[]' > $(unspent-resources)
@@ -88,13 +95,13 @@ $(random-32bytes): $(anoma-build)
 	> $(random-32bytes)
 
 $(logic-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma --debug $(logic-juvix) -o $(logic-nockma)
+	juvix compile anoma -O0 $(logic-juvix) -o $(logic-nockma)
 
 $(logic-proved): $(logic-nockma) $(config)
 	juvix dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
 
 $(create-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma --debug $(create-juvix) -o $(create-nockma)
+	juvix compile anoma -O0 $(create-juvix) -o $(create-nockma)
 
 $(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved)
 	juvix dev anoma -c $(config) prove $(create-nockma) \
