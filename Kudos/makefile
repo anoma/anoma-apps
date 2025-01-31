@@ -1,10 +1,10 @@
-
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
 
 base-path = Kudos
 logic = Logic
 create = Create
+test-signing = TestSigning
 
 anoma-build-dir = anoma-build
 anoma-build = $(anoma-build-dir)/.exists
@@ -22,12 +22,26 @@ create-juvix = $(base-path)/$(create).juvix
 create-nockma = $(anoma-build-dir)/$(create).nockma
 create-proved = $(anoma-build-dir)/$(create).proved.nockma
 
+test-signing-juvix = $(base-path)/$(test-signing).juvix
+test-signing-nockma = $(anoma-build-dir)/$(test-signing).nockma
+test-signing-proved = $(anoma-build-dir)/$(test-signing).proved.nockma
+
 unspent-resources = $(anoma-build-dir)/unspent-resources
 
 port = $(anoma-build-dir)/port
 host = $(anoma-build-dir)/host
 
 all-juvix = $(shell find . -name '*.juvix')
+
+owner-id ?= 0
+
+owner-secret-der = $(anoma-build-dir)/owner-secret-der-$(owner-id)
+owner-public-der = $(anoma-build-dir)/owner-public-der-$(owner-id)
+owner-secret-key = $(anoma-build-dir)/owner-secret-key-$(owner-id)
+owner-public-key = $(anoma-build-dir)/owner-public-key-$(owner-id)
+owner-signing-key = $(anoma-build-dir)/owner-signing-key-$(owner-id)
+owner-public-key-jammed = $(anoma-build-dir)/owner-public-key-jammed-$(owner-id)
+owner-signing-key-jammed = $(anoma-build-dir)/owner-signing-key-jammed-$(owner-id)
 
 $(anoma-build):
 	@mkdir -p $(anoma-build-dir)
@@ -109,3 +123,43 @@ $(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved)
 	--arg 'bytes:$(random-32bytes)' \
 	--arg 'bytes:$(logic-proved)' \
 	--arg 'nat:10'
+
+$(owner-secret-der): $(anoma-build)
+	openssl genpkey -algorithm ed25519 -outform DER \
+	> $(owner-secret-der)
+
+$(owner-secret-key): $(owner-secret-der)
+	tail -c 32 < $(owner-secret-der) > $(owner-secret-key)
+
+$(owner-public-der): $(owner-secret-der)
+	openssl pkey -in $(owner-secret-der) \
+	-pubout -outform DER \
+	> $(owner-public-der)
+
+$(owner-public-key): $(owner-public-der)
+	tail -c 32 < $(owner-public-der) > $(owner-public-key)
+
+$(owner-signing-key): $(owner-public-key) $(owner-secret-key)
+	cat $(owner-secret-key) $(owner-public-key) \
+	> $(owner-signing-key)
+
+$(owner-public-key-jammed): $(owner-public-key)
+	python3 -c "import sys; print(int.from_bytes(sys.stdin.buffer.read(), 'little'), end='')" \
+    < $(owner-public-key) \
+	| juvix dev nockma encode --from text --to bytes \
+	> $(owner-public-key-jammed)
+
+$(owner-signing-key-jammed): $(owner-signing-key)
+	python3 -c "import sys; print(int.from_bytes(sys.stdin.buffer.read(), 'little'), end='')" \
+    < $(owner-signing-key) \
+	| juvix dev nockma encode --from text --to bytes \
+	> $(owner-signing-key-jammed)
+
+$(test-signing-nockma): $(anoma-build) $(test-signing-juvix)
+	juvix compile anoma $(test-signing-juvix) -o $(test-signing-nockma)
+
+$(test-signing-proved): $(test-signing-nockma) $(config) $(owner-signing-key-jammed) $(owner-public-key-jammed)
+	juvix dev anoma -c $(config) prove $(test-signing-nockma) \
+	-o $(test-signing-proved) \
+	--arg 'bytes:$(owner-signing-key-jammed)' \
+	--arg 'bytes:$(owner-public-key-jammed)'
