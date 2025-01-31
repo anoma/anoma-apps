@@ -7,7 +7,7 @@ import Anoma.Builtin.System open;
 main (signingKeyPayload publicKeyPayload : Nat) : Bool :=
   let
     signingKey : ByteArray := fromAnomaContents 64 signingKeyPayload;
-    publicKey : ByteArray := fromAnomaContents 64 publicKeyPayload;
+    publicKey : ByteArray := fromAnomaContents 32 publicKeyPayload;
     message : Nat := 123;
     signature : ByteArray :=
       anomaSignDetached
