@@ -123,7 +123,7 @@ ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
 		mix run --no-halt $(root)/../../start-config.exs
 else
-	juvix dev anoma start --anoma-dir $(ANOMA_PATH)
+	juvix dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
 
 $(config): $(anoma-build)
@@ -142,22 +142,16 @@ $(port): $(config)
 $(random-32bytes): $(anoma-build)
 	dd bs=1 count=32 \
 	< /dev/urandom \
-	| python3 -c "import sys; print(int.from_bytes(sys.stdin.buffer.read(), 'little'), end='')" \
-	| juvix dev nockma encode --from text --to bytes \
 	> $(random-32bytes)
 
 $(random-32bytes-initialize): $(anoma-build)
 	dd bs=1 count=32 \
 	< /dev/urandom \
-	| python3 -c "import sys; print(int.from_bytes(sys.stdin.buffer.read(), 'little'), end='')" \
-	| juvix dev nockma encode --from text --to bytes \
 	> $(random-32bytes-initialize)
 
 $(random-32bytes-increment): $(anoma-build)
 	dd bs=1 count=32 \
 	< /dev/urandom \
-	| python3 -c "import sys; print(int.from_bytes(sys.stdin.buffer.read(), 'little'), end='')" \
-	| juvix dev nockma encode --from text --to bytes \
 	> $(random-32bytes-increment)
 
 $(current-counter-request): $(anoma-build) $(counter-kind-proved-cued-b64)
@@ -178,7 +172,7 @@ $(consumable-nockma): $(anoma-build) $(consumable-juvix)
 	juvix compile anoma $(consumable-juvix) -o $(consumable-nockma)
 
 $(consumable-proved): $(config) $(random-32bytes) $(consumable-nockma)
-	juvix dev anoma -c $(config) prove $(consumable-nockma) -o $(consumable-proved) --arg "bytes:$(random-32bytes)"
+	juvix dev anoma -c $(config) prove $(consumable-nockma) -o $(consumable-proved) --arg "bytes-unjammed:$(random-32bytes)"
 
 $(consumable-transaction-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(consumable-transaction-juvix) -o $(consumable-transaction-nockma)
@@ -197,8 +191,6 @@ $(logic-proved): $(logic-nockma) $(config)
 $(get-latest-root): $(anoma-build) $(host) $(port)
 	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
 	| jq -r '.root' \
-    | python3 -c "import sys, base64; print(int.from_bytes(base64.b64decode(sys.stdin.read().strip()), 'little'), end='')" \
-	| juvix dev nockma encode --from text --to base64 \
 	> $(get-latest-root)
 
 $(initialize-nockma): $(anoma-build) $(all-juvix)
@@ -206,20 +198,20 @@ $(initialize-nockma): $(anoma-build) $(all-juvix)
 
 $(initialize-proved): $(initialize-nockma) $(logic-proved) $(random-32bytes-initialize) $(consumable-proved) $(get-latest-root) $(config)
 	juvix dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved) \
-	--arg "bytes:$(random-32bytes-initialize)" \
+	--arg "bytes-unjammed:$(random-32bytes-initialize)" \
 	--arg "bytes:$(consumable-proved)" \
     --arg "bytes:$(logic-proved)" \
-	--arg "base64:$(get-latest-root)"
+	--arg "base64-unjammed:$(get-latest-root)"
 
 $(increment-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(increment-juvix) -o $(increment-nockma)
 
 $(increment-proved): $(increment-nockma) $(logic-proved) $(random-32bytes-increment) $(current-counter) $(get-latest-root) $(config)
 	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved) \
-	--arg "bytes:$(random-32bytes-increment)" \
+	--arg "bytes-unjammed:$(random-32bytes-increment)" \
 	--arg "base64:$(current-counter)" \
     --arg "bytes:$(logic-proved)" \
-	--arg "base64:$(get-latest-root)"
+	--arg "base64-unjammed:$(get-latest-root)"
 
 $(counter-kind-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(counter-kind-juvix) -o $(counter-kind-nockma)
