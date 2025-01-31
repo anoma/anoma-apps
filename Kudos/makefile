@@ -1,5 +1,6 @@
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
+owner-id ?= 0
 
 base-path = Kudos
 logic = Logic
@@ -28,12 +29,14 @@ host = $(anoma-build-dir)/host
 
 all-juvix = $(shell find . -name '*.juvix')
 
-owner-id ?= 0
-
+owner-request = $(anoma-build-dir)/owner-request-$(owner-id).json
+owner-id-file = $(anoma-build-dir)/owner-id-$(owner-id)
+owner-balance = $(anoma-build-dir)/owner-balance-$(owner-id)
 owner-secret-der = $(anoma-build-dir)/owner-secret-der-$(owner-id)
 owner-public-der = $(anoma-build-dir)/owner-public-der-$(owner-id)
 owner-secret-key = $(anoma-build-dir)/owner-secret-key-$(owner-id)
 owner-public-key = $(anoma-build-dir)/owner-public-key-$(owner-id)
+owner-public-key-base64 = $(owner-public-key).base64
 owner-signing-key = $(anoma-build-dir)/owner-signing-key-$(owner-id)
 
 $(anoma-build):
@@ -62,6 +65,10 @@ ifdef ANOMA_DEBUG
 else
 	juvix dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
+
+.PHONY: get-balance
+get-balance: $(owner-balance)
+	@cat $(owner-balance)
 
 .PHONY: kudos-initialize
 kudos-initialize: $(create-proved) $(config)
@@ -108,6 +115,26 @@ $(logic-proved): $(logic-nockma) $(config)
 $(create-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma -O0 $(create-juvix) -o $(create-nockma)
 
+$(owner-public-key-base64): $(owner-public-key)
+	base64 < $(owner-public-key) | tr -d "\n\r" > $(owner-public-key-base64)
+
+$(owner-request): $(anoma-build) $(owner-public-key) $(owner-public-key-base64)
+	jq -n --arg OWNER $$(cat $(owner-public-key-base64)) \
+	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}]}' \
+	> $(owner-request)
+
+$(owner-id-file): $(owner-id)
+	echo -n $(owner-id) > $(owner-id-file)
+
+.PHONY: $(owner-balance)
+$(owner-balance): $(anoma-build) $(host) $(port) $(owner-request)
+	grpcurl -plaintext \
+	-d @ \
+	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	< $(owner-request) \
+	| jq -r 'try .resources[]' \
+	> $(owner-balance)
+
 $(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved) $(owner-signing-key) $(owner-public-key)
 	juvix dev anoma -c $(config) prove $(create-nockma) \
 	-o $(create-proved) \
@@ -116,6 +143,7 @@ $(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved) $
 	--arg 'bytes-unjammed:$(random-32bytes)' \
 	--arg 'bytes:$(logic-proved)' \
 	--arg 'nat:10'
+	--arg 'bytes-unjammed:$(owner-id-file)'
 
 $(owner-secret-der): $(anoma-build)
 	openssl genpkey -algorithm ed25519 -outform DER \

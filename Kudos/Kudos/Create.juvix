@@ -68,16 +68,29 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                       publicInputs;
                     };
 
+module KudosLabel;
+type KudosLabel := mkKudosLabel@{
+  originator : ExternalIdentity;
+  --- E.g. '€' '🐂' '🙀'
+  kudosSymbol : String;
+};
+end;
+open KudosLabel using {KudosLabel; mkKudosLabel} public;
+
 mkKudos
   (nonce : Nonce)
   (quantity : Nat)
   (originator owner : ExternalIdentity)
   (logic : Logic)
+  (kudosSymbol : String)
   {ephemeral : Bool := false}
   : Resource :=
   mkResource@{
     logic;
-    label := builtinAnomaEncode originator;
+    label := builtinAnomaEncode mkKudosLabel@{
+        originator;
+        kudosSymbol;
+     };
     value := builtinAnomaEncode owner;
     quantity;
     ephemeral;
@@ -86,8 +99,8 @@ mkKudos
 
         -- FIXME the owner should not be put here. We temporarily have it here
         -- because the indexer looks at this field at the moment.
-        builtinAnomaEncode
-        owner;
+        toAnomaContents
+        (ExternalIdentity.toByteArray owner);
     nonce := Nonce.toNat nonce;
     randSeed := 0;
   };
@@ -225,8 +238,9 @@ initialize
   {M : Type -> Type}
   {{Monad M}}
   {{Tx M}}
-  (quantity : Nat)
   (logic : Logic)
+  (kudosSymbol : String)
+  (quantity : Nat)
   : M Transaction :=
   do {
     ctx <- getTxContext;
@@ -236,6 +250,7 @@ initialize
 
       toInitialize : Resource :=
         mkKudos@{
+          kudosSymbol;
           nonce;
           quantity;
           originator := caller;
@@ -282,10 +297,11 @@ main
   (rngSeed : Nat)
   (logic : Logic)
   (quantity : Nat)
+  (kudosSymbol : String)
   : TransactionRequest :=
   let
     caller : Identity := mkIdentityFromPayload privateKeyPayload publicKeyPayload;
   in buildTransactionRequest
     rngSeed
     (txContext caller 0)
-    (initialize quantity logic);
+    (initialize logic kudosSymbol quantity);
