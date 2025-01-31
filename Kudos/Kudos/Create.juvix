@@ -7,18 +7,22 @@ import Stdlib.Data.Map as Map open using {Map};
 import Applib open hiding {module Instance};
 import Anoma.Builtin.System open;
 import Anoma.Identity.External open;
+import Anoma.Identity.Internal open;
 
-type KudosPublicDataValue := mkKudosPublicDataValue@{
-   resourceRelationship : ResourceRelationship;
-   signature : Signature
-};
+type KudosPublicDataValue :=
+  mkKudosPublicDataValue@{
+    resourceRelationship : ResourceRelationship;
+    signature : Signature;
+  };
 
 KudosPublicData : Type := Map AnomaAtom KudosPublicDataValue;
 
 module Instance;
   import Applib open;
+
   open Instance using {otherPublic as otherPublic'} public;
   open Instance hiding {otherPublic} public;
+
   otherPublic (instance : Instance) : Encoded KudosPublicData :=
     Encode.Internal.mkEncoded (AnomaAtom.toNat (otherPublic' instance));
 end;
@@ -46,20 +50,23 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
              if
                | Resource.ephemeral self :=
                  let
-                   originator := builtinAnomaDecode {ExternalIdentity} (Resource.label self);
+                   originator :=
+                     builtinAnomaDecode
+                       {ExternalIdentity}
+                       (Resource.label self);
                  in isAuthorizedBy@{
                       signer := originator;
                       origin := tag;
                       publicInputs;
                     }
                | else :=
-                   let
-                     owner := builtinAnomaDecode (Resource.value self);
-                   in isAuthorizedBy@{
-                        signer := owner;
-                        origin := tag;
-                        publicInputs;
-                      };
+                 let
+                   owner := builtinAnomaDecode (Resource.value self);
+                 in isAuthorizedBy@{
+                      signer := owner;
+                      origin := tag;
+                      publicInputs;
+                    };
 
 mkKudos
   (nonce : Nonce)
@@ -90,32 +97,31 @@ signatureLookupKey : AnomaAtom :=
 
 isAuthorizedBy
   (signer : ExternalIdentity) (origin : Tag) (publicInputs : Instance) : Bool :=
-   case
+  case
     lookupPublicInputs@{
       key := signatureLookupKey;
-      publicInputs :=
-        Encode.decode (Instance.otherPublic publicInputs);
+      publicInputs := Encode.decode (Instance.otherPublic publicInputs);
     }
-   of
-     | nothing := true
-     | just value :=
-        let signature := KudosPublicDataValue.signature value;
-            message := KudosPublicDataValue.resourceRelationship value
-        in
-        anomaVerifyDetached
-            (Signature.unSignature signature)
-            message
-            (ExternalIdentity.toByteArray signer)
-            && checkResourceRelationship@{
-                 message;
-                 origin;
-                 nullifiers :=
-                   Set.fromList
-                     (map mkNullifier (Instance.nullifiers publicInputs));
-                 commitments :=
-                   Set.fromList
-                     (map mkCommitment (Instance.commitments publicInputs));
-               };
+  of
+    | nothing := true
+    | just value :=
+      let
+        signature := KudosPublicDataValue.signature value;
+        message := KudosPublicDataValue.resourceRelationship value;
+      in anomaVerifyDetached
+          (Signature.unSignature signature)
+          message
+          (ExternalIdentity.toByteArray signer)
+        && checkResourceRelationship@{
+             message;
+             origin;
+             nullifiers :=
+               Set.fromList
+                 (map mkNullifier (Instance.nullifiers publicInputs));
+             commitments :=
+               Set.fromList
+                 (map mkCommitment (Instance.commitments publicInputs));
+           };
 
 --- Checks that a ;ResourceRelationship; message has the expected values.
 --- @param message The resource relationship message to check.
@@ -138,8 +144,9 @@ checkResourceRelationship
       commitments;
 
 lookupPublicInputs
-  (key : AnomaAtom) (publicInputs : KudosPublicData) : Maybe KudosPublicDataValue :=
-  Map.lookup key publicInputs;
+  (key : AnomaAtom)
+  (publicInputs : KudosPublicData)
+  : Maybe KudosPublicDataValue := Map.lookup key publicInputs;
 
 actionWithAuthorizationAppData
   {M : Type -> Type}
@@ -160,8 +167,7 @@ actionWithAuthorizationAppData
       -- where the signature verification is part of the resource logic
       -- requiring the commitments of created resources to be part of the
       -- action.
-      appDataMap
-        : Map Nat KudosPublicData :=
+      appDataMap : Map Nat KudosPublicData :=
         map (nullifier in nullifiers) {
             let
               nestedMap : KudosPublicData :=
@@ -210,7 +216,10 @@ mkResourceRelationshipAppDataEntry
         message := resourceRelationship;
         signer;
       };
-  in mkKudosPublicDataValue@{resourceRelationship; signature};
+  in mkKudosPublicDataValue@{
+       resourceRelationship;
+       signature;
+     };
 
 initialize
   {M : Type -> Type}
@@ -255,18 +264,28 @@ initialize
     pure tokenCreationTransaction;
   };
 
-txContext (latestRoot : Nat) : TxContext :=
+txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
   mkTxContext@{
-    caller := Universal.identity;
+    caller;
     currentRoot := mkRoot latestRoot;
   };
 
+mkIdentityFromPayload (privateKey publicKey : Nat) : Identity :=
+  mkIdentity@{
+    internal :=
+      InternalIdentity.fromByteArray (fromAnomaContents 64 privateKey);
+    external := ExternalIdentity.fromByteArray (fromAnomaContents 32 publicKey);
+  };
+
 main
+  (privateKeyPayload publicKeyPayload : Nat)
   (rngSeed : Nat)
   (logic : Logic)
   (quantity : Nat)
   : TransactionRequest :=
-  buildTransactionRequest
+  let
+    caller : Identity := mkIdentityFromPayload privateKeyPayload publicKeyPayload;
+  in buildTransactionRequest
     rngSeed
-    (txContext 0)
+    (txContext caller 0)
     (initialize quantity logic);

@@ -4,7 +4,6 @@ ANOMA_DEBUG ?=
 base-path = Kudos
 logic = Logic
 create = Create
-test-signing = TestSigning
 
 anoma-build-dir = anoma-build
 anoma-build = $(anoma-build-dir)/.exists
@@ -21,10 +20,6 @@ logic-proved = $(anoma-build-dir)/$(logic).proved.nockma
 create-juvix = $(base-path)/$(create).juvix
 create-nockma = $(anoma-build-dir)/$(create).nockma
 create-proved = $(anoma-build-dir)/$(create).proved.nockma
-
-test-signing-juvix = $(base-path)/$(test-signing).juvix
-test-signing-nockma = $(anoma-build-dir)/$(test-signing).nockma
-test-signing-proved = $(anoma-build-dir)/$(test-signing).proved.nockma
 
 unspent-resources = $(anoma-build-dir)/unspent-resources
 
@@ -113,9 +108,11 @@ $(logic-proved): $(logic-nockma) $(config)
 $(create-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma -O0 $(create-juvix) -o $(create-nockma)
 
-$(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved)
+$(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved) $(owner-signing-key) $(owner-public-key)
 	juvix dev anoma -c $(config) prove $(create-nockma) \
 	-o $(create-proved) \
+	--arg 'bytes-unjammed:$(owner-signing-key)' \
+	--arg 'bytes-unjammed:$(owner-public-key)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
 	--arg 'bytes:$(logic-proved)' \
 	--arg 'nat:10'
@@ -138,12 +135,3 @@ $(owner-public-key): $(owner-public-der)
 $(owner-signing-key): $(owner-public-key) $(owner-secret-key)
 	cat $(owner-secret-key) $(owner-public-key) \
 	> $(owner-signing-key)
-
-$(test-signing-nockma): $(anoma-build) $(test-signing-juvix)
-	juvix compile anoma $(test-signing-juvix) -o $(test-signing-nockma)
-
-$(test-signing-proved): $(test-signing-nockma) $(config) $(owner-signing-key) $(owner-public-key)
-	juvix dev anoma -c $(config) prove $(test-signing-nockma) \
-	-o $(test-signing-proved) \
-	--arg 'bytes-unjammed:$(owner-signing-key)' \
-	--arg 'bytes-unjammed:$(owner-public-key)'
