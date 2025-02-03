@@ -4,7 +4,7 @@ import Stdlib.Prelude open;
 import Stdlib.Debug open;
 import Stdlib.Data.Set as Set open using {Set};
 import Stdlib.Data.Map as Map open using {Map};
-import Applib open hiding {module Instance};
+import Applib open;
 import Anoma.Builtin.System open;
 import Anoma.Identity.External open;
 import Anoma.Identity.Internal open;
@@ -17,14 +17,24 @@ type KudosPublicDataValue :=
 
 KudosPublicData : Type := Map AnomaAtom KudosPublicDataValue;
 
-module Instance;
-  import Applib open;
 
-  open Instance using {otherPublic as otherPublic'} public;
-  open Instance hiding {otherPublic} public;
 
-  otherPublic (instance : Instance) : Encoded KudosPublicData :=
-    Encode.Internal.mkEncoded (AnomaAtom.toNat (otherPublic' instance));
+module Kudos;
+  module Instance;
+    otherPublic (instance : Instance) : KudosPublicData :=
+      builtinAnomaDecode (AnomaAtom.toNat (Applib.Instance.otherPublic instance));
+  end;
+
+  module Resource;
+    identity (r : Resource) : Kudos.Identity :=
+          builtinAnomaDecode (Applib.Resource.label r);
+  end;
+
+  type Identity := mkIdentity@{
+    originator : ExternalIdentity;
+    --- E.g. '€' '🐂' '🙀'
+    kudosSymbol : String;
+  };
 end;
 
 --- A message format specifiying resources that must be created and consumed within an ;Action;.
@@ -50,11 +60,8 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
              if
                | Resource.ephemeral self :=
                  let
-                   label :=
-                     builtinAnomaDecode
-                       {KudosLabel}
-                       (Resource.label self);
-                   originator := KudosLabel.originator label;
+                   identity := Kudos.Resource.identity self;
+                   originator := Kudos.Identity.originator identity;
                  in isAuthorizedBy@{
                       signer := originator;
                       origin := tag;
@@ -62,18 +69,12 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                     }
                | else :=
                  let
-                   owner := builtinAnomaDecode (Resource.value self);
+                   owner := ExternalIdentity.fromByteArray (fromAnomaContents 32 (Resource.nullifierKeyCommitment self));
                  in isAuthorizedBy@{
                       signer := owner;
                       origin := tag;
                       publicInputs;
                     };
-
-type KudosLabel := mkKudosLabel@{
-  originator : ExternalIdentity;
-  --- E.g. '€' '🐂' '🙀'
-  kudosSymbol : String;
-};
 
 mkKudos
   (nonce : Nonce)
@@ -85,11 +86,11 @@ mkKudos
   : Resource :=
   mkResource@{
     logic;
-    label := builtinAnomaEncode mkKudosLabel@{
+    label := builtinAnomaEncode Kudos.mkIdentity@{
         originator;
         kudosSymbol;
      };
-    value := builtinAnomaEncode owner;
+    value := 0;
     quantity;
     ephemeral;
     nullifierKeyCommitment :=
@@ -111,7 +112,7 @@ isAuthorizedBy
   case
     lookupPublicInputs@{
       key := signatureLookupKey;
-      publicInputs := Encode.decode (Instance.otherPublic publicInputs);
+      publicInputs := Kudos.Instance.otherPublic publicInputs;
     }
   of
     | nothing := true
