@@ -50,10 +50,11 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
              if
                | Resource.ephemeral self :=
                  let
-                   originator :=
+                   label :=
                      builtinAnomaDecode
-                       {ExternalIdentity}
+                       {KudosLabel}
                        (Resource.label self);
+                   originator := KudosLabel.originator label;
                  in isAuthorizedBy@{
                       signer := originator;
                       origin := tag;
@@ -68,14 +69,11 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                       publicInputs;
                     };
 
-module KudosLabel;
 type KudosLabel := mkKudosLabel@{
   originator : ExternalIdentity;
   --- E.g. '€' '🐂' '🙀'
   kudosSymbol : String;
 };
-end;
-open KudosLabel using {KudosLabel; mkKudosLabel} public;
 
 mkKudos
   (nonce : Nonce)
