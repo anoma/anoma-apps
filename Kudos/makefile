@@ -90,7 +90,8 @@ did-it-work:
 
 .PHONY: $(unspent-resources)
 $(unspent-resources): $(anoma-build) $(host) $(port)
-	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources | jq -r 'try .unspentResources[]' > $(unspent-resources)
+	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources \
+	| jq -r 'try .unspentResources[]' > $(unspent-resources) \
 
 $(config): $(anoma-build)
 ifdef ANOMA_DEBUG
@@ -107,7 +108,7 @@ $(port): $(config)
 
 $(random-32bytes): $(anoma-build)
 	dd bs=1 count=32 < /dev/urandom \
-	> $(random-32bytes)
+	> $(random-32bytes) \
 
 $(logic-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(logic-juvix) -o $(logic-nockma)
@@ -124,9 +125,9 @@ $(owner-public-key-base64): $(owner-public-key)
 $(owner-request): $(anoma-build) $(owner-public-key) $(owner-public-key-base64)
 	jq -n --arg OWNER $$(cat $(owner-public-key-base64)) \
 	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}]}' \
-	> $(owner-request)
+	> $(owner-request) \
 
-$(owner-id-file): $(owner-id)
+$(owner-id-file):
 	echo -n $(owner-id) > $(owner-id-file)
 
 .PHONY: $(owner-balance)
@@ -136,20 +137,21 @@ $(owner-balance): $(anoma-build) $(host) $(port) $(owner-request)
 	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
 	< $(owner-request) \
 	| jq -r 'try .resources[]' \
-	> $(owner-balance)
+	> $(owner-balance) \
 
-$(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved) $(owner-signing-key) $(owner-public-key)
+$(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(owner-id-file)
 	juvix dev anoma -c $(config) prove $(create-nockma) \
 	-o $(create-proved) \
 	--arg 'bytes-unjammed:$(owner-signing-key)' \
 	--arg 'bytes-unjammed:$(owner-public-key)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
 	--arg 'bytes:$(logic-proved)' \
-	--arg 'nat:10'
+	--arg 'nat:10' \
+	--arg 'bytes-unjammed:$(owner-id-file)' \
 
 $(owner-secret-der): $(anoma-build)
 	openssl genpkey -algorithm ed25519 -outform DER \
-	> $(owner-secret-der)
+	> $(owner-secret-der) \
 
 $(owner-secret-key): $(owner-secret-der)
 	tail -c 32 < $(owner-secret-der) > $(owner-secret-key)
@@ -157,11 +159,11 @@ $(owner-secret-key): $(owner-secret-der)
 $(owner-public-der): $(owner-secret-der)
 	openssl pkey -in $(owner-secret-der) \
 	-pubout -outform DER \
-	> $(owner-public-der)
+	> $(owner-public-der) \
 
 $(owner-public-key): $(owner-public-der)
 	tail -c 32 < $(owner-public-der) > $(owner-public-key)
 
 $(owner-signing-key): $(owner-public-key) $(owner-secret-key)
 	cat $(owner-secret-key) $(owner-public-key) \
-	> $(owner-signing-key)
+	> $(owner-signing-key) \
