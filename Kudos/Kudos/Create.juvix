@@ -1,83 +1,14 @@
 module Kudos.Create;
 
 import Stdlib.Prelude open;
-import Stdlib.Debug open;
 import Stdlib.Data.Set as Set open using {Set};
 import Stdlib.Data.Map as Map open using {Map};
 import Applib open;
 import Anoma.Builtin.System open;
 import Anoma.Identity.External open;
 import Anoma.Identity.Internal open;
-
-type KudosPublicDataValue :=
-  mkKudosPublicDataValue@{
-    resourceRelationship : ResourceRelationship;
-    signature : Signature;
-  };
-
-KudosPublicData : Type := Map AnomaAtom KudosPublicDataValue;
-
-module Kudos;
-  module Instance;
-    otherPublic (instance : Instance) : KudosPublicData :=
-      builtinAnomaDecode
-        (AnomaAtom.toNat (Applib.Instance.otherPublic instance));
-  end;
-
-  module Resource;
-    identity (r : Resource) : Kudos.Identity :=
-      builtinAnomaDecode (Applib.Resource.label r);
-
-    mkResource
-      (logic : Logic)
-      (ephemeral : Bool)
-      (quantity : Nat)
-      (value : Nat)
-      (originator owner : ExternalIdentity)
-      (kudosSymbol : String)
-      (nonce : Nonce)
-      : Resource :=
-      Applib.mkResource@{
-        logic;
-        ephemeral;
-        quantity;
-        nonce := Nonce.toNat nonce;
-        randSeed := 0;
-        value := 0;
-        nullifierKeyCommitment :=
-          -- FIXME the owner should not be put here. We temporarily have it here
-            -- because the indexer looks at this field at the moment.
-            toAnomaContents
-            (ExternalIdentity.toByteArray owner);
-        label :=
-          builtinAnomaEncode
-            Kudos.mkIdentity@{
-              originator;
-              kudosSymbol;
-            };
-      };
-  end;
-
-  open Resource using {mkResource} public;
-
-  type Identity :=
-    mkIdentity@{
-      originator : ExternalIdentity;
-      --- E.g. '€' '🐂' '🙀'
-      kudosSymbol : String;
-    };
-end;
-
---- A message format specifying resources that must be created and consumed within an ;Action;.
---- @param origin The reference to the resource performing the check.
---- @param mustBeConsumed The resources that must be consumed.
---- @param mustBeCreated The resources that must be created.
-type ResourceRelationship :=
-  mkResourceRelationship@{
-    origin : Tag;
-    mustBeConsumed : List Nullifier;
-    mustBeCreated : List Commitment;
-  };
+import Kudos.Extra open;
+import Kudos.Layer open;
 
 isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
   let
@@ -144,8 +75,8 @@ isAuthorizedBy
     | nothing := true
     | just value :=
       let
-        signature := KudosPublicDataValue.signature value;
-        message := KudosPublicDataValue.resourceRelationship value;
+        signature := Kudos.PublicDataValue.signature value;
+        message := Kudos.PublicDataValue.resourceRelationship value;
       in anomaVerifyDetached
           (Signature.unSignature signature)
           message
@@ -183,8 +114,8 @@ checkResourceRelationship
 
 lookupPublicInputs
   (key : AnomaAtom)
-  (publicInputs : KudosPublicData)
-  : Maybe KudosPublicDataValue := Map.lookup key publicInputs;
+  (publicInputs : Kudos.PublicData)
+  : Maybe Kudos.PublicDataValue := Map.lookup key publicInputs;
 
 actionWithAuthorizationAppData
   {M : Type -> Type}
@@ -204,10 +135,10 @@ actionWithAuthorizationAppData
       -- where the signature verification is part of the resource logic
       -- requiring the commitments of created resources to be part of the
       -- action.
-      appDataMap : Map Nat KudosPublicData :=
+      appDataMap : Map Nat Kudos.PublicData :=
         map (nullifier in nullifiers) {
             let
-              nestedMap : KudosPublicData :=
+              nestedMap : Kudos.PublicData :=
                 Map.singleton
                   signatureLookupKey
                   mkResourceRelationshipAppDataEntry@{
@@ -240,7 +171,7 @@ mkResourceRelationshipAppDataEntry
   (origin : Tag)
   (mustBeConsumed : List Nullifier)
   (mustBeCreated : List Commitment)
-  : KudosPublicDataValue :=
+  : Kudos.PublicDataValue :=
   let
     resourceRelationship : ResourceRelationship :=
       mkResourceRelationship@{
@@ -253,7 +184,7 @@ mkResourceRelationshipAppDataEntry
         message := resourceRelationship;
         signer;
       };
-  in mkKudosPublicDataValue@{
+  in Kudos.mkPublicDataValue@{
        resourceRelationship;
        signature;
      };
