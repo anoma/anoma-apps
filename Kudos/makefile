@@ -39,6 +39,9 @@ owner-public-key = $(anoma-build-dir)/owner-public-key-$(owner-id)
 owner-public-key-base64 = $(owner-public-key).base64
 owner-signing-key = $(anoma-build-dir)/owner-signing-key-$(owner-id)
 
+# hack to make the makefile check if this is set
+$(ANOMA_PATH):
+
 $(anoma-build):
 	@mkdir -p $(anoma-build-dir)
 	@touch $(anoma-build)
