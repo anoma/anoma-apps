@@ -27,7 +27,38 @@ module Kudos;
   module Resource;
     identity (r : Resource) : Kudos.Identity :=
       builtinAnomaDecode (Applib.Resource.label r);
+
+    mkResource
+      (logic : Logic)
+      (ephemeral : Bool)
+      (quantity : Nat)
+      (value : Nat)
+      (originator owner : ExternalIdentity)
+      (kudosSymbol : String)
+      (nonce : Nonce)
+      : Resource :=
+      Applib.mkResource@{
+        logic;
+        ephemeral;
+        quantity;
+        nonce := Nonce.toNat nonce;
+        randSeed := 0;
+        value := 0;
+        nullifierKeyCommitment :=
+          -- FIXME the owner should not be put here. We temporarily have it here
+            -- because the indexer looks at this field at the moment.
+            toAnomaContents
+            (ExternalIdentity.toByteArray owner);
+        label :=
+          builtinAnomaEncode
+            Kudos.mkIdentity@{
+              originator;
+              kudosSymbol;
+            };
+      };
   end;
+
+  open Resource using {mkResource} public;
 
   type Identity :=
     mkIdentity@{
@@ -88,26 +119,15 @@ mkKudos
   (kudosSymbol : String)
   {ephemeral : Bool := false}
   : Resource :=
-  mkResource@{
+  Kudos.mkResource@{
     logic;
-    label :=
-      builtinAnomaEncode
-        Kudos.mkIdentity@{
-          originator;
-          kudosSymbol;
-        };
+    originator;
+    kudosSymbol;
+    owner;
     value := 0;
     quantity;
     ephemeral;
-    nullifierKeyCommitment :=
-      -- builtinAnomaEncode Universal.nullifierKeyCommitment;
-
-        -- FIXME the owner should not be put here. We temporarily have it here
-        -- because the indexer looks at this field at the moment.
-        toAnomaContents
-        (ExternalIdentity.toByteArray owner);
-    nonce := Nonce.toNat nonce;
-    randSeed := 0;
+    nonce;
   };
 
 signatureLookupKey : AnomaAtom :=
@@ -174,7 +194,6 @@ actionWithAuthorizationAppData
   (consumed : List Resource)
   : M Action :=
   do {
-
     caller <- TxContext.caller <$> getTxContext;
     let
       nullifiers := map nullifier consumed;
