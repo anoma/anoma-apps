@@ -17,24 +17,24 @@ type KudosPublicDataValue :=
 
 KudosPublicData : Type := Map AnomaAtom KudosPublicDataValue;
 
-
-
 module Kudos;
   module Instance;
     otherPublic (instance : Instance) : KudosPublicData :=
-      builtinAnomaDecode (AnomaAtom.toNat (Applib.Instance.otherPublic instance));
+      builtinAnomaDecode
+        (AnomaAtom.toNat (Applib.Instance.otherPublic instance));
   end;
 
   module Resource;
     identity (r : Resource) : Kudos.Identity :=
-          builtinAnomaDecode (Applib.Resource.label r);
+      builtinAnomaDecode (Applib.Resource.label r);
   end;
 
-  type Identity := mkIdentity@{
-    originator : ExternalIdentity;
-    --- E.g. '€' '🐂' '🙀'
-    kudosSymbol : String;
-  };
+  type Identity :=
+    mkIdentity@{
+      originator : ExternalIdentity;
+      --- E.g. '€' '🐂' '🙀'
+      kudosSymbol : String;
+    };
 end;
 
 --- A message format specifiying resources that must be created and consumed within an ;Action;.
@@ -69,7 +69,11 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                     }
                | else :=
                  let
-                   owner := ExternalIdentity.fromByteArray (fromAnomaContents 32 (Resource.nullifierKeyCommitment self));
+                   owner :=
+                     ExternalIdentity.fromByteArray
+                       (fromAnomaContents
+                         32
+                         (Resource.nullifierKeyCommitment self));
                  in isAuthorizedBy@{
                       signer := owner;
                       origin := tag;
@@ -86,10 +90,12 @@ mkKudos
   : Resource :=
   mkResource@{
     logic;
-    label := builtinAnomaEncode Kudos.mkIdentity@{
-        originator;
-        kudosSymbol;
-     };
+    label :=
+      builtinAnomaEncode
+        Kudos.mkIdentity@{
+          originator;
+          kudosSymbol;
+        };
     value := 0;
     quantity;
     ephemeral;
@@ -299,7 +305,8 @@ main
   (kudosSymbol : String)
   : TransactionRequest :=
   let
-    caller : Identity := mkIdentityFromPayload privateKeyPayload publicKeyPayload;
+    caller : Identity :=
+      mkIdentityFromPayload privateKeyPayload publicKeyPayload;
   in buildTransactionRequest
     rngSeed
     (txContext caller 0)
