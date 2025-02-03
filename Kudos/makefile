@@ -142,7 +142,7 @@ $(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved) $
 	--arg 'bytes-unjammed:$(owner-public-key)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
 	--arg 'bytes:$(logic-proved)' \
-	--arg 'nat:10'
+	--arg 'nat:10' \
 	--arg 'bytes-unjammed:$(owner-id-file)'
 
 $(owner-secret-der): $(anoma-build)
