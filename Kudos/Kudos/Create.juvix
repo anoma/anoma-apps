@@ -37,7 +37,7 @@ module Kudos;
     };
 end;
 
---- A message format specifiying resources that must be created and consumed within an ;Action;.
+--- A message format specifying resources that must be created and consumed within an ;Action;.
 --- @param origin The reference to the resource performing the check.
 --- @param mustBeConsumed The resources that must be consumed.
 --- @param mustBeCreated The resources that must be created.
