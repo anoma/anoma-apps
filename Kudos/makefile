@@ -107,13 +107,13 @@ $(random-32bytes): $(anoma-build)
 	> $(random-32bytes)
 
 $(logic-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma -O0 $(logic-juvix) -o $(logic-nockma)
+	juvix compile anoma $(logic-juvix) -o $(logic-nockma)
 
 $(logic-proved): $(logic-nockma) $(config)
 	juvix dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
 
 $(create-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma -O0 $(create-juvix) -o $(create-nockma)
+	juvix compile anoma $(create-juvix) -o $(create-nockma)
 
 $(owner-public-key-base64): $(owner-public-key)
 	base64 < $(owner-public-key) | tr -d "\n\r" > $(owner-public-key-base64)
