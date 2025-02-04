@@ -38,20 +38,26 @@ host = $(anoma-build-dir)/host
 
 all-juvix = $(shell find . -name '*.juvix')
 
-owner-request = $(anoma-build-dir)/owner-request-$(owner-id).json
-owner-id-file = $(anoma-build-dir)/owner-id-$(owner-id)
-owner-balance = $(anoma-build-dir)/owner-balance-$(owner-id)
-owner-first-resource = $(anoma-build-dir)/owner-balance-first$(owner-id)
-owner-secret-der = $(anoma-build-dir)/owner-secret-der-$(owner-id)
-owner-public-der = $(anoma-build-dir)/owner-public-der-$(owner-id)
-owner-secret-key = $(anoma-build-dir)/owner-secret-key-$(owner-id)
-owner-public-key = $(anoma-build-dir)/owner-public-key-$(owner-id)
-owner-public-key-base64 = $(owner-public-key).base64
-owner-signing-key = $(anoma-build-dir)/owner-signing-key-$(owner-id)
+owner-request = $(anoma-build-dir)/owner-request.json
+owner-id-file = $(anoma-build-dir)/owner-id
+owner-balance = $(anoma-build-dir)/owner-balance
+owner-first-resource = $(anoma-build-dir)/owner-balance-first
 
-receiver-secret-der = $(anoma-build-dir)/receiver-secret-der-$(receiver-id)
-receiver-public-der = $(anoma-build-dir)/receiver-public-der-$(receiver-id)
-receiver-public-key = $(anoma-build-dir)/receiver-public-key-$(receiver-id)
+person-secret-der = $(anoma-build-dir)/person-secret-der
+person-secret-key = $(anoma-build-dir)/person-secret-key
+person-public-key = $(anoma-build-dir)/person-public-key
+person-public-der = $(anoma-build-dir)/person-public-der
+
+owner-secret-der = $(anoma-build-dir)/owner-secret-der
+owner-public-der = $(anoma-build-dir)/owner-public-der
+owner-secret-key = $(anoma-build-dir)/owner-secret-key
+owner-public-key = $(anoma-build-dir)/owner-public-key
+owner-public-key-base64 = $(owner-public-key).base64
+owner-signing-key = $(anoma-build-dir)/owner-signing-key
+
+receiver-secret-der = $(anoma-build-dir)/receiver-secret-der
+receiver-public-der = $(anoma-build-dir)/receiver-public-der
+receiver-public-key = $(anoma-build-dir)/receiver-public-key
 
 # hack to make the makefile check if this is set
 $(ANOMA_PATH):
@@ -155,6 +161,7 @@ $(owner-request): $(anoma-build) $(owner-public-key) $(owner-public-key-base64)
 	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}]}' \
 	> $(owner-request) \
 
+.PHONY: $(owner-id-file)
 $(owner-id-file):
 	echo -n $(owner-id) > $(owner-id-file)
 
@@ -173,7 +180,7 @@ $(owner-balance): $(anoma-build) $(host) $(port) $(owner-request)
 	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
 	< $(owner-request) \
 	| jq -r 'try .resources[]' \
-	> $(owner-balance) \
+	> $@
 
 $(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(owner-id-file)
 	juvix dev anoma -c $(config) prove $(create-nockma) \
@@ -196,33 +203,33 @@ $(transfer-proved): $(transfer-nockma) $(config) $(random-32bytes) $(logic-prove
     --arg 'base64:$(owner-first-resource)' \
 	--arg 'bytes:$(logic-proved)' \
 
-$(owner-secret-der): $(anoma-build)
+$(person-public-key)-%: $(person-public-der)-%
+	tail -c 32 < $< > $@
+
+$(person-secret-der)-%: $(anoma-build)
 	openssl genpkey -algorithm ed25519 -outform DER \
-	> $(owner-secret-der) \
+	> $@ \
 
-$(owner-secret-key): $(owner-secret-der)
-	tail -c 32 < $(owner-secret-der) > $(owner-secret-key)
+$(person-secret-key)-%: $(person-secret-der)-%
+	tail -c 32 < $< > $@
 
-$(owner-public-der): $(owner-secret-der)
-	openssl pkey -in $(owner-secret-der) \
+$(person-public-der)-%: $(person-secret-der)-%
+	openssl pkey -in $< \
 	-pubout -outform DER \
-	> $(owner-public-der) \
+	> $@ \
 
-$(owner-public-key): $(owner-public-der)
-	tail -c 32 < $(owner-public-der) > $(owner-public-key)
+.PHONY: $(owner-secret-key)
+$(owner-secret-key): $(person-secret-key)-$(owner-id)
+	cp $< $@
+
+.PHONY: $(owner-public-key)
+$(owner-public-key): $(person-public-key)-$(owner-id)
+	cp $< $@
 
 $(owner-signing-key): $(owner-public-key) $(owner-secret-key)
 	cat $(owner-secret-key) $(owner-public-key) \
-	> $(owner-signing-key) \
+	> $@ \
 
-$(receiver-secret-der): $(anoma-build)
-	openssl genpkey -algorithm ed25519 -outform DER \
-	> $(receiver-secret-der) \
-
-$(receiver-public-der): $(receiver-secret-der)
-	openssl pkey -in $(receiver-secret-der) \
-	-pubout -outform DER \
-	> $(receiver-public-der) \
-
-$(receiver-public-key): $(receiver-public-der)
-	tail -c 32 < $(receiver-public-der) > $(receiver-public-key)
+.PHONY: $(receiver-public-key)
+$(receiver-public-key): $(person-public-key)-$(receiver-id)
+	cp $< $@
