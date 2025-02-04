@@ -72,23 +72,16 @@ transferHelper
           |> (@Resource{nonce := Nonce.toNat nonce});
     in
     pure
-      if
-        -- This check is not strictly necessary, because it's already checked in
-        -- the logic function. However, it is useful because we will get
-        -- feedback from the local client when the transaction is computed
-        -- rather than when the transaction is verified on the node.
-        | owner /= caller := failwith "only the owner can transfer kudos"
-        | else :=
-          mkTransactionHelper@{
-            roots := [currentRoot];
-            actions :=
-              [
-                mkActionHelper@{
-                  consumed := [toTransfer];
-                  created := [transferred];
-                };
-              ];
-          };
+      mkTransactionHelper@{
+        roots := [currentRoot];
+        actions :=
+          [
+            mkActionHelper@{
+              consumed := [toTransfer];
+              created := [transferred];
+            };
+          ];
+      };
   };
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
