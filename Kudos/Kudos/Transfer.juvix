@@ -91,6 +91,7 @@ txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
   };
 
 main
+  (latestRoot : Nat)
   (randSeed : Nat)
   (receiver : Nat)
   (r : Resource)
@@ -107,5 +108,5 @@ main
       };
   in buildTransactionRequest
     randSeed
-    (txContext callerIdentity 0)
+    (txContext callerIdentity latestRoot)
     (transfer logic r receiverIden);
