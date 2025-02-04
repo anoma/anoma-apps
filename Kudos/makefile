@@ -3,6 +3,7 @@ ANOMA_DEBUG ?=
 owner-id ?= 0
 receiver-id ?= 0
 quantity ?= $(error set the quantity variable to a number)
+root = $(shell pwd)
 
 base-path = Kudos
 logic = Logic
@@ -77,7 +78,7 @@ anoma-start:
 	rm -f $(config)
 ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
-		mix run --no-halt $(root)/../../start-config.exs
+		mix run --no-halt $(root)/../start-config.exs
 else
 	juvix dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
@@ -189,6 +190,8 @@ $(transfer-proved): $(transfer-nockma) $(config) $(random-32bytes) $(logic-prove
 	-o $(transfer-proved) \
 	--arg 'base64-unjammed:$(get-latest-root)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
+    --arg 'bytes-unjammed:$(owner-signing-key)' \
+    --arg 'bytes-unjammed:$(owner-public-key)' \
 	--arg 'bytes-unjammed:$(receiver-public-key)' \
     --arg 'base64:$(owner-first-resource)' \
 	--arg 'bytes:$(logic-proved)' \

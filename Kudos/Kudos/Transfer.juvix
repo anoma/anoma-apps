@@ -63,7 +63,7 @@ transferHelper
     txCtx <- getTxContext;
     nonce <- genRandomNonce;
     let
-      caller := Identity.external (TxContext.caller txCtx);
+      caller := TxContext.caller txCtx;
       currentRoot := TxContext.currentRoot txCtx;
       owner : ExternalIdentity := Kudos.Resource.owner toTransfer;
       transferred : Resource :=
@@ -71,16 +71,14 @@ transferHelper
           |> Kudos.Resource.setOwner receiver
           |> (@Resource{nonce := Nonce.toNat nonce});
     in
+    a <- actionWithAuthorizationAppData@{
+           consumed := [toTransfer];
+           created := [transferred];
+         };
     pure
       mkTransactionHelper@{
         roots := [currentRoot];
-        actions :=
-          [
-            mkActionHelper@{
-              consumed := [toTransfer];
-              created := [transferred];
-            };
-          ];
+        actions := [a];
       };
   };
 
@@ -93,6 +91,8 @@ txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
 main
   (latestRoot : Nat)
   (randSeed : Nat)
+  (ownerPrivateKeyPayload : Nat)
+  (ownerPublicKeyPayload : Nat)
   (receiver : Nat)
   (r : Resource)
   (logic : Logic)
@@ -101,10 +101,9 @@ main
     receiverIden : ExternalIdentity :=
       ExternalIdentity.fromByteArray (fromAnomaContents 32 receiver);
     callerIdentity : Identity :=
-      mkIdentity@{
-        external := Kudos.Resource.owner r;
-        -- the internal identity is not required, so we give a dummy value
-        internal := Universal.internalIdentity;
+      mkIdentityFromPayload@{
+        privateKey := ownerPrivateKeyPayload;
+        publicKey := ownerPublicKeyPayload;
       };
   in buildTransactionRequest
     randSeed
