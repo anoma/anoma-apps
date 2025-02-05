@@ -13,11 +13,11 @@ import Anoma.Identity.Internal open;
 signatureLookupKey : AnomaAtom :=
   AnomaAtom.fromNat (builtinAnomaEncode "signatureLookupKey");
 
-mkIdentityFromPayload (privateKey publicKey : Nat) : Identity :=
+mkIdentityFromPayload (privateKey publicKey : ByteArray) : Identity :=
   mkIdentity@{
     internal :=
-      InternalIdentity.fromByteArray (fromAnomaContents 64 privateKey);
-    external := ExternalIdentity.fromByteArray (fromAnomaContents 32 publicKey);
+      InternalIdentity.fromByteArray privateKey;
+    external := ExternalIdentity.fromByteArray publicKey;
   };
 
 actionWithAuthorizationAppData

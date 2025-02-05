@@ -1,7 +1,6 @@
 module Kudos.Create;
 
 import Stdlib.Prelude open;
-import Stdlib.Debug open;
 import Stdlib.Data.Set as Set open using {Set};
 import Stdlib.Data.Map as Map open using {Map};
 import Applib open;
@@ -12,41 +11,36 @@ import Kudos.Extra open;
 import Kudos.Layer open;
 
 isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
-   trace "LOGICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-    >-> let
-          tag := Tag.fromNat (Instance.tag publicInputs);
-        in case tag of {
-             | Created commitment := true
-             | Consumed nullifier :=
-               case
-                 findResourceByNullifier (unNullifier nullifier) privateInputs
-               of {
-                 | nothing := false
-                 | just self :=
-                   if
-                     | Resource.ephemeral self :=
-                       let
-                         identity := Kudos.Resource.identity self;
-                         originator := Kudos.Identity.originator identity;
-                       in isAuthorizedBy@{
-                            signer := originator;
-                            origin := tag;
-                            publicInputs;
-                          }
-                     | else :=
-                       let
-                         owner :=
-                           ExternalIdentity.fromByteArray
-                             (fromAnomaContents
-                               32
-                               (Resource.nullifierKeyCommitment self));
-                       in isAuthorizedBy@{
-                            signer := owner;
-                            origin := tag;
-                            publicInputs;
-                          }
-               }
-           };
+  let
+    tag := Tag.fromNat (Instance.tag publicInputs);
+  in case tag of {
+       | Created commitment := true
+       | Consumed nullifier :=
+         case findResourceByNullifier (unNullifier nullifier) privateInputs of {
+           | nothing := false
+           | just self :=
+             if
+               | Resource.ephemeral self :=
+                 let
+                   identity := Kudos.Resource.identity self;
+                   originator := Kudos.Identity.originator identity;
+                 in isAuthorizedBy@{
+                      signer := originator;
+                      origin := tag;
+                      publicInputs;
+                    }
+               | else :=
+                 let
+                   owner :=
+                     ExternalIdentity.fromByteArray
+                       (fromAnomaContents
+                         32
+                         (Resource.nullifierKeyCommitment self));
+                 in isAuthorizedBy@{
+                      signer := owner;
+                      origin := tag;
+                      publicInputs;
+                    }}};
 
 mkKudos
   (nonce : Nonce)
@@ -175,7 +169,7 @@ txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
   };
 
 main
-  (privateKeyPayload publicKeyPayload : Nat)
+  (privateKeyPayload publicKeyPayload : ByteArray)
   (rngSeed : Nat)
   (logic : Logic)
   (quantity : Nat)

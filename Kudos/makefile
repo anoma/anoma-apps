@@ -185,8 +185,8 @@ $(owner-balance): $(anoma-build) $(host) $(port) $(owner-request)
 $(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(owner-id-file)
 	juvix dev anoma -c $(config) prove $(create-nockma) \
 	-o $(create-proved) \
-	--arg 'bytes-unjammed:$(owner-signing-key)' \
-	--arg 'bytes-unjammed:$(owner-public-key)' \
+	--arg 'bytearray:$(owner-signing-key)' \
+	--arg 'bytearray:$(owner-public-key)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
 	--arg 'bytes:$(logic-proved)' \
 	--arg 'nat:$(quantity)' \
@@ -197,9 +197,9 @@ $(transfer-proved): $(transfer-nockma) $(config) $(random-32bytes) $(logic-prove
 	-o $(transfer-proved) \
 	--arg 'base64-unjammed:$(get-latest-root)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
-    --arg 'bytes-unjammed:$(owner-signing-key)' \
-    --arg 'bytes-unjammed:$(owner-public-key)' \
-	--arg 'bytes-unjammed:$(receiver-public-key)' \
+    --arg 'bytearray:$(owner-signing-key)' \
+    --arg 'bytearray:$(owner-public-key)' \
+	--arg 'bytearray:$(receiver-public-key)' \
     --arg 'base64:$(owner-first-resource)' \
 	--arg 'bytes:$(logic-proved)' \
 

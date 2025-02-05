@@ -91,15 +91,15 @@ txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
 main
   (latestRoot : Nat)
   (randSeed : Nat)
-  (ownerPrivateKeyPayload : Nat)
-  (ownerPublicKeyPayload : Nat)
-  (receiver : Nat)
+  (ownerPrivateKeyPayload : ByteArray)
+  (ownerPublicKeyPayload : ByteArray)
+  (receiver : ByteArray)
   (r : Resource)
   (logic : Logic)
   : TransactionRequest :=
   let
     receiverIden : ExternalIdentity :=
-      ExternalIdentity.fromByteArray (fromAnomaContents 32 receiver);
+      ExternalIdentity.fromByteArray receiver;
     callerIdentity : Identity :=
       mkIdentityFromPayload@{
         privateKey := ownerPrivateKeyPayload;
