@@ -5,10 +5,18 @@ receiver-id ?= 0
 quantity ?= $(error set the quantity variable to a number)
 root = $(shell pwd)
 
+split-receiver-id-1 ?= 0
+split-receiver-id-2 ?= 0
+split-spec ?= $(error set the split-spec variable)
+
+split-reciever-quantity-1 ?= 0
+split-receiver-quantity-2 ?= 0
+
 base-path = Kudos
 logic = Logic
 create = Create
 transfer = Transfer
+make-part = MakePart
 
 anoma-build-dir = anoma-build
 anoma-build = $(anoma-build-dir)/.exists
@@ -29,6 +37,12 @@ create-proved = $(anoma-build-dir)/$(create).proved.nockma
 transfer-juvix = $(base-path)/$(transfer).juvix
 transfer-nockma = $(anoma-build-dir)/$(transfer).nockma
 transfer-proved = $(anoma-build-dir)/$(transfer).proved.nockma
+
+make-part-juvix = $(base-path)/$(make-part).juvix
+make-part-nockma = $(anoma-build-dir)/$(make-part).nockma
+make-part-proved = $(anoma-build-dir)/$(make-part).proved.nockma
+
+resource-to-split = $(anoma-build-dir)/resource-to-split
 
 unspent-resources = $(anoma-build-dir)/unspent-resources
 
@@ -59,12 +73,17 @@ receiver-secret-der = $(anoma-build-dir)/receiver-secret-der
 receiver-public-der = $(anoma-build-dir)/receiver-public-der
 receiver-public-key = $(anoma-build-dir)/receiver-public-key
 
+split-quantity = $(anoma-build-dir)/split-quantity
+partition = $(anoma-build-dir)/partition
+make-named-part = $(anoma-build-dir)/make-named-part
+make-named-part-base64 = $(anoma-build-dir)/make-named-part-base64
+
 # hack to make the makefile check if this is set
 $(ANOMA_PATH):
 
 $(anoma-build):
-	@mkdir -p $(anoma-build-dir)
-	@touch $(anoma-build)
+	mkdir -p $(anoma-build-dir)
+	touch $(anoma-build)
 
 .PHONY: clean
 clean:
@@ -233,3 +252,33 @@ $(owner-signing-key): $(owner-public-key) $(owner-secret-key)
 .PHONY: $(receiver-public-key)
 $(receiver-public-key): $(person-public-key)-$(receiver-id)
 	cp $< $@
+
+$(make-part-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(make-part-juvix) -o $(make-part-nockma)
+
+$(make-part-proved): $(make-part-nockma) $(config)
+	juvix dev anoma -c $(config) prove $(make-part-nockma) \
+	--arg 'bytearray:?receiver' \
+	--arg 'nat:?quantity' \
+	-o $(make-part-proved) \
+
+$(owner-to-split): $(anoma-build) $(split-spec)
+	yq '.owner' < $(split-spec) | tr -d '\n' > $(owner-to-split)
+
+$(split-quantity)-%: $(anoma-build) $(split-spec)
+	yq -r '.partition.$*' < $(split-spec) > $@
+
+$(make-named-part)-%: $(config) $(make-part-nockma) $(person-public-key)-% $(split-quantity)-%
+	juvix dev anoma -c $(config) prove $(make-part-nockma) \
+	--arg 'bytearray:$(person-public-key)-$*' \
+	--arg "nat:$$(cat $(split-quantity)-$*)" \
+	-o $@ \
+
+$(make-named-part-base64)-%: $(make-named-part)-%
+	juvix dev nockma encode --from bytes --to base64 < $< > $@
+
+$(partition): $(addprefix $(make-named-part-base64)-, $(shell yq '.partition | keys[]' < $(split-spec)))
+	paste -d '\n' $^ > $(partition)
+
+$(split): $(partition)
+	split-prove --arg 'list:$(parition)'

@@ -1,0 +1,6 @@
+# Assumption: bob has exactly one kudos resource of a particular denomination
+owner: 'bob'
+denomination: <kudos resource kind>
+partition:
+  albertros: 2
+  caracalla: 3
