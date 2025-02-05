@@ -13,10 +13,10 @@ import Kudos.Layer open;
 isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
   let
     tag := Tag.fromNat (Instance.tag publicInputs);
-  in case tag of {
+  in case tag of
        | Created commitment := true
        | Consumed nullifier :=
-         case findResourceByNullifier (unNullifier nullifier) privateInputs of {
+         case findResourceByNullifier (unNullifier nullifier) privateInputs of
            | nothing := false
            | just self :=
              if
@@ -40,7 +40,7 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                       signer := owner;
                       origin := tag;
                       publicInputs;
-                    }}};
+                    };
 
 mkKudos
   (nonce : Nonce)
