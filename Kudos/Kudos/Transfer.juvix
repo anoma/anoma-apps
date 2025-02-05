@@ -10,22 +10,6 @@ import Anoma.Identity.External open;
 import Anoma.Identity.Internal open;
 import Kudos.Layer open;
 
-computeKind (logic : Logic) (label : Nat) : Kind :=
-  let
-    dummy : Resource :=
-      mkResource@{
-        label;
-        logic;
-        -- the arguments below don't matter
-        ephemeral := true;
-        nonce := 0;
-        value := 0;
-        quantity := 0;
-        randSeed := 0;
-        nullifierKeyCommitment := 0;
-      };
-  in kind dummy;
-
 transfer
   {M : Type -> Type}
   {{Monad M}}
@@ -39,7 +23,7 @@ transfer
     let
       self := Identity.external caller;
     in
-    case isKudo kudosLogic token of {
+    case Kudos.Resource.isKudo kudosLogic token of {
       | false := failwith "not kudos"
       | true :=
         transferHelper@{
@@ -48,9 +32,6 @@ transfer
         }
     };
   };
-
-isKudo (kudosLogic : Logic) (resource : Resource) : Bool :=
-  computeKind kudosLogic (Resource.label resource) == kind resource;
 
 transferHelper
   {M : Type -> Type}
@@ -63,9 +44,7 @@ transferHelper
     txCtx <- getTxContext;
     nonce <- genRandomNonce;
     let
-      caller := TxContext.caller txCtx;
       currentRoot := TxContext.currentRoot txCtx;
-      owner : ExternalIdentity := Kudos.Resource.owner toTransfer;
       transferred : Resource :=
         toTransfer
           |> Kudos.Resource.setOwner receiver
