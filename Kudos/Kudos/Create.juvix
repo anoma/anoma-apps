@@ -52,10 +52,12 @@ mkKudos
   : Resource :=
   Kudos.mkResource@{
     logic;
-    originator;
-    kudosSymbol;
+    identity :=
+      Kudos.mkIdentity@{
+        originator;
+        kudosSymbol;
+      };
     owner;
-    value := 0;
     quantity;
     ephemeral;
     nonce;

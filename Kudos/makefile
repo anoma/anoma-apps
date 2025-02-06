@@ -8,6 +8,7 @@
 # make get-balance owner-id=bob  # should now be empty
 # make get-balance owner-id=albertros  # should now show 'bob : 10'
 # make get-balance owner-id=caracalla  # should now show 'bob : 3'
+# make owner-id=bob merge-id=caracalla kudos-merge
 
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
@@ -15,13 +16,8 @@ owner-id ?= 0
 receiver-id ?= 0
 quantity ?= $(error set the quantity variable to a number)
 root = $(shell pwd)
-
-split-receiver-id-1 ?= 0
-split-receiver-id-2 ?= 0
 split-spec ?= split.yaml
-
-split-reciever-quantity-1 ?= 0
-split-receiver-quantity-2 ?= 0
+merge-id ?= 0
 
 base-path = Kudos
 logic = Logic
@@ -29,6 +25,7 @@ create = Create
 transfer = Transfer
 make-part = MakePart
 split = Split
+merge = Merge
 kudos-kind = KudosKind
 get-balance = GetBalance
 
@@ -51,6 +48,10 @@ create-proved = $(anoma-build-dir)/$(create).proved.nockma
 transfer-juvix = $(base-path)/$(transfer).juvix
 transfer-nockma = $(anoma-build-dir)/$(transfer).nockma
 transfer-proved = $(anoma-build-dir)/$(transfer).proved.nockma
+
+merge-juvix = $(base-path)/$(merge).juvix
+merge-nockma = $(anoma-build-dir)/$(merge).nockma
+merge-proved = $(anoma-build-dir)/$(merge).proved.nockma
 
 make-part-juvix = $(base-path)/$(make-part).juvix
 make-part-nockma = $(anoma-build-dir)/$(make-part).nockma
@@ -112,6 +113,13 @@ owner-to-split-kudos-symbol = $(anoma-build-dir)/owner-to-split-kudos-symbol
 owner-to-split-resource-request = $(anoma-build-dir)/owner-to-split-resource-request
 owner-to-split-resource = $(anoma-build-dir)/owner-to-split-resource
 
+to-merge-public-key = $(anoma-build-dir)/to-merge-public-key
+to-merge-resources-request = $(anoma-build-dir)/to-merge-resources-request
+to-merge-kudos-symbol = $(anoma-build-dir)/to-merge-kudos-symbol
+to-merge-resources = $(anoma-build-dir)/to-merge-resources
+to-merge-kind-cued-proved-base64 = $(anoma-build-dir)/to-merge-kind-cued-proved-base64
+merge-kudos-kind-proved = $(anoma-build-dir)/merge-kudos-kind-proved
+
 # hack to make the makefile check if this is set
 $(ANOMA_PATH):
 
@@ -161,6 +169,10 @@ kudos-transfer: $(transfer-proved) $(config)
 .PHONY: kudos-split
 kudos-split: $(split-proved) $(config)
 	juvix dev anoma -c $(config) add-transaction $(split-proved)
+
+.PHONY: kudos-merge
+kudos-merge: $(merge-proved) $(config)
+	juvix dev anoma -c $(config) add-transaction $(merge-proved)
 
 .PHONY: get-unspent-resources
 get-unspent-resources: $(unspent-resources)
@@ -299,6 +311,10 @@ $(owner-signing-key): $(person-signing-key)-$(owner-id)
 $(receiver-public-key): $(person-public-key)-$(receiver-id)
 	cp $< $@
 
+.PHONY: $(merge-public-key)
+$(merge-public-key): $(person-public-key)-$(merge-id)
+	cp $< $@
+
 $(split-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(split-juvix) -o $(split-nockma)
 
@@ -368,6 +384,53 @@ $(split-proved): $(split-nockma) $(random-32bytes) $(partition) $(get-latest-roo
     --arg 'bytearray:$(owner-to-split-public-key)' \
 	--arg 'list:$(partition)' \
     --arg 'base64:$(owner-to-split-resource)' \
+	--arg 'bytes:$(logic-proved)' \
+	-o $@ \
+
+$(merge-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(merge-juvix) -o $(merge-nockma)
+
+$(to-merge-public-key): $(person-public-key)-$(merge-id)
+	cp $< $@
+
+.PHONY: $(to-merge-kudos-symbol)
+$(to-merge-kudos-symbol):
+	echo $(merge-id) | tr -d '\n' > $@
+
+$(merge-kudos-kind-proved): $(kudos-kind-nockma) $(config) $(logic-proved) $(to-merge-public-key) $(to-merge-kudos-symbol)
+	juvix dev anoma -c $(config) prove $(kudos-kind-nockma) \
+	--arg 'bytes:$(logic-proved)' \
+	--arg 'bytearray:$(to-merge-public-key)' \
+	--arg 'bytes-unjammed:$(to-merge-kudos-symbol)' \
+	-o $@
+
+$(to-merge-kind-cued-proved-base64): $(merge-kudos-kind-proved)
+	juvix dev nockma encode --cue --from bytes --to base64 < $< > $@
+
+$(to-merge-resources-request): $(owner-public-key-base64) $(to-merge-kind-cued-proved-base64)
+	jq -n \
+	--arg OWNER $$(cat $(owner-public-key-base64)) \
+	--arg KIND $$(cat $(to-merge-kind-cued-proved-base64)) \
+	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}, {kind: $$KIND}]}' \
+	> $@ \
+
+.PHONY: $(to-merge-resources)
+$(to-merge-resources): $(host) $(port) $(to-merge-resources-request)
+	grpcurl -plaintext \
+	-d @ \
+	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	< $(to-merge-resources-request) \
+	| jq -r 'try .resources[]' \
+	> $@
+
+$(merge-proved): $(merge-nockma) $(random-32bytes) $(get-latest-root) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(receiver-public-key) $(to-merge-resources)
+	juvix dev anoma -c $(config) prove $(merge-nockma) \
+	--arg 'base64-unjammed:$(get-latest-root)' \
+	--arg 'bytes-unjammed:$(random-32bytes)' \
+    --arg 'bytearray:$(owner-signing-key)' \
+    --arg 'bytearray:$(owner-public-key)' \
+	--arg 'list:$(to-merge-resources)' \
+    --arg 'bytearray:$(receiver-public-key)' \
 	--arg 'bytes:$(logic-proved)' \
 	-o $@ \
 
