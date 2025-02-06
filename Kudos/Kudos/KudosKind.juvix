@@ -8,11 +8,11 @@ import Kudos.Layer open;
 
 main
   (kudosLogic : Logic)
-  (originatorBs : ByteArray)
+  (originatorPublicKey : ByteArray)
   (kudosSymbol : String)
   : Kind :=
   let
-    originator := ExternalIdentity.fromByteArray originatorBs;
+    originator := ExternalIdentity.fromByteArray originatorPublicKey;
     identity :=
       Kudos.mkIdentity@{
         originator;
