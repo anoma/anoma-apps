@@ -305,10 +305,10 @@ $(split-nockma): $(anoma-build) $(all-juvix)
 $(make-part-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(make-part-juvix) -o $(make-part-nockma)
 
-$(owner-to-split-signing-key): $(addprefix $(person-signing-key)-, $(shell yq '.owner' < $(split-spec) | tr -d '\n'))
+$(owner-to-split-signing-key): $(addprefix $(person-signing-key)-, $(shell yq -r '.owner' < $(split-spec) | tr -d '\n'))
 	cp $< $@
 
-$(owner-to-split-public-key): $(addprefix $(person-public-key)-, $(shell yq '.owner' < $(split-spec) | tr -d '\n'))
+$(owner-to-split-public-key): $(addprefix $(person-public-key)-, $(shell yq -r '.owner' < $(split-spec) | tr -d '\n'))
 	cp $< $@
 
 $(owner-to-split-public-key-base64): $(owner-to-split-public-key)
@@ -318,7 +318,7 @@ $(kudos-kind-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(kudos-kind-juvix) -o $(kudos-kind-nockma)
 
 $(owner-to-split-kudos-symbol): $(split-spec)
-	yq '.owner' < $(split-spec) | tr -d '\n' > $@
+	yq -r '.owner' < $(split-spec) | tr -d '\n' > $@
 
 $(owner-to-split-kudos-kind-proved): $(kudos-kind-nockma) $(config) $(logic-proved) $(owner-to-split-public-key) $(owner-to-split-kudos-symbol)
 	juvix dev anoma -c $(config) prove $(kudos-kind-nockma) \
@@ -357,7 +357,7 @@ $(make-named-part-bytes)-%: $(config) $(make-part-nockma) $(person-public-key)-%
 $(make-named-part-base64)-%: $(make-named-part-bytes)-%
 	juvix dev nockma encode --from bytes --to base64 < $< > $@
 
-$(partition): $(addprefix $(make-named-part-base64)-, $(shell yq '.partition | keys[]' < $(split-spec)))
+$(partition): $(addprefix $(make-named-part-base64)-, $(shell yq -r '.partition | keys[]' < $(split-spec)))
 	paste -d '\n' $^ > $(partition)
 
 $(split-proved): $(split-nockma) $(random-32bytes) $(partition) $(get-latest-root) $(logic-proved) $(split-nockma) $(owner-to-split-signing-key) $(owner-to-split-public-key) $(owner-to-split-resource)
