@@ -64,6 +64,7 @@ splitHelper
         nonce <- genRandomNonce;
         toSplit
           |> Kudos.Resource.setOwner receiver
+          |> (@Resource{quantity})
           |> (@Resource{nonce := Nonce.toNat nonce})
           |> pure;
       }
