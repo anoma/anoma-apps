@@ -6,8 +6,8 @@
 # make split-spec=split.yaml kudos-split  # splits resources according to Kudos/split.yaml
 # # the following assumes you used the default split.yaml file
 # make get-balance owner-id=bob  # should now be empty
-# make get-balance owner-id=albertros  # should now have 1 resource
-# make get-balance owner-id=caracalla  # should now have 1 resource
+# make get-balance owner-id=albertros  # should now show 'bob : 10'
+# make get-balance owner-id=caracalla  # should now show 'bob : 3'
 
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
@@ -30,6 +30,7 @@ transfer = Transfer
 make-part = MakePart
 split = Split
 kudos-kind = KudosKind
+get-balance = GetBalance
 
 anoma-build-dir = anoma-build
 anoma-build = $(anoma-build-dir)/.exists
@@ -61,6 +62,10 @@ kudos-kind-nockma = $(anoma-build-dir)/$(kudos-kind).nockma
 split-juvix = $(base-path)/$(split).juvix
 split-nockma = $(anoma-build-dir)/$(split).nockma
 
+get-balance-juvix = $(base-path)/$(get-balance).juvix
+get-balance-nockma = $(anoma-build-dir)/$(get-balance).nockma
+get-balance-proved = $(anoma-build-dir)/$(get-balance).proved.nockma
+
 resource-to-split = $(anoma-build-dir)/resource-to-split
 
 unspent-resources = $(anoma-build-dir)/unspent-resources
@@ -73,8 +78,8 @@ all-juvix = $(shell find . -name '*.juvix')
 
 owner-request = $(anoma-build-dir)/owner-request.json
 owner-id-file = $(anoma-build-dir)/owner-id
-owner-balance = $(anoma-build-dir)/owner-balance
-owner-first-resource = $(anoma-build-dir)/owner-balance-first
+owner-balance-resources = $(anoma-build-dir)/owner-balance-resources
+owner-first-resource = $(anoma-build-dir)/owner-balance-resources-first
 
 person-secret-der = $(anoma-build-dir)/person-secret-der
 person-secret-key = $(anoma-build-dir)/person-secret-key
@@ -137,9 +142,13 @@ else
 	juvix dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
 
+.PHONY: get-balance-resources
+get-balance-resources: $(owner-balance-resources)
+	@cat $(owner-balance-resources)
+
 .PHONY: get-balance
-get-balance: $(owner-balance)
-	@cat $(owner-balance)
+get-balance: $(get-balance-proved)
+	juvix dev nockma encode --cue --from bytes --to bytes < $(get-balance-proved)
 
 .PHONY: kudos-initialize
 kudos-initialize: $(create-proved) $(config)
@@ -218,15 +227,15 @@ $(owner-id-file):
 	echo $(owner-id) | tr -d '\n' > $(owner-id-file)
 
 .PHONY: $(owner-first-resource)
-$(owner-first-resource): $(owner-balance)
-	test -s $(owner-balance)
-	head -n1 $(owner-balance) > $(owner-first-resource)
+$(owner-first-resource): $(owner-balance-resources)
+	test -s $(owner-balance-resources)
+	head -n1 $(owner-balance-resources) > $(owner-first-resource)
 
 get-first-resource: $(owner-first-resource)
 	@cat $(owner-first-resource)
 
-.PHONY: $(owner-balance)
-$(owner-balance): $(anoma-build) $(host) $(port) $(owner-request)
+.PHONY: $(owner-balance-resources)
+$(owner-balance-resources): $(anoma-build) $(host) $(port) $(owner-request)
 	grpcurl -plaintext \
 	-d @ \
 	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
@@ -361,3 +370,11 @@ $(split-proved): $(split-nockma) $(random-32bytes) $(partition) $(get-latest-roo
     --arg 'base64:$(owner-to-split-resource)' \
 	--arg 'bytes:$(logic-proved)' \
 	-o $@ \
+
+$(get-balance-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(get-balance-juvix) -o $(get-balance-nockma)
+
+$(get-balance-proved): $(config) $(get-balance-nockma) $(owner-balance-resources)
+	juvix dev anoma -c $(config) prove $(get-balance-nockma) \
+	--arg 'list:$(owner-balance-resources)' \
+	-o $@
