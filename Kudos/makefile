@@ -7,7 +7,7 @@ root = $(shell pwd)
 
 split-receiver-id-1 ?= 0
 split-receiver-id-2 ?= 0
-split-spec ?= $(error set the split-spec variable)
+split-spec ?= Kudos/split.yaml
 
 split-reciever-quantity-1 ?= 0
 split-receiver-quantity-2 ?= 0
@@ -17,6 +17,8 @@ logic = Logic
 create = Create
 transfer = Transfer
 make-part = MakePart
+split = Split
+kudos-kind = KudosKind
 
 anoma-build-dir = anoma-build
 anoma-build = $(anoma-build-dir)/.exists
@@ -42,6 +44,12 @@ make-part-juvix = $(base-path)/$(make-part).juvix
 make-part-nockma = $(anoma-build-dir)/$(make-part).nockma
 make-part-proved = $(anoma-build-dir)/$(make-part).proved.nockma
 
+kudos-kind-juvix = $(base-path)/$(kudos-kind).juvix
+kudos-kind-nockma = $(anoma-build-dir)/$(kudos-kind).nockma
+
+split-juvix = $(base-path)/$(split).juvix
+split-nockma = $(anoma-build-dir)/$(split).nockma
+
 resource-to-split = $(anoma-build-dir)/resource-to-split
 
 unspent-resources = $(anoma-build-dir)/unspent-resources
@@ -61,6 +69,7 @@ person-secret-der = $(anoma-build-dir)/person-secret-der
 person-secret-key = $(anoma-build-dir)/person-secret-key
 person-public-key = $(anoma-build-dir)/person-public-key
 person-public-der = $(anoma-build-dir)/person-public-der
+person-signing-key = $(anoma-build-dir)/person-signing-key
 
 owner-secret-der = $(anoma-build-dir)/owner-secret-der
 owner-public-der = $(anoma-build-dir)/owner-public-der
@@ -75,8 +84,17 @@ receiver-public-key = $(anoma-build-dir)/receiver-public-key
 
 split-quantity = $(anoma-build-dir)/split-quantity
 partition = $(anoma-build-dir)/partition
-make-named-part = $(anoma-build-dir)/make-named-part
+make-named-part-bytes = $(anoma-build-dir)/make-named-part-bytes
 make-named-part-base64 = $(anoma-build-dir)/make-named-part-base64
+split-proved = $(anoma-build-dir)/split-proved
+owner-to-split-signing-key = $(anoma-build-dir)/owner-to-split-signing-key
+owner-to-split-public-key = $(anoma-build-dir)/owner-to-split-public-key
+owner-to-split-public-key-base64 = $(anoma-build-dir)/owner-to-split-public-key-base64
+owner-to-split-kudos-kind-proved = $(anoma-build-dir)/owner-to-split-kudos-kind-proved
+owner-to-split-kudos-kind-proved-cued-base64 = $(anoma-build-dir)/owner-to-split-kudos-kind-proved-cued-base64
+owner-to-split-kudos-symbol = $(anoma-build-dir)/owner-to-split-kudos-symbol
+owner-to-split-resource-request = $(anoma-build-dir)/owner-to-split-resource-request
+owner-to-split-resource = $(anoma-build-dir)/owner-to-split-resource
 
 # hack to make the makefile check if this is set
 $(ANOMA_PATH):
@@ -119,6 +137,10 @@ kudos-initialize: $(create-proved) $(config)
 .PHONY: kudos-transfer
 kudos-transfer: $(transfer-proved) $(config)
 	juvix dev anoma -c $(config) add-transaction $(transfer-proved)
+
+.PHONY: kudos-split
+kudos-split: $(split-proved) $(config)
+	juvix dev anoma -c $(config) add-transaction $(split-proved)
 
 .PHONY: get-unspent-resources
 get-unspent-resources: $(unspent-resources)
@@ -182,7 +204,7 @@ $(owner-request): $(anoma-build) $(owner-public-key) $(owner-public-key-base64)
 
 .PHONY: $(owner-id-file)
 $(owner-id-file):
-	echo -n $(owner-id) > $(owner-id-file)
+	echo $(owner-id) | tr -d '\n' > $(owner-id-file)
 
 .PHONY: $(owner-first-resource)
 $(owner-first-resource): $(owner-balance)
@@ -225,6 +247,7 @@ $(transfer-proved): $(transfer-nockma) $(config) $(random-32bytes) $(logic-prove
 $(person-public-key)-%: $(person-public-der)-%
 	tail -c 32 < $< > $@
 
+.PRECIOUS: $(person-secret-der)-%
 $(person-secret-der)-%: $(anoma-build)
 	openssl genpkey -algorithm ed25519 -outform DER \
 	> $@ \
@@ -237,6 +260,10 @@ $(person-public-der)-%: $(person-secret-der)-%
 	-pubout -outform DER \
 	> $@ \
 
+$(person-signing-key)-%: $(person-public-key)-% $(person-secret-key)-%
+	cat $(person-secret-key)-$* $(person-public-key)-$* \
+	> $@ \
+
 .PHONY: $(owner-secret-key)
 $(owner-secret-key): $(person-secret-key)-$(owner-id)
 	cp $< $@
@@ -245,40 +272,81 @@ $(owner-secret-key): $(person-secret-key)-$(owner-id)
 $(owner-public-key): $(person-public-key)-$(owner-id)
 	cp $< $@
 
-$(owner-signing-key): $(owner-public-key) $(owner-secret-key)
-	cat $(owner-secret-key) $(owner-public-key) \
-	> $@ \
+$(owner-signing-key): $(person-signing-key)-$(owner-id)
+	cp $< $@
 
 .PHONY: $(receiver-public-key)
 $(receiver-public-key): $(person-public-key)-$(receiver-id)
 	cp $< $@
 
+$(split-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(split-juvix) -o $(split-nockma)
+
 $(make-part-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(make-part-juvix) -o $(make-part-nockma)
 
-$(make-part-proved): $(make-part-nockma) $(config)
-	juvix dev anoma -c $(config) prove $(make-part-nockma) \
-	--arg 'bytearray:?receiver' \
-	--arg 'nat:?quantity' \
-	-o $(make-part-proved) \
+$(owner-to-split-signing-key): $(addprefix $(person-signing-key)-, $(shell yq '.owner' < $(split-spec) | tr -d '\n'))
+	cp $< $@
 
-$(owner-to-split): $(anoma-build) $(split-spec)
-	yq '.owner' < $(split-spec) | tr -d '\n' > $(owner-to-split)
+$(owner-to-split-public-key): $(addprefix $(person-public-key)-, $(shell yq '.owner' < $(split-spec) | tr -d '\n'))
+	cp $< $@
+
+$(owner-to-split-public-key-base64): $(owner-to-split-public-key)
+	base64 < $< | tr -d "\n\r" > $@
+
+$(kudos-kind-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(kudos-kind-juvix) -o $(kudos-kind-nockma)
+
+$(owner-to-split-kudos-symbol): $(split-spec)
+	yq '.owner' < $(split-spec) | tr -d '\n' > $@
+
+$(owner-to-split-kudos-kind-proved): $(kudos-kind-nockma) $(config) $(logic-proved) $(owner-to-split-public-key) $(owner-to-split-kudos-symbol)
+	juvix dev anoma -c $(config) prove $(kudos-kind-nockma) \
+	--arg 'bytes:$(logic-proved)' \
+	--arg 'bytearray:$(owner-to-split-public-key)' \
+	--arg 'bytes-unjammed:$(owner-to-split-kudos-symbol)' \
+	-o $@
+
+$(owner-to-split-kudos-kind-proved-cued-base64): $(owner-to-split-kudos-kind-proved)
+	juvix dev nockma encode --cue --from bytes --to base64 < $< > $@
+
+$(owner-to-split-resource-request): $(owner-to-split-public-key-base64) $(owner-to-split-kudos-kind-proved-cued-base64)
+	jq -n \
+	--arg OWNER $$(cat $(owner-to-split-public-key-base64)) \
+	--arg KIND $$(cat $(owner-to-split-kudos-kind-proved-cued-base64)) \
+	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}, {kind: $$KIND}]}' \
+	> $@ \
+
+$(owner-to-split-resource): $(host) $(port) $(owner-to-split-resource-request)
+	grpcurl -plaintext \
+	-d @ \
+	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	< $(owner-to-split-resource-request) \
+	| jq -r 'try .resources[]' \
+	> $@
 
 $(split-quantity)-%: $(anoma-build) $(split-spec)
 	yq -r '.partition.$*' < $(split-spec) > $@
 
-$(make-named-part)-%: $(config) $(make-part-nockma) $(person-public-key)-% $(split-quantity)-%
+$(make-named-part-bytes)-%: $(config) $(make-part-nockma) $(person-public-key)-% $(split-quantity)-%
 	juvix dev anoma -c $(config) prove $(make-part-nockma) \
 	--arg 'bytearray:$(person-public-key)-$*' \
 	--arg "nat:$$(cat $(split-quantity)-$*)" \
 	-o $@ \
 
-$(make-named-part-base64)-%: $(make-named-part)-%
+$(make-named-part-base64)-%: $(make-named-part-bytes)-%
 	juvix dev nockma encode --from bytes --to base64 < $< > $@
 
 $(partition): $(addprefix $(make-named-part-base64)-, $(shell yq '.partition | keys[]' < $(split-spec)))
 	paste -d '\n' $^ > $(partition)
 
-$(split): $(partition)
-	split-prove --arg 'list:$(parition)'
+$(split-proved): $(split-nockma) $(random-32bytes) $(partition) $(get-latest-root) $(logic-proved) $(split-nockma) $(owner-to-split-signing-key) $(owner-to-split-public-key) $(owner-to-split-resource)
+	juvix dev anoma -c $(config) prove $(split-nockma) \
+	--arg 'base64-unjammed:$(get-latest-root)' \
+	--arg 'bytes-unjammed:$(random-32bytes)' \
+    --arg 'bytearray:$(owner-to-split-signing-key)' \
+    --arg 'bytearray:$(owner-to-split-public-key)' \
+	--arg 'list:$(partition)' \
+    --arg 'base64:$(owner-to-split-resource)' \
+	--arg 'bytes:$(logic-proved)' \
+	-o $@ \
