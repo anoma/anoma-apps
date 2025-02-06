@@ -8,7 +8,7 @@ package : Package :=
     dependencies :=
       [
         github "anoma" "juvix-stdlib" "v0.10.1";
-        github "anoma" "anoma-applib" "8c459f6936d65872477164ac40922639116dbabe";
+        github "anoma" "anoma-applib" "94e98bc019ed1254910797f576b3dba3d5b45027";
         github "anoma" "juvix-mtl" "v0.2.1";
       ];
   };
