@@ -1,3 +1,14 @@
+# Split:
+#
+# make anoma-start
+# make quantity=13 owner-id=bob kudos-initialize  # create 13 of bob kudos owned by bob
+# make get-balance owner-id=bob  # this should contain 1 resource
+# make split-spec=split.yaml kudos-split  # splits resources according to Kudos/split.yaml
+# # the following assumes you used the default split.yaml file
+# make get-balance owner-id=bob  # should now be empty
+# make get-balance owner-id=albertros  # should now have 1 resource
+# make get-balance owner-id=caracalla  # should now have 1 resource
+
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
 owner-id ?= 0
@@ -7,7 +18,7 @@ root = $(shell pwd)
 
 split-receiver-id-1 ?= 0
 split-receiver-id-2 ?= 0
-split-spec ?= Kudos/split.yaml
+split-spec ?= split.yaml
 
 split-reciever-quantity-1 ?= 0
 split-receiver-quantity-2 ?= 0
