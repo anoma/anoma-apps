@@ -140,16 +140,9 @@ module Kudos;
         (fromAnomaContents 32 (Applib.Resource.nullifierKeyCommitment r));
 
     setOwner (newOwner : ExternalIdentity) (r : Resource) : Resource :=
-      Applib.mkResource@{
-        logic := Applib.Resource.logic r;
-        ephemeral := Applib.Resource.ephemeral r;
-        quantity := Applib.Resource.quantity r;
-        nonce := Applib.Resource.nonce r;
-        randSeed := Applib.Resource.randSeed r;
-        value := Applib.Resource.value r;
+      r@Resource{
         nullifierKeyCommitment :=
           toAnomaContents (ExternalIdentity.toByteArray newOwner);
-        label := Applib.Resource.label r;
       };
 
     -- TODO investigate bug with default arguments
