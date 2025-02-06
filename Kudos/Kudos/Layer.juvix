@@ -9,35 +9,33 @@ import Applib open;
 import Anoma.Builtin.System open;
 import Anoma.Identity.External open;
 import Anoma.Identity.Internal open;
-
-computeKind (logic : Logic) (label : Nat) : Kind :=
-  let
-    dummy : Resource :=
-      mkResource@{
-        label;
-        logic;
-        -- the arguments below don't matter
-        ephemeral := true;
-        nonce := 0;
-        value := 0;
-        quantity := 0;
-        randSeed := 0;
-        nullifierKeyCommitment := 0;
-      };
-  in kind dummy;
+import Kudos.Extra open;
 
 computeKudosKind (logic : Logic) (identity : Kudos.Identity) : Kind :=
   computeKind logic (builtinAnomaEncode identity);
 
-signatureLookupKey : AnomaAtom :=
-  AnomaAtom.fromNat (builtinAnomaEncode "signatureLookupKey");
-
-mkIdentityFromPayload (privateKey publicKey : ByteArray) : Identity :=
-  mkIdentity@{
-    internal :=
-      InternalIdentity.fromByteArray privateKey;
-    external := ExternalIdentity.fromByteArray publicKey;
-  };
+mkResourceRelationshipAppDataEntry
+  (signer : InternalIdentity)
+  (origin : Tag)
+  (mustBeConsumed : List Nullifier)
+  (mustBeCreated : List Commitment)
+  : Kudos.PublicDataValue :=
+  let
+    resourceRelationship : ResourceRelationship :=
+      mkResourceRelationship@{
+        origin;
+        mustBeConsumed;
+        mustBeCreated;
+      };
+    signature : Signature :=
+      sign@{
+        message := resourceRelationship;
+        signer;
+      };
+  in Kudos.mkPublicDataValue@{
+       resourceRelationship;
+       signature;
+     };
 
 actionWithAuthorizationAppData
   {M : Type -> Type}
@@ -88,30 +86,6 @@ actionWithAuthorizationAppData
       };
   };
 
-
-mkResourceRelationshipAppDataEntry
-  (signer : InternalIdentity)
-  (origin : Tag)
-  (mustBeConsumed : List Nullifier)
-  (mustBeCreated : List Commitment)
-  : Kudos.PublicDataValue :=
-  let
-    resourceRelationship : ResourceRelationship :=
-      mkResourceRelationship@{
-        origin;
-        mustBeConsumed;
-        mustBeCreated;
-      };
-    signature : Signature :=
-      sign@{
-        message := resourceRelationship;
-        signer;
-      };
-  in Kudos.mkPublicDataValue@{
-       resourceRelationship;
-       signature;
-     };
-
 module Kudos;
 
   PublicData : Type := Map AnomaAtom PublicDataValue;
@@ -129,6 +103,8 @@ module Kudos;
   end;
 
   module Resource;
+    open Applib.Resource using {quantity; nonce; logic; ephemeral} public;
+
     isKudo (kudosLogic : Logic) (resource : Resource) : Bool :=
       computeKind kudosLogic (Resource.label resource) == kind resource;
 
@@ -145,36 +121,12 @@ module Kudos;
           toAnomaContents (ExternalIdentity.toByteArray newOwner);
       };
 
-    -- TODO investigate bug with default arguments
-    updateResource
-      (r : Resource)
-      {logic : Logic := Applib.Resource.logic r}
-      {ephemeral : Bool := Applib.Resource.ephemeral r}
-      {quantity : Nat := Applib.Resource.quantity r}
-      {value : Nat := Applib.Resource.value r}
-      {nonce : Nonce := Nonce.fromNat (Applib.Resource.nonce r)}
-      (kudosSymbol : String)
-      (owner : ExternalIdentity)
-      (originator : ExternalIdentity)
-      : Resource :=
-      mkResource@{
-        logic;
-        ephemeral;
-        quantity;
-        nonce;
-        value;
-        originator;
-        owner;
-        kudosSymbol;
-      };
-
     mkResource
       (logic : Logic)
       (ephemeral : Bool)
       (quantity : Nat)
-      (value : Nat)
-      (originator owner : ExternalIdentity)
-      (kudosSymbol : String)
+      (owner : ExternalIdentity)
+      (identity : Identity)
       (nonce : Nonce)
       : Resource :=
       Applib.mkResource@{
@@ -189,12 +141,7 @@ module Kudos;
             -- because the indexer looks at this field at the moment.
             toAnomaContents
             (ExternalIdentity.toByteArray owner);
-        label :=
-          builtinAnomaEncode
-            Kudos.mkIdentity@{
-              originator;
-              kudosSymbol;
-            };
+        label := builtinAnomaEncode identity
       };
   end;
 
