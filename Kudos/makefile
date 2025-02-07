@@ -66,6 +66,7 @@ split-nockma = $(anoma-build-dir)/$(split).nockma
 get-balance-juvix = $(base-path)/$(get-balance).juvix
 get-balance-nockma = $(anoma-build-dir)/$(get-balance).nockma
 get-balance-proved = $(anoma-build-dir)/$(get-balance).proved.nockma
+get-balance-proved-txt = $(anoma-build-dir)/$(get-balance).proved.txt
 
 resource-to-split = $(anoma-build-dir)/resource-to-split
 
@@ -123,6 +124,10 @@ merge-kudos-kind-proved = $(anoma-build-dir)/merge-kudos-kind-proved
 # hack to make the makefile check if this is set
 $(ANOMA_PATH):
 
+# documented hack to force recipes to run for recipes that have prerequisites
+# with patterns
+FORCE:
+
 $(anoma-build):
 	mkdir -p $(anoma-build-dir)
 	touch $(anoma-build)
@@ -155,8 +160,8 @@ get-balance-resources: $(owner-balance-resources)
 	@cat $(owner-balance-resources)
 
 .PHONY: get-balance
-get-balance: $(get-balance-proved)
-	juvix dev nockma encode --cue --from bytes --to bytes < $(get-balance-proved)
+get-balance: $(get-balance-proved-txt)
+	@cat $<
 
 .PHONY: kudos-initialize
 kudos-initialize: $(create-proved) $(config)
@@ -287,7 +292,7 @@ $(person-secret-der)-%: $(anoma-build)
 $(person-secret-key)-%: $(person-secret-der)-%
 	tail -c 32 < $< > $@
 
-$(person-public-der)-%: $(person-secret-der)-%
+$(person-public-der)-%: $(person-secret-der)-% FORCE
 	openssl pkey -in $< \
 	-pubout -outform DER \
 	> $@ \
@@ -441,3 +446,6 @@ $(get-balance-proved): $(config) $(get-balance-nockma) $(owner-balance-resources
 	juvix dev anoma -c $(config) prove $(get-balance-nockma) \
 	--arg 'list:$(owner-balance-resources)' \
 	-o $@
+
+$(get-balance-proved-txt): $(get-balance-proved)
+	juvix dev nockma encode --cue --from bytes --to bytes < $< > $@
