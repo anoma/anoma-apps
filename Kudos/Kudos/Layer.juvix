@@ -34,7 +34,7 @@ mkResourceRelationshipAppDataEntry
       };
   in Kudos.mkPublicDataValue@{
        resourceRelationship;
-       signature;
+       signature := trace "mkPublicDataValue signature" >-> trace signature >-> signature;
      };
 
 actionWithAuthorizationAppData

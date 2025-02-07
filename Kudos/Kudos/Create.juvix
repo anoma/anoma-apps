@@ -9,6 +9,7 @@ import Anoma.Identity.External open;
 import Anoma.Identity.Internal open;
 import Kudos.Extra open;
 import Kudos.Layer open;
+import Stdlib.Debug.Trace open;
 
 isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
   let
@@ -17,18 +18,24 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
        | Created commitment := true
        | Consumed nullifier :=
          case findResourceByNullifier (unNullifier nullifier) privateInputs of
-           | nothing := false
+           | nothing :=
+             trace "findResourceByNullifier returned nothing" >-> false
            | just self :=
              if
                | Resource.ephemeral self :=
                  let
                    identity := Kudos.Resource.identity self;
                    originator := Kudos.Identity.originator identity;
-                 in isAuthorizedBy@{
-                      signer := originator;
-                      origin := tag;
-                      publicInputs;
-                    }
+                   authorized :=
+                     isAuthorizedBy@{
+                       signer := originator;
+                       origin := tag;
+                       publicInputs;
+                     };
+                 in if
+                   | not authorized :=
+                     trace "failed isAuthorizedBy originator tag" >-> false
+                   | else := true
                | else :=
                  let
                    owner :=
@@ -76,20 +83,22 @@ isAuthorizedBy
       let
         signature := Kudos.PublicDataValue.signature value;
         message := Kudos.PublicDataValue.resourceRelationship value;
-      in anomaVerifyDetached
-          (Signature.unSignature signature)
+      in trace "isAuthorizedBy"
+        >-> anomaVerifyDetached
+          (Signature.unSignature (trace "anomaVerifyDetached signature" >-> trace signature >-> signature))
           message
           (ExternalIdentity.toByteArray signer)
-        && checkResourceRelationship@{
-             message;
-             origin;
-             nullifiers :=
-               Set.fromList
-                 (map mkNullifier (Instance.nullifiers publicInputs));
-             commitments :=
-               Set.fromList
-                 (map mkCommitment (Instance.commitments publicInputs));
-           };
+        && (trace "isAuthorizedBy ok" >-> true)
+          && checkResourceRelationship@{
+               message;
+               origin;
+               nullifiers :=
+                 Set.fromList
+                   (map mkNullifier (Instance.nullifiers publicInputs));
+               commitments :=
+                 Set.fromList
+                   (map mkCommitment (Instance.commitments publicInputs));
+             };
 
 --- Checks that a ;ResourceRelationship; message has the expected values.
 --- @param message The resource relationship message to check.
@@ -103,13 +112,23 @@ checkResourceRelationship
   (nullifiers : Set Nullifier)
   (commitments : Set Commitment)
   : Bool :=
-  ResourceRelationship.origin message == origin
-    && Set.isSubset
-      (Set.fromList (ResourceRelationship.mustBeConsumed message))
-      nullifiers
-    && Set.isSubset
-      (Set.fromList (ResourceRelationship.mustBeCreated message))
-      commitments;
+  let
+    messageOriginIsOrigin := ResourceRelationship.origin message == origin;
+    mustBeConsumedSubsetNullifiers :=
+      Set.isSubset
+        (Set.fromList (ResourceRelationship.mustBeConsumed message))
+        nullifiers;
+    mustBeCreatedSubsetCommitments :=
+      Set.isSubset
+        (Set.fromList (ResourceRelationship.mustBeCreated message))
+        commitments;
+  in trace "checkResourceRelationship"
+    >-> messageOriginIsOrigin
+      && (trace "messageOriginIsOrigin ok" >-> true)
+      && mustBeConsumedSubsetNullifiers
+      && (trace "mustBeConsumedSubsetNullifiers ok" >-> true)
+      && mustBeCreatedSubsetCommitments
+      && (trace "mustBeCreatedSubsetCommitments ok" >-> true);
 
 lookupPublicInputs
   (key : AnomaAtom)
