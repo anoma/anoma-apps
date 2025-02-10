@@ -9,11 +9,11 @@ assert_balance () {
     local actual_balance
     local get_balance_output=$make_dir/anoma-build/GetBalance.proved.txt
     make -C $make_dir get-balance owner-id="$assert_owner"
-    printf "**** Asserting that '%s' has balance '%s'\n" "$assert_owner" "$expected_balance"
+    printf "\e[1;37m**** Asserting that '%s' has balance '%s'\e[0m\n" "$assert_owner" "$expected_balance"
     actual_balance=$(sort < "$get_balance_output")
     if test "$actual_balance" != "$expected_balance"
     then
-        printf "Failed. line: %s\n" "$line"
+        printf "\e[1;31mFailed. line: %s\e[0m\n" "$line"
         printf "Owner: '%s':\n\tExpected '%s'\n\tActual '%s'\n" "$assert_owner" "$expected_balance" "$actual_balance"
         exit 1
     fi
@@ -75,4 +75,8 @@ kudos_merge () {
     block_height=$(make -s -C $make_dir latest-block-height)
     make -C $make_dir kudos-merge owner-id=$owner_id merge-id=$merge_id receiver-id=$receiver_id
     wait_for_transaction $block_height
+}
+
+test_passed () {
+   echo -e "\e[1;32mTest passed\e[0m"
 }

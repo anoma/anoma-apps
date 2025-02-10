@@ -7,7 +7,7 @@ trap 'cd $original_pwd' EXIT
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-. "../assert.sh"
+source "../assert.sh"
 
 ANOMA_DEBUG=""
 make_dir=../../
@@ -36,4 +36,4 @@ assert_balance $LINENO "$bob" "$caracalla : $expected_merge_quantity"
 owner_id=$bob merge_id=$caracalla receiver_id=$wibble kudos_merge
 assert_balance $LINENO $wibble "$caracalla : $expected_merge_quantity"
 
-echo "test passed"
+test_passed

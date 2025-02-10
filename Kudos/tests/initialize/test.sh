@@ -7,7 +7,7 @@ trap 'cd $original_pwd' EXIT
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-. "../assert.sh"
+source "../assert.sh"
 
 ANOMA_DEBUG=""
 make_dir=../../
