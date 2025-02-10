@@ -16,24 +16,24 @@ caracalla=caracalla
 wibble=wibble
 quantity_1=12
 quantity_2=2
-expected_merge_quantity=$(echo "$quantity_1 + $quantity_2" | bc)
-wait_time=1
+expected_merge_quantity=$(($quantity_1 + $quantity_2))
 
 make -C $make_dir anoma-start
-sleep $wait_time
-make -C $make_dir kudos-initialize owner-id=$caracalla quantity=$quantity_1
-sleep $wait_time
+sleep 1
+
+owner_id=$caracalla quantity=$quantity_1 kudos_initialize
 assert_balance $LINENO caracalla "$caracalla : $quantity_1"
-make -C $make_dir kudos-transfer owner-id=$caracalla receiver-id="$bob"
-sleep $wait_time
+
+owner_id=$caracalla receiver_id=$bob kudos_transfer
 assert_balance $LINENO "$bob" "$caracalla : $quantity_1"
-make -C $make_dir kudos-initialize owner-id=$caracalla quantity=$quantity_2
-sleep $wait_time
+
+owner_id=$caracalla quantity=$quantity_2 kudos_initialize
 assert_balance $LINENO $caracalla "$caracalla : $quantity_2"
-make -C $make_dir kudos-transfer owner-id=$caracalla receiver-id="$bob"
-sleep $wait_time
+
+owner_id=$caracalla receiver_id=$bob kudos_transfer
 assert_balance $LINENO "$bob" "$caracalla : $expected_merge_quantity"
-make -C $make_dir kudos-merge owner-id=$bob merge-id=$caracalla receiver-id=$wibble
-sleep $wait_time
+
+owner_id=$bob merge_id=$caracalla receiver_id=$wibble kudos_merge
 assert_balance $LINENO $wibble "$caracalla : $expected_merge_quantity"
+
 echo "test passed"

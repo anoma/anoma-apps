@@ -37,3 +37,42 @@ poll () {
     echo "$predicate - timed out"
     return 1
 }
+
+wait_for_transaction () {
+    local block_height
+    local predicate
+    local make_dir
+    make_dir=$(dirname "${BASH_SOURCE[0]}")/..
+    block_height=$1
+    predicate=$(printf 'test "true" = $(make -s -C %s block-height=%s has-transaction-after-height)' $make_dir $block_height)
+    poll "$predicate"
+}
+
+kudos_initialize () {
+    # arguments: owner_id, quantity
+    local make_dir
+    make_dir=$(dirname "${BASH_SOURCE[0]}")/..
+    block_height=$(make -s -C $make_dir latest-block-height)
+    make -C $make_dir kudos-initialize owner-id="$owner_id" quantity=$quantity
+    wait_for_transaction $block_height
+}
+
+kudos_transfer () {
+    # arguments: owner_id, receiver_id
+    local make_dir
+    make_dir=$(dirname "${BASH_SOURCE[0]}")/..
+
+    block_height=$(make -s -C $make_dir latest-block-height)
+    make -C $make_dir kudos-transfer owner-id="$owner_id" receiver-id="$receiver_id"
+    wait_for_transaction $block_height
+}
+
+kudos_merge () {
+    # arguments: owner_id, merge_id, receiver_id
+    local make_dir
+    make_dir=$(dirname "${BASH_SOURCE[0]}")/..
+
+    block_height=$(make -s -C $make_dir latest-block-height)
+    make -C $make_dir kudos-merge owner-id=$owner_id merge-id=$merge_id receiver-id=$receiver_id
+    wait_for_transaction $block_height
+}

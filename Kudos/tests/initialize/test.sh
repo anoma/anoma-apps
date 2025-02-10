@@ -16,9 +16,6 @@ quantity=12
 
 make -C $make_dir anoma-start
 sleep 1
-latest_block_height=$(make -s -C $make_dir latest-block-height)
-make -C $make_dir kudos-initialize owner-id=$bob quantity=$quantity
-predicate=$(printf 'test "true" = $(make -s -C %s block-height=%s has-transaction-after-height)' $make_dir $latest_block_height)
-poll "$predicate"
+owner_id=$bob quantity=$quantity kudos_initialize
 assert_balance $LINENO $bob "$bob : $quantity"
 echo "test passed"
