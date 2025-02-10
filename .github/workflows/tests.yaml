@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  ANOMA_VERSION: 5c7bd8121206fbebdc3f7f75fdea3697f09566a0
+  ANOMA_VERSION: f16c4c7b28595c6fb379e06cb5935e0344de8fa3
 
 jobs:
   build-test:
