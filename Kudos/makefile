@@ -18,6 +18,8 @@ quantity ?= $(error set the quantity variable to a number)
 root = $(shell pwd)
 split-spec ?= split.yaml
 merge-id ?= 0
+# block-height is used by has-transaction-after-height
+block-height ?= $(error set the block-height variable)
 
 base-path = Kudos
 logic = Logic
@@ -73,6 +75,9 @@ resource-to-split = $(anoma-build-dir)/resource-to-split
 unspent-resources = $(anoma-build-dir)/unspent-resources
 
 get-latest-root = $(anoma-build-dir)/latest-root
+latest-block-height = $(anoma-build-dir)/latest-block-height
+has-transaction-after-height = $(anoma-build-dir)/has-transaction-after-height
+
 port = $(anoma-build-dir)/port
 host = $(anoma-build-dir)/host
 
@@ -218,6 +223,31 @@ $(get-latest-root): $(anoma-build) $(host) $(port)
 	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
 	| jq -r '.root' \
 	> $(get-latest-root)
+
+.PHONY: latest-block-height
+latest-block-height: $(latest-block-height)
+	@cat $<
+
+.PHONY: $(latest-block-height)
+$(latest-block-height): $(anoma-build) $(host) $(port)
+	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Latest \
+	| jq -r '.block.height' \
+	| tr -d '\n' \
+	> $@
+
+.PHONY: has-transaction-after-height
+has-transaction-after-height: $(has-transaction-after-height)
+	@cat $<
+
+.PHONY: $(has-transaction-after-height)
+$(has-transaction-after-height): $(anoma-build) $(host) $(port)
+	grpcurl -plaintext \
+	-d @ \
+	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Get \
+	<<< '{"after": $(block-height)}' \
+	| jq '.blocks | map(has("transactions")) | any' \
+	| tr -d '\n' \
+	> $@
 
 $(logic-nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(logic-juvix) -o $(logic-nockma)
