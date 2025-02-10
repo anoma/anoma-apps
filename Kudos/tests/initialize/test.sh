@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 set -eu
 
@@ -24,8 +24,10 @@ do
     printf "****TEST NUMBER: %s *****\n" $i
     i=$(echo "$i + 1" | bc)
     total_quantity=$(echo "$total_quantity + $quantity" | bc)
+    latest_block_height=$(make -s -C $make_dir latest-block-height)
     make -C $make_dir kudos-initialize owner-id=$bob quantity=$quantity
-    sleep 0.8
+    predicate=$(printf 'test "true" = $(make -s -C %s block-height=%s has-transaction-after-height)' $make_dir $latest_block_height)
+    poll "$predicate"
     assert_balance $LINENO $bob "$bob : $total_quantity"
 done
 echo "test passed"
