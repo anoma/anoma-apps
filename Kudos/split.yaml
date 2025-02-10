@@ -1,6 +1,9 @@
 # Assumption: bob has exactly one kudos resource of a particular denomination
 # Duplicate receivers are not supported
-owner: bob
+# owner: bob
+# partition:
+#   albertros: 10
+#   caracalla: 3
+owner:
 partition:
-  albertros: 10
-  caracalla: 3
+  placeholder: 0

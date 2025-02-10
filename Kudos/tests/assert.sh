@@ -19,6 +19,24 @@ assert_balance () {
     fi
 }
 
+assert_broke () {
+    local make_dir
+    make_dir=$(dirname "${BASH_SOURCE[0]}")/..
+    local line=$1
+    local assert_owner=$2
+    local get_balance_output=$make_dir/anoma-build/GetBalance.proved.txt
+    local actual_balance
+    make -C $make_dir get-balance owner-id="$assert_owner"
+    printf "\e[1;37m**** Asserting that the balance of '%s' is empty\e[0m\n" "$assert_owner"
+    actual_balance=$(sort < "$get_balance_output")
+    if test "$actual_balance" != ""
+    then
+        printf "\e[1;31mFailed. line: %s\e[0m\n" "$line"
+        printf "Owner: '%s':\n\tExpected <empty>\n\tActual '%s'\n" "$assert_owner" "$actual_balance"
+        exit 1
+    fi
+}
+
 poll () {
     local predicate
     local timeout
@@ -74,6 +92,16 @@ kudos_merge () {
 
     block_height=$(make -s -C $make_dir latest-block-height)
     make -C $make_dir kudos-merge owner-id=$owner_id merge-id=$merge_id receiver-id=$receiver_id
+    wait_for_transaction $block_height
+}
+
+kudos_split () {
+    # arguments: spec
+    local make_dir
+    make_dir=$(dirname "${BASH_SOURCE[0]}")/..
+
+    block_height=$(make -s -C $make_dir latest-block-height)
+    make -C $make_dir kudos-split split-spec=$spec
     wait_for_transaction $block_height
 }
 

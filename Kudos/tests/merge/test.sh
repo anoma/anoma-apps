@@ -22,7 +22,7 @@ make -C $make_dir anoma-start
 sleep 1
 
 owner_id=$caracalla quantity=$quantity_1 kudos_initialize
-assert_balance $LINENO caracalla "$caracalla : $quantity_1"
+assert_balance $LINENO $caracalla "$caracalla : $quantity_1"
 
 owner_id=$caracalla receiver_id=$bob kudos_transfer
 assert_balance $LINENO "$bob" "$caracalla : $quantity_1"
