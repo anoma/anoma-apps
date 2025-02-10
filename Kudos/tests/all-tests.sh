@@ -10,4 +10,8 @@ pushd merge
 ./test.sh
 popd
 
+pushd split
+./test.sh
+popd
+
 echo "ALL Kudos tests passed"

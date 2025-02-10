@@ -118,3 +118,6 @@ jobs:
 
       - name: Run Unique Counter tests
         run: cd Counters/Counter/Unique/tests && ./all-tests.sh
+
+      - name: Run Kudos tests
+        run: cd Kudos/tests && ./all-tests.sh
