@@ -1,0 +1,204 @@
+module Kudos.Create;
+
+import Stdlib.Prelude open;
+import Stdlib.Data.Set as Set open using {Set};
+import Stdlib.Data.Map as Map open using {Map};
+import Applib open;
+import Anoma.Builtin.System open;
+import Anoma.Identity.External open;
+import Anoma.Identity.Internal open;
+import Kudos.Extra open;
+import Kudos.Layer open;
+
+isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
+  let
+    tag := Tag.fromNat (Instance.tag publicInputs);
+  in case tag of
+       | Created commitment := true
+       | Consumed nullifier :=
+         case findResourceByNullifier (unNullifier nullifier) privateInputs of
+           | nothing :=
+             trace "findResourceByNullifier returned nothing" >-> false
+           | just self :=
+             if
+               | Resource.ephemeral self :=
+                 let
+                   identity := Kudos.Resource.identity self;
+                   originator := Kudos.Identity.originator identity;
+                   authorized :=
+                     isAuthorizedBy@{
+                       signer := originator;
+                       origin := tag;
+                       publicInputs;
+                     };
+                 in if
+                   | not authorized :=
+                     trace "failed isAuthorizedBy originator tag" >-> false
+                   | else := true
+               | else :=
+                 let
+                   owner :=
+                     ExternalIdentity.fromByteArray
+                       (fromAnomaContents
+                         32
+                         (Resource.nullifierKeyCommitment self));
+                 in isAuthorizedBy@{
+                      signer := owner;
+                      origin := tag;
+                      publicInputs;
+                    };
+
+mkKudos
+  (nonce : Nonce)
+  (quantity : Nat)
+  (originator owner : ExternalIdentity)
+  (logic : Logic)
+  (kudosSymbol : String)
+  {ephemeral : Bool := false}
+  : Resource :=
+  Kudos.mkResource@{
+    logic;
+    identity :=
+      Kudos.mkIdentity@{
+        originator;
+        kudosSymbol;
+      };
+    owner;
+    quantity;
+    ephemeral;
+    nonce;
+  };
+
+isAuthorizedBy
+  (signer : ExternalIdentity) (origin : Tag) (publicInputs : Instance) : Bool :=
+  case
+    lookupPublicInputs@{
+      key := signatureLookupKey;
+      publicInputs := Kudos.Instance.otherPublic publicInputs;
+    }
+  of
+    | nothing := true
+    | just value :=
+      let
+        signature := Kudos.PublicDataValue.signature value;
+        message := Kudos.PublicDataValue.resourceRelationship value;
+      in trace "isAuthorizedBy"
+        >-> anomaVerifyDetached
+          (Signature.unSignature (trace "anomaVerifyDetached signature" >-> trace signature >-> signature))
+          message
+          (ExternalIdentity.toByteArray signer)
+        && (trace "isAuthorizedBy ok" >-> true)
+          && checkResourceRelationship@{
+               message;
+               origin;
+               nullifiers :=
+                 Set.fromList
+                   (map mkNullifier (Instance.nullifiers publicInputs));
+               commitments :=
+                 Set.fromList
+                   (map mkCommitment (Instance.commitments publicInputs));
+             };
+
+--- Checks that a ;ResourceRelationship; message has the expected values.
+--- @param message The resource relationship message to check.
+--- @param origin The expected origin.
+--- @param nullifiers The nullifier set that must contain the `mustBeConsumed` nullifiers as a subset.
+--- @param commitments The commitment set that must contain the `mustBeCreated` commitments as a subset.
+--- @return The check result.
+checkResourceRelationship
+  (message : ResourceRelationship)
+  (origin : Tag)
+  (nullifiers : Set Nullifier)
+  (commitments : Set Commitment)
+  : Bool :=
+  let
+    messageOriginIsOrigin := ResourceRelationship.origin message == origin;
+    mustBeConsumedSubsetNullifiers :=
+      Set.isSubset
+        (Set.fromList (ResourceRelationship.mustBeConsumed message))
+        nullifiers;
+    mustBeCreatedSubsetCommitments :=
+      Set.isSubset
+        (Set.fromList (ResourceRelationship.mustBeCreated message))
+        commitments;
+  in trace "checkResourceRelationship"
+    >-> messageOriginIsOrigin
+      && (trace "messageOriginIsOrigin ok" >-> true)
+      && mustBeConsumedSubsetNullifiers
+      && (trace "mustBeConsumedSubsetNullifiers ok" >-> true)
+      && mustBeCreatedSubsetCommitments
+      && (trace "mustBeCreatedSubsetCommitments ok" >-> true);
+
+lookupPublicInputs
+  (key : AnomaAtom)
+  (publicInputs : Kudos.PublicData)
+  : Maybe Kudos.PublicDataValue := Map.lookup key publicInputs;
+
+builtinAnomaEncodeAtom {A} : A -> AnomaAtom :=
+  builtinAnomaEncode >> AnomaAtom.fromNat;
+
+initialize
+  {M : Type -> Type}
+  {{Monad M}}
+  {{Tx M}}
+  (logic : Logic)
+  (kudosSymbol : String)
+  (quantity : Nat)
+  : M Transaction :=
+  do {
+    ctx <- getTxContext;
+    nonce <- genRandomNonce;
+    let
+      caller : ExternalIdentity := Identity.external (TxContext.caller ctx);
+
+      toInitialize : Resource :=
+        mkKudos@{
+          kudosSymbol;
+          nonce;
+          quantity;
+          originator := caller;
+          owner := caller;
+          logic;
+        };
+
+      toConsumeEph : Resource :=
+        toInitialize@Resource{
+          ephemeral := true;
+          -- TODO this needs to agree with what the indexer function for owners does.
+          nullifierKeyCommitment := ExternalIdentity.toNat caller;
+        };
+    in
+    action <- actionWithAuthorizationAppData@{
+                consumed := [toConsumeEph];
+                created := [toInitialize];
+              };
+    let
+      tokenCreationTransaction :=
+        mkTransactionHelper@{
+          roots := [TxContext.currentRoot ctx];
+          actions := [action];
+        };
+    in
+    pure tokenCreationTransaction;
+  };
+
+txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
+  mkTxContext@{
+    caller;
+    currentRoot := mkRoot latestRoot;
+  };
+
+main
+  (privateKeyPayload publicKeyPayload : ByteArray)
+  (rngSeed : Nat)
+  (logic : Logic)
+  (quantity : Nat)
+  (kudosSymbol : String)
+  : TransactionRequest :=
+  let
+    caller : Identity :=
+      mkIdentityFromPayload privateKeyPayload publicKeyPayload;
+  in buildTransactionRequest
+    rngSeed
+    (txContext caller 0)
+    (initialize logic kudosSymbol quantity);

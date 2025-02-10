@@ -7,6 +7,7 @@ alwaysValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
   true;
 
 -- randSeed is expected to be a Nock atom encoding a 32 byte seed.
+-- TODO use monadic interface to generate the random nonce
 main (randSeed : Nat) : Resource :=
   let
     nonce : Nonce := generateNonce (mkRandSeed (fromAnomaContents 32 randSeed));
