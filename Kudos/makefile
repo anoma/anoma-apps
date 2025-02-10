@@ -241,10 +241,10 @@ has-transaction-after-height: $(has-transaction-after-height)
 
 .PHONY: $(has-transaction-after-height)
 $(has-transaction-after-height): $(anoma-build) $(host) $(port)
-	grpcurl -plaintext \
+	echo '{"after": $(block-height)}' \
+	| grpcurl -plaintext \
 	-d @ \
 	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Get \
-	<<< '{"after": $(block-height)}' \
 	| jq '.blocks | map(has("transactions")) | any' \
 	| tr -d '\n' \
 	> $@
