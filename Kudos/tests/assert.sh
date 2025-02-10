@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 assert_balance () {
     local make_dir
@@ -17,4 +17,23 @@ assert_balance () {
         printf "Owner: '%s':\n\tExpected '%s'\n\tActual '%s'\n" "$assert_owner" "$expected_balance" "$actual_balance"
         exit 1
     fi
+}
+
+poll () {
+    local predicate
+    local timeout
+    # predicate is a command. The poll succeeds if the predicate returns exit code 0.
+    predicate=$1
+    timeout=${2:-5}
+    start=$(date +"%s")
+    while test $(date +'%s') -lt $(($start + $timeout))
+    do
+        echo "$predicate"
+        if eval "$predicate"
+        then
+            return 0
+        fi
+    done
+    echo "$predicate - timed out"
+    return 1
 }
