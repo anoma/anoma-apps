@@ -4,7 +4,6 @@ import Kudos.Extra open;
 import Stdlib.Prelude open;
 import Stdlib.Data.Set as Set open using {Set};
 import Stdlib.Data.Map as Map open using {Map};
-import Stdlib.Debug open;
 import Applib open;
 import Anoma.Builtin.System open;
 import Anoma.Identity.External open;

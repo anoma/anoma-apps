@@ -9,7 +9,6 @@ import Anoma.Identity.External open;
 import Anoma.Identity.Internal open;
 import Kudos.Extra open;
 import Kudos.Layer open;
-import Stdlib.Debug.Trace open;
 
 isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
   let
