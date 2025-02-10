@@ -120,4 +120,5 @@ jobs:
         run: cd Counters/Counter/Unique/tests && ./all-tests.sh
 
       - name: Run Kudos tests
+        shell: bash
         run: cd Kudos/tests && ./all-tests.sh
