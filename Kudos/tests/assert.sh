@@ -106,5 +106,5 @@ kudos_split () {
 }
 
 test_passed () {
-   echo -e "\e[1;32mTest passed\e[0m"
+   printf "\e[1;32mTest passed\e[0m\n"
 }
