@@ -82,7 +82,7 @@ $(make-named-part-base64)-%: $(make-named-part-bytes)-%
 $(partition): $(addprefix $(make-named-part-base64)-, $(shell yq -r '.partition | keys[]' < $(split-spec)))
 	paste -d '\n' $^ > $(partition)
 
-$(split-proved): $(split-nockma) $(random-32bytes) $(partition) $(get-latest-root) $(logic-proved) $(split-nockma) $(owner-to-split-signing-key) $(owner-to-split-public-key) $(owner-to-split-resource)
+$(split-proved): $(config) $(split-nockma) $(random-32bytes) $(partition) $(get-latest-root) $(logic-proved) $(split-nockma) $(owner-to-split-signing-key) $(owner-to-split-public-key) $(owner-to-split-resource)
 	juvix dev anoma -c $(config) prove $(split-nockma) \
 	--arg 'base64-unjammed:$(get-latest-root)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \

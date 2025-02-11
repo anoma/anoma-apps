@@ -1,0 +1,71 @@
+include ./makefile
+
+swap-spec ?= $(error The swap-spec argument must be given)
+swap = Swap
+ns = $(anoma-build-dir)/$(swap)
+
+nockma = $(ns).nockma
+juvix-src = $(base-path)/$(swap).juvix
+proved = $(ns).proved.nockma
+
+owner-symbol = $(ns)-owner-symbol
+
+give-originator-symbol = $(ns)-give-originator-symbol
+give-originator-public-key = $(ns)-give-originator-public-key
+give-quantity = $(ns)-give-quantity
+
+want-originator-symbol = $(ns)-want-originator-symbol
+want-originator-public-key = $(ns)-want-originator-public-key
+want-quantity = $(ns)-want-quantity
+
+owner-public-key = $(ns)-owner-public-key
+owner-signing-key = $(ns)-owner-signing-key
+owner-public-key-base64 = $(ns)-owner-public-key-base64
+
+$(owner-symbol): $(anoma-build) $(swap-spec)
+	yq -r '.owner' < $(swap-spec) | tr -d '\n' > $@
+
+$(give-originator-symbol): $(anoma-build) $(swap-spec)
+	yq -r '.give.symbol' < $(swap-spec) | tr -d '\n' > $@
+
+$(give-quantity): $(anoma-build) $(swap-spec)
+	yq -r '.give.quantity' < $(swap-spec) | tr -d '\n' > $@
+
+$(give-originator-public-key): $(addprefix $(person-public-key)-, $(shell yq -r '.give.symbol' < $(swap-spec) | tr -d '\n'))
+	cp $< $@
+
+$(want-originator-symbol): $(anoma-build) $(swap-spec)
+	yq -r '.want.symbol' < $(swap-spec) | tr -d '\n' > $@
+
+$(want-quantity): $(anoma-build) $(swap-spec)
+	yq -r '.want.quantity' < $(swap-spec) | tr -d '\n' > $@
+
+$(want-originator-public-key): $(addprefix $(person-public-key)-, $(shell yq -r '.want.symbol' < $(swap-spec) | tr -d '\n'))
+	cp $< $@
+
+$(owner-public-key): $(addprefix $(person-public-key)-, $(shell yq -r '.owner' < $(swap-spec) | tr -d '\n'))
+	cp $< $@
+
+$(owner-public-key-base64): $(owner-public-key)
+	base64 < $< | tr -d "\n\r" > $@
+
+$(owner-signing-key): $(addprefix $(person-signing-key)-, $(shell yq -r '.owner' < $(swap-spec) | tr -d '\n'))
+	cp $< $@
+
+$(nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(juvix-src) -o $(nockma)
+
+$(proved): $(config) $(nockma) $(random-32bytes) $(get-latest-root) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(give-originator-symbol) $(give-originator-public-key) $(give-quantity) $(want-originator-symbol) $(want-originator-public-key) $(want-quantity)
+	juvix dev anoma -c $(config) prove $(nockma) \
+	--arg 'base64-unjammed:$(get-latest-root)' \
+	--arg 'bytes-unjammed:$(random-32bytes)' \
+    --arg 'bytearray:$(owner-signing-key)' \
+    --arg 'bytearray:$(owner-public-key)' \
+	--arg 'bytes:$(logic-proved)' \
+    --arg 'bytes-unjammed:$(give-originator-symbol)' \
+    --arg 'bytearray:$(give-originator-public-key)' \
+    --arg "nat:$$(cat $(give-quantity))" \
+    --arg 'bytes-unjammed:$(want-originator-symbol)' \
+    --arg 'bytearray:$(want-originator-public-key)' \
+    --arg "nat:$$(cat $(want-quantity))" \
+	-o $@ \

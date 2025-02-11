@@ -15,16 +15,16 @@ txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
   };
 
 main
-  (privateKeyPayload publicKeyPayload : ByteArray)
+  (giveRoot : Nat)
   (rngSeed : Nat)
+  (privateKeyPayload publicKeyPayload : ByteArray)
   (logic : Logic)
   (giveSymbol : String)
   (giveOriginator : ByteArray)
   (giveQuantity : Nat)
-  (giveRoot : Nat)
   (wantSymbol : String)
-  (wantQuantity : Nat)
   (wantOriginator : ByteArray)
+  (wantQuantity : Nat)
   : Transaction :=
   let
     caller : Identity :=
