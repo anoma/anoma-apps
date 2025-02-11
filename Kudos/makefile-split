@@ -1,0 +1,94 @@
+include ./makefile
+
+split-spec ?= $(error provide the split-spec argument)
+split = Split
+resource-to-split = $(anoma-build-dir)/resource-to-split
+
+split-juvix = $(base-path)/$(split).juvix
+split-nockma = $(anoma-build-dir)/$(split).nockma
+split-quantity = $(anoma-build-dir)/split-quantity
+partition = $(anoma-build-dir)/partition
+make-named-part-bytes = $(anoma-build-dir)/make-named-part-bytes
+make-named-part-base64 = $(anoma-build-dir)/make-named-part-base64
+split-proved = $(anoma-build-dir)/split-proved
+owner-to-split-signing-key = $(anoma-build-dir)/owner-to-split-signing-key
+owner-to-split-public-key = $(anoma-build-dir)/owner-to-split-public-key
+owner-to-split-public-key-base64 = $(anoma-build-dir)/owner-to-split-public-key-base64
+owner-to-split-kudos-kind-proved = $(anoma-build-dir)/owner-to-split-kudos-kind-proved
+owner-to-split-kudos-kind-proved-cued-base64 = $(anoma-build-dir)/owner-to-split-kudos-kind-proved-cued-base64
+owner-to-split-kudos-symbol = $(anoma-build-dir)/owner-to-split-kudos-symbol
+owner-to-split-resource-request = $(anoma-build-dir)/owner-to-split-resource-request
+owner-to-split-resource = $(anoma-build-dir)/owner-to-split-resource
+
+.PHONY: kudos-split
+kudos-split: $(split-proved) $(config)
+	juvix dev anoma -c $(config) add-transaction $(split-proved)
+
+$(split-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(split-juvix) -o $(split-nockma)
+
+$(make-part-nockma): $(anoma-build) $(all-juvix)
+	juvix compile anoma $(make-part-juvix) -o $(make-part-nockma)
+
+$(owner-to-split-signing-key): $(addprefix $(person-signing-key)-, $(shell yq -r '.owner' < $(split-spec) | tr -d '\n'))
+	cp $< $@
+
+$(owner-to-split-public-key): $(addprefix $(person-public-key)-, $(shell yq -r '.owner' < $(split-spec) | tr -d '\n'))
+	cp $< $@
+
+$(owner-to-split-public-key-base64): $(owner-to-split-public-key)
+	base64 < $< | tr -d "\n\r" > $@
+
+$(owner-to-split-kudos-symbol): $(split-spec)
+	yq -r '.owner' < $(split-spec) | tr -d '\n' > $@
+
+$(owner-to-split-kudos-kind-proved): $(kudos-kind-nockma) $(config) $(logic-proved) $(owner-to-split-public-key) $(owner-to-split-kudos-symbol)
+	juvix dev anoma -c $(config) prove $(kudos-kind-nockma) \
+	--arg 'bytes:$(logic-proved)' \
+	--arg 'bytearray:$(owner-to-split-public-key)' \
+	--arg 'bytes-unjammed:$(owner-to-split-kudos-symbol)' \
+	-o $@
+
+$(owner-to-split-kudos-kind-proved-cued-base64): $(owner-to-split-kudos-kind-proved)
+	juvix dev nockma encode --cue --from bytes --to base64 < $< > $@
+
+$(owner-to-split-resource-request): $(owner-to-split-public-key-base64) $(owner-to-split-kudos-kind-proved-cued-base64)
+	jq -n \
+	--arg OWNER $$(cat $(owner-to-split-public-key-base64)) \
+	--arg KIND $$(cat $(owner-to-split-kudos-kind-proved-cued-base64)) \
+	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}, {kind: $$KIND}]}' \
+	> $@ \
+
+$(owner-to-split-resource): $(host) $(port) $(owner-to-split-resource-request)
+	grpcurl -plaintext \
+	-d @ \
+	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	< $(owner-to-split-resource-request) \
+	| jq -r 'try .resources[]' \
+	> $@
+
+$(split-quantity)-%: $(anoma-build) $(split-spec)
+	yq -r '.partition.$*' < $(split-spec) > $@
+
+$(make-named-part-bytes)-%: $(config) $(make-part-nockma) $(person-public-key)-% $(split-quantity)-%
+	juvix dev anoma -c $(config) prove $(make-part-nockma) \
+	--arg 'bytearray:$(person-public-key)-$*' \
+	--arg "nat:$$(cat $(split-quantity)-$*)" \
+	-o $@ \
+
+$(make-named-part-base64)-%: $(make-named-part-bytes)-%
+	juvix dev nockma encode --from bytes --to base64 < $< > $@
+
+$(partition): $(addprefix $(make-named-part-base64)-, $(shell yq -r '.partition | keys[]' < $(split-spec)))
+	paste -d '\n' $^ > $(partition)
+
+$(split-proved): $(split-nockma) $(random-32bytes) $(partition) $(get-latest-root) $(logic-proved) $(split-nockma) $(owner-to-split-signing-key) $(owner-to-split-public-key) $(owner-to-split-resource)
+	juvix dev anoma -c $(config) prove $(split-nockma) \
+	--arg 'base64-unjammed:$(get-latest-root)' \
+	--arg 'bytes-unjammed:$(random-32bytes)' \
+    --arg 'bytearray:$(owner-to-split-signing-key)' \
+    --arg 'bytearray:$(owner-to-split-public-key)' \
+	--arg 'list:$(partition)' \
+    --arg 'base64:$(owner-to-split-resource)' \
+	--arg 'bytes:$(logic-proved)' \
+	-o $@ \
