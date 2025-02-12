@@ -24,7 +24,7 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                | Resource.ephemeral self :=
                  let
                    identity := Kudos.Resource.identity self;
-                   originator := Kudos.Identity.originator identity;
+                   originator := Kudos.Label.originator identity;
                    authorized :=
                      isAuthorizedBy@{
                        signer := originator;
@@ -58,8 +58,8 @@ mkKudos
   : Resource :=
   Kudos.mkResource@{
     logic;
-    identity :=
-      Kudos.mkIdentity@{
+    label :=
+      Kudos.mkLabel@{
         originator;
         kudosSymbol;
       };

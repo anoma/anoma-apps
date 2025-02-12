@@ -43,7 +43,7 @@ kudosMerge
           acc + Kudos.Resource.quantity r
         };
 
-      getIdentity : M Kudos.Identity :=
+      getIdentity : M Kudos.Label :=
         case toMerge of
           | [] := txThrow "must merge at least one resource"
           | h :: _ := pure (Kudos.Resource.identity h);
@@ -51,7 +51,7 @@ kudosMerge
     checkKind;
     checkOwnership;
     nonce <- genRandomNonce;
-    identity <- getIdentity;
+    label <- getIdentity;
     let
       currentRoot := TxContext.currentRoot txCtx;
       newResource :=
@@ -61,7 +61,7 @@ kudosMerge
           ephemeral := false;
           logic := kudosLogic;
           owner := receiver;
-          identity;
+          label;
         };
     in
     a <- actionWithAuthorizationAppData@{

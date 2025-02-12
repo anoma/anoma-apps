@@ -10,9 +10,9 @@ aggregateBalance
   (ownedResources : List (Encoded Resource)) : Map (Encoded String) Nat :=
   for (acc := Map.empty) (r in map Encode.decode ownedResources) {
     let
-      i : Kudos.Identity := Kudos.Resource.identity r;
+      i : Kudos.Label := Kudos.Resource.identity r;
       encodedSymbol : Encoded String :=
-        Kudos.Identity.kudosSymbol i |> Encode.encode;
+        Kudos.Label.kudosSymbol i |> Encode.encode;
     in Map.insertWith (+) encodedSymbol (Resource.quantity r) acc
   };
 

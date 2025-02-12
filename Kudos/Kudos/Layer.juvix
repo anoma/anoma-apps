@@ -10,8 +10,8 @@ import Anoma.Identity.External open;
 import Anoma.Identity.Internal open;
 import Kudos.Extra open;
 
-computeKudosKind (logic : Logic) (identity : Kudos.Identity) : Kind :=
-  computeKind logic (builtinAnomaEncode identity);
+computeKudosKind (logic : Logic) (label : Kudos.Label) : Kind :=
+  computeKind logic (builtinAnomaEncode label);
 
 mkResourceRelationshipAppDataEntry
   (signer : InternalIdentity)
@@ -107,7 +107,7 @@ module Kudos;
     isKudo (kudosLogic : Logic) (resource : Resource) : Bool :=
       computeKind kudosLogic (Resource.label resource) == kind resource;
 
-    identity (r : Resource) : Kudos.Identity :=
+    identity (r : Resource) : Kudos.Label :=
       builtinAnomaDecode (Applib.Resource.label r);
 
     owner (r : Resource) : ExternalIdentity :=
@@ -125,7 +125,7 @@ module Kudos;
       (ephemeral : Bool)
       (quantity : Nat)
       (owner : ExternalIdentity)
-      (identity : Identity)
+      (label : Label)
       (nonce : Nonce)
       : Resource :=
       Applib.mkResource@{
@@ -140,14 +140,14 @@ module Kudos;
             -- because the indexer looks at this field at the moment.
             toAnomaContents
             (ExternalIdentity.toByteArray owner);
-        label := builtinAnomaEncode identity
+        label := builtinAnomaEncode label
       };
   end;
 
   open Resource using {mkResource} public;
 
-  type Identity :=
-    mkIdentity@{
+  type Label :=
+    mkLabel@{
       originator : ExternalIdentity;
       --- E.g. '€' '🐂' '🙀'
       kudosSymbol : String;
