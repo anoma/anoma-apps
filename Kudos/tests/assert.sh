@@ -1,5 +1,27 @@
 #!/usr/bin/env bash
 
+red () {
+    local arg
+    read -r arg
+    printf "\e[31m%s\e[0m\n" "$arg"
+}
+
+green () {
+    local arg
+    read -r arg
+    printf "\e[32m%s\e[0m\n" "$arg"
+}
+
+bold () {
+    local arg
+    read -r arg
+    printf "\e[1m%s\e[0m\n" "$arg"
+}
+
+test_passed () {
+   printf "Test passed\e[0m\n"
+}
+
 assert_balance () {
     local make_dir
     make_dir=$(dirname "${BASH_SOURCE[0]}")/..
@@ -99,31 +121,9 @@ kudos_split () {
     # arguments: spec
     local make_dir
     make_dir=$(dirname "${BASH_SOURCE[0]}")/..
-    printf "Kudos Split" | bold
+    printf "Kudos Split\n" | bold
 
     block_height=$(make -s -C $make_dir latest-block-height)
-    make --makefile makefile-split -C $make_dir kudos-split split-spec=$spec
+    make --makefile makefile-split -C "$make_dir" kudos-split split-spec="$spec"
     wait_for_transaction $block_height
-}
-
-red () {
-    local arg
-    read -r arg
-    printf "\e[31m%s\e[0m" "$arg"
-}
-
-green () {
-    local arg
-    read -r arg
-    printf "\e[32m%s\e[0m" "$arg"
-}
-
-bold () {
-    local arg
-    read -r arg
-    printf "\e[1m%s\e[0m" "$arg"
-}
-
-test_passed () {
-   printf "Test passed\e[0m\n"
 }
