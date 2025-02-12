@@ -19,6 +19,7 @@ main
   (rngSeed : Nat)
   (privateKeyPayload publicKeyPayload : ByteArray)
   (logic : Logic)
+
   (giveSymbol : String)
   (giveOriginator : ByteArray)
   (giveQuantity : Nat)

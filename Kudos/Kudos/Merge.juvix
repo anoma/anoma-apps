@@ -37,10 +37,12 @@ kudosMerge
             Kudos.Resource.owner r == self
           } := pure unit
           | else := txThrow "I must own all resources to be merged";
+
       totalQuantity : Nat :=
         for (acc := 0) (r in toMerge) {
           acc + Kudos.Resource.quantity r
         };
+
       getIdentity : M Kudos.Identity :=
         case toMerge of
           | [] := txThrow "must merge at least one resource"

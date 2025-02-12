@@ -7,6 +7,7 @@ ns = $(anoma-build-dir)/$(swap)
 nockma = $(ns).nockma
 juvix-src = $(base-path)/$(swap).juvix
 proved = $(ns).proved.nockma
+proved-base64 = $(ns).proved.base64
 
 owner-symbol = $(ns)-owner-symbol
 
@@ -21,6 +22,9 @@ want-quantity = $(ns)-want-quantity
 owner-public-key = $(ns)-owner-public-key
 owner-signing-key = $(ns)-owner-signing-key
 owner-public-key-base64 = $(ns)-owner-public-key-base64
+
+add-intent-request = $(ns)-add-intent-request
+list-intents-request = $(ns)-list-intents-request
 
 $(owner-symbol): $(anoma-build) $(swap-spec)
 	yq -r '.owner' < $(swap-spec) | tr -d '\n' > $@
@@ -69,3 +73,28 @@ $(proved): $(config) $(nockma) $(random-32bytes) $(get-latest-root) $(logic-prov
     --arg 'bytearray:$(want-originator-public-key)' \
     --arg "nat:$$(cat $(want-quantity))" \
 	-o $@ \
+
+$(proved-base64): $(proved)
+	base64 < $< | tr -d "\n\r" > $@
+
+$(add-intent-request): $(anoma-build) $(proved-base64)
+	jq -n --rawfile PROVED $(proved-base64) \
+	'{node_info: {node_id: ""}, intent: {intent : $$PROVED}}' \
+	> $@
+
+.PHONY: add-intent
+add-intent: $(add-intent-request) $(host) $(port)
+	grpcurl -plaintext \
+	-d @ \
+	$$(cat $(host)):$$(cat $(port))  Anoma.Protobuf.IntentsService.AddIntent \
+	< $(add-intent-request) \
+
+$(list-intents-request):
+	echo '{"node_info": {"node_id": ""}}' > $@
+
+.PHONY: list-intents
+list-intents: $(list-intents-request) $(host) $(port)
+	grpcurl -plaintext \
+	-d @ \
+	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IntentsService.ListIntents \
+	< $(list-intents-request) \
