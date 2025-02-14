@@ -127,3 +127,11 @@ kudos_split () {
     make --makefile makefile-split -C "$make_dir" kudos-split split-spec="$spec"
     wait_for_transaction $block_height
 }
+
+kudos_swap_add_intent () {
+    #arguments: spec
+    local make_dir
+    make_dir=$(dirname "${BASH_SOURCE[0]}")/..
+    printf "Kudos Swap\n" | bold
+    make --makefile makefile-swap -C "$make_dir" add-intent swap-spec="$spec"
+}

@@ -14,4 +14,9 @@ pushd split
 ./test.sh
 popd
 
+# Disabled because of an issue with the Anoma Solver
+# pushd swap
+# ./test.sh
+# popd
+
 printf "\e[1;32mALL Kudos tests passed\e[0m\n"
