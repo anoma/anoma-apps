@@ -198,7 +198,8 @@ latest-block-height: $(latest-block-height)
 
 .PHONY: $(latest-block-height)
 $(latest-block-height): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Latest \
+	@set -o pipefail; \
+	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Latest \
 	| jq -r '.block.height' \
 	| tr -d '\n' \
 	> $@

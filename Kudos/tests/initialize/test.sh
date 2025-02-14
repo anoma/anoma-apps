@@ -15,7 +15,7 @@ bob=bob
 quantity=12
 
 make -C $make_dir anoma-start
-sleep 1
+wait_for_anoma_start
 owner_id=$bob quantity=$quantity kudos_initialize
 assert_balance $LINENO $bob "$bob : $quantity"
 echo "test passed"
