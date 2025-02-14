@@ -20,7 +20,7 @@ quantity_caracalla=1
 quantity_wibble=3
 
 make -C $make_dir anoma-start
-wait_for_anoma_start
+sleep 1
 
 owner_id=$robin quantity=$quantity_robin kudos_initialize
 assert_balance $LINENO $robin "$robin : $quantity_robin"

@@ -19,7 +19,7 @@ quantity_2=2
 expected_merge_quantity=$(($quantity_1 + $quantity_2))
 
 make -C $make_dir anoma-start
-wait_for_anoma_start
+sleep 1
 
 owner_id=$caracalla quantity=$quantity_1 kudos_initialize
 assert_balance $LINENO $caracalla "$caracalla : $quantity_1"

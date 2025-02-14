@@ -22,14 +22,6 @@ test_passed () {
    printf "Test passed\e[0m\n"
 }
 
-wait_for_anoma_start () {
-    local predicate
-    local make_dir
-    make_dir=$(dirname "${BASH_SOURCE[0]}")/..
-    predicate=$(printf 'make -s -C %s latest-block-height > /dev/null' $make_dir)
-    poll "$predicate"
-}
-
 assert_balance () {
     local make_dir
     make_dir=$(dirname "${BASH_SOURCE[0]}")/..
