@@ -26,21 +26,26 @@ owner-public-key-base64 = $(ns)-owner-public-key-base64
 add-intent-request = $(ns)-add-intent-request
 list-intents-request = $(ns)-list-intents-request
 
+.PHONY: $(owner-symbol)
 $(owner-symbol): $(anoma-build) $(swap-spec)
 	yq -r '.owner' < $(swap-spec) | tr -d '\n' > $@
 
+.PHONY: $(give-originator-symbol)
 $(give-originator-symbol): $(anoma-build) $(swap-spec)
 	yq -r '.give.symbol' < $(swap-spec) | tr -d '\n' > $@
 
+.PHONY: $(give-quantity)
 $(give-quantity): $(anoma-build) $(swap-spec)
 	yq -r '.give.quantity' < $(swap-spec) | tr -d '\n' > $@
 
 $(give-originator-public-key): $(addprefix $(person-public-key)-, $(shell yq -r '.give.symbol' < $(swap-spec) | tr -d '\n'))
 	cp $< $@
 
+.PHONY: $(want-originator-symbol)
 $(want-originator-symbol): $(anoma-build) $(swap-spec)
 	yq -r '.want.symbol' < $(swap-spec) | tr -d '\n' > $@
 
+.PHONY: $(want-quantity)
 $(want-quantity): $(anoma-build) $(swap-spec)
 	yq -r '.want.quantity' < $(swap-spec) | tr -d '\n' > $@
 
