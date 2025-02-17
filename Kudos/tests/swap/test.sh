@@ -39,4 +39,7 @@ spec="$(pwd)/swap-bob.yaml" kudos_swap_add_intent
 spec="$(pwd)/swap-wibble.yaml" kudos_swap_add_intent
 wait_for_transaction $block_height
 
+assert_balance $LINENO $wibble "$bag : 1"
+assert_balance $LINENO $bob "$apple : 1"
+
 test_passed
