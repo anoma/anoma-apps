@@ -190,41 +190,41 @@ make --makefile=makefile-split kudos-split split-spec=split.yaml
 
 4. Check the balances after the split
 
-i. Check alice's balance:
+    1. Check alice's balance:
 
-``` sh
-make -s get-balance owner-id=alice
-```
+    ``` sh
+    make -s get-balance owner-id=alice
+    ```
 
-alice only has `bob` kudos, all their `alice` kudos have been transfered:
+    alice only has `bob` kudos, all their `alice` kudos have been transfered:
 
-``` sh
-bob : 7
-```
+    ``` sh
+    bob : 7
+    ```
 
-ii. Check bob's balance:
+    2. Check bob's balance:
 
-``` sh
-make -s get-balance owner-id=bob
-```
+    ``` sh
+    make -s get-balance owner-id=bob
+    ```
 
-bob has 3 additional `alice` kudos, bringing their total to `5`:
+    bob has 3 additional `alice` kudos, bringing their total to `5`:
 
-``` sh
-alice : 5
-```
+    ``` sh
+    alice : 5
+    ```
 
-iii. Check eve's balance
+    3. Check eve's balance
 
-``` sh
-make -s get-balance owner-id=eve
-```
+    ``` sh
+    make -s get-balance owner-id=eve
+    ```
 
-eve has 4 `alice` kudos:
+    eve has 4 `alice` kudos:
 
-``` sh
-alice : 4
-```
+    ``` sh
+    alice : 4
+    ```
 
 ### Direct Swap Intents
 
@@ -238,29 +238,29 @@ To continue the example, say:
 1. create `swap-eve.yaml` for eve and `swap-alice.yaml` for alice, describing
    their intents:
 
-`swap-eve.yaml`:
+    1. `swap-eve.yaml`:
 
-```yaml
-owner: eve
-want:
-    symbol: bob
-    quantity: 7
-give:
-    symbol: alice
-    quantity: 4
-```
+    ```yaml
+    owner: eve
+    want:
+        symbol: bob
+        quantity: 7
+    give:
+        symbol: alice
+        quantity: 4
+    ```
 
-`swap-alice.yaml`:
+    2. `swap-alice.yaml`:
 
-```yaml
-owner: alice
-want:
-    symbol: alice
-    quantity: 4
-give:
-    symbol: bob
-    quantity: 7
-```
+    ```yaml
+    owner: alice
+    want:
+        symbol: alice
+        quantity: 4
+    give:
+        symbol: bob
+        quantity: 7
+    ```
 
 2. Submit a swap intents for eve and alice:
 
@@ -273,27 +273,27 @@ Anoma then solves these intents and performs the transfer:
 
 3. Check the balances
 
-i. Check alice's balance
+    1. Check alice's balance
 
-``` sh
-make -s get-balance owner-id=alice
-```
+    ``` sh
+    make -s get-balance owner-id=alice
+    ```
 
-alice now has 4 `alice` kudos:
+    alice now has 4 `alice` kudos:
 
-``` sh
-alice : 4
-```
+    ``` sh
+    alice : 4
+    ```
 
-ii. Check eve's balance
+    2. Check eve's balance
 
 
-``` sh
-make -s get-balance owner-id=eve
-```
+    ``` sh
+    make -s get-balance owner-id=eve
+    ```
 
-and eve now has 7 `bob` kudos:
+    and eve now has 7 `bob` kudos:
 
-``` sh
-bob : 7
-```
+    ``` sh
+    bob : 7
+    ```
