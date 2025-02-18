@@ -188,7 +188,7 @@ $(random-32bytes): $(anoma-build)
 
 .PHONY: $(get-latest-root)
 $(get-latest-root): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
+	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
 	| jq -r '.root' \
 	> $(get-latest-root)
 

@@ -20,9 +20,7 @@ main
   (privateKeyPayload publicKeyPayload : ByteArray)
   (logic : Logic)
 
-  (giveSymbol : String)
-  (giveOriginator : ByteArray)
-  (giveQuantity : Nat)
+  (giveResource : Resource)
   (wantSymbol : String)
   (wantOriginator : ByteArray)
   (wantQuantity : Nat)
@@ -46,19 +44,8 @@ main
               logic;
               kudosSymbol := wantSymbol;
             };
-
-          consumedResource : Resource :=
-            Create.mkKudos@{
-              nonce := nonceConsumed;
-              owner;
-              logic;
-              originator := ExternalIdentity.fromByteArray giveOriginator;
-              quantity := giveQuantity;
-              kudosSymbol := giveSymbol;
-            };
-
           created : List Resource := [createdResource];
-          consumed : List Resource := [consumedResource];
+          consumed : List Resource := [giveResource];
         in
         a <- actionWithAuthorizationAppData@{
                created;

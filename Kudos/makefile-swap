@@ -2,6 +2,7 @@ include ./makefile
 
 swap-spec ?= $(error The swap-spec argument must be given)
 swap = Swap
+get-give-resource = GetGiveResource
 ns = $(anoma-build-dir)/$(swap)
 
 nockma = $(ns).nockma
@@ -22,6 +23,12 @@ want-quantity = $(ns)-want-quantity
 owner-public-key = $(ns)-owner-public-key
 owner-signing-key = $(ns)-owner-signing-key
 owner-public-key-base64 = $(ns)-owner-public-key-base64
+owner-request = $(ns)-owner-request
+owned-resources = $(ns)-owned-resources
+
+get-give-resource-juvix = $(base-path)/$(get-give-resource).juvix
+get-give-resource-nockma = $(anoma-build-dir)/$(get-give-resource).nockma
+get-give-resource-proved = $(anoma-build-dir)/$(get-give-resource).proved.nockma
 
 add-intent-request = $(ns)-add-intent-request
 list-intents-request = $(ns)-list-intents-request
@@ -61,19 +68,31 @@ $(owner-public-key-base64): $(owner-public-key)
 $(owner-signing-key): $(addprefix $(person-signing-key)-, $(shell yq -r '.owner' < $(swap-spec) | tr -d '\n'))
 	cp $< $@
 
+$(owner-request): $(anoma-build) $(owner-public-key-base64)
+	jq -n --arg OWNER $$(cat $(owner-public-key-base64)) \
+	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}]}' \
+	> $(owner-request) \
+
+.PHONY: $(owned-resources)
+$(owned-resources): $(anoma-build) $(host) $(port) $(owner-request)
+	grpcurl -plaintext \
+	-d @ \
+	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	< $(owner-request) \
+	| jq -r 'try .resources[]' \
+	> $@
+
 $(nockma): $(anoma-build) $(all-juvix)
 	juvix compile anoma $(juvix-src) -o $(nockma)
 
-$(proved): $(config) $(nockma) $(random-32bytes) $(get-latest-root) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(give-originator-symbol) $(give-originator-public-key) $(give-quantity) $(want-originator-symbol) $(want-originator-public-key) $(want-quantity)
+$(proved): $(config) $(nockma) $(random-32bytes) $(get-give-resource-proved) $(get-latest-root) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(give-originator-symbol) $(give-originator-public-key) $(give-quantity) $(want-originator-symbol) $(want-originator-public-key) $(want-quantity)
 	juvix dev anoma -c $(config) prove $(nockma) \
 	--arg 'base64-unjammed:$(get-latest-root)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
     --arg 'bytearray:$(owner-signing-key)' \
     --arg 'bytearray:$(owner-public-key)' \
 	--arg 'bytes:$(logic-proved)' \
-    --arg 'bytes-unjammed:$(give-originator-symbol)' \
-    --arg 'bytearray:$(give-originator-public-key)' \
-    --arg "nat:$$(cat $(give-quantity))" \
+	--arg 'bytes:$(get-give-resource-proved)' \
     --arg 'bytes-unjammed:$(want-originator-symbol)' \
     --arg 'bytearray:$(want-originator-public-key)' \
     --arg "nat:$$(cat $(want-quantity))" \
@@ -103,3 +122,13 @@ list-intents: $(list-intents-request) $(host) $(port)
 	-d @ \
 	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IntentsService.ListIntents \
 	< $(list-intents-request) \
+
+$(get-give-resource-nockma): $(anoma-build) $(get-give-resource-juvix)
+	juvix compile anoma $(get-give-resource-juvix) -o $(get-give-resource-nockma)
+
+$(get-give-resource-proved): $(config) $(owned-resources) $(give-originator-symbol) $(give-quantity) $(get-give-resource-nockma)
+	juvix dev anoma -c $(config) prove $(get-give-resource-nockma) \
+	--arg 'bytes-unjammed:$(give-originator-symbol)' \
+	--arg "nat:$$(cat $(give-quantity))" \
+	--arg "list:$(owned-resources)" \
+	-o $@ \
