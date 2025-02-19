@@ -116,6 +116,9 @@ jobs:
       - name: HelloWorld Run tests
         run: cd HelloWorld/tests && ./all-tests.sh
 
+      - name: SimpleHelloWorld Run tests
+        run: cd SimpleHelloWorld/tests && ./all-tests.sh
+        
       - name: Run Simple Counter tests
         run: cd Counters/Counter/Simple/tests && ./all-tests.sh
 

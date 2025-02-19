@@ -1,0 +1,56 @@
+module HelloWorld;
+
+import Stdlib.Prelude open;
+import Applib open;
+
+--- A logic function that is always valid.
+logic (publicInputs : Instance) (privateInputs : Witness) : Bool := true;
+
+--- Creates a new ;Resource; that stores a ;String; message.
+--- @param nonce A number used to ensure resource uniqueness
+--- @param message The message to store in the ;Resource;.
+mkHelloWorldResource
+  (nonce : Nat)
+  (message : String)
+  {ephemeral : Bool := false}
+  : Resource :=
+  mkResource@{
+    label := builtinAnomaEncode message;
+    logic;
+    value := 0;
+    quantity := 1;
+    nonce;
+    ephemeral;
+    randSeed := 0;
+    nullifierKeyCommitment := 0;
+  };
+
+--- Produces a ;Transaction; that creates a HelloWorld ;Resource;
+--- @param nonce A number used to ensure ;Resource; uniqueness.
+--- @param message The message to store in the ;Resource;
+helloWorldTransaction
+  {M : Type -> Type} -- polymorphic function with type parameter M
+  {{Monad M}} -- additional information for type parameter M
+  {{Tx M}} -- random number generator needs side effects / Monad
+  (nonce : Nat) 
+  (label : String) 
+  : M Transaction :=
+  let
+    newResource := mkHelloWorldResource nonce label;
+  in prepareStandardTransaction@{
+       -- A Transaction must be balanced, so we consume an ephemeral resource of
+       -- the same kind as the one we're creating.
+       consumed := [newResource@Resource{ephemeral := true}];
+       created := [newResource];
+     };
+
+--- Produces a ;TxContext; which injects an identity and the state root of a commitment tree into the ;TransactionRequest;
+ctx : TxContext :=
+  mkTxContext@{
+    caller := Universal.identity;
+    currentRoot := mkRoot 0;
+  };
+
+--- The function that is run to produce a Transaction to send to Anoma.
+main : TransactionRequest :=
+  buildTransactionRequest 0 ctx (helloWorldTransaction 0 "Hello World!\n");
