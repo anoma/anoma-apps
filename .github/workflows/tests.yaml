@@ -134,3 +134,4 @@ jobs:
         run: |
           make anoma-start
           make build
+          make anoma-stop
