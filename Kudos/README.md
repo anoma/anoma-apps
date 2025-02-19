@@ -265,7 +265,7 @@ To continue the example, say:
 2. Submit a swap intents for eve and alice:
 
 ``` sh
-make --makefile=makefile-swap list-intents swap-spec=swap-eve.yaml
+make --makefile=makefile-swap add-intent swap-spec=swap-eve.yaml
 make --makefile=makefile-swap add-intent swap-spec=swap-alice.yaml
 ```
 
