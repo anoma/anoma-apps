@@ -128,3 +128,9 @@ jobs:
       - name: Run Kudos tests
         shell: bash
         run: cd Kudos/tests && ./all-tests.sh
+
+      - name: Build HelloWorld app
+        working-directory: ${{ github.workspace }}/HelloWorld/web-app
+        run: |
+          make anoma-start
+          make build
