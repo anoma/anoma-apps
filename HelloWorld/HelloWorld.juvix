@@ -7,7 +7,7 @@ import AppIdentity open using {label};
 --- Creates a new ;Resource; that stores a ;String; message.
 --- @param nonce A number used to ensure resource uniqueness
 --- @param message The message to store in the ;Resource;.
-HelloWorldResource.mk
+mkHelloWorldResource
   (logic : Logic)
   (nonce : Nat)
   (message : String)
@@ -37,7 +37,7 @@ helloWorldTransaction
   : M Transaction :=
   do {
     let
-      newResource := HelloWorldResource.mk logic nonce message;
+      newResource := mkHelloWorldResource logic nonce message;
     in
     prepareStandardTransaction@{
       -- A Transaction must be balanced, so we consume an ephemeral resource of
