@@ -67,7 +67,7 @@ splitHelper
            created := splitResources;
          };
     pure
-      TransactionHelper.mk@{
+      mkTransactionHelper@{
         roots := [currentRoot];
         actions := [a];
       };
@@ -85,9 +85,9 @@ main
   : TransactionRequest :=
   let
     receivers : List (Pair ExternalIdentity Nat) :=
-      map Encode.decode receiversInput;
+      map Encoded.decode receiversInput;
     callerIdentity : Identity :=
-      IdentityFromPayload.mk@{
+      mkIdentityFromPayload@{
         privateKey := ownerPrivateKeyPayload;
         publicKey := ownerPublicKeyPayload;
       };

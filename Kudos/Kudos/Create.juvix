@@ -16,7 +16,7 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
   in case tag of
        | Created commitment := true
        | Consumed nullifier :=
-         case findResourceByNullifier (unNullifier nullifier) privateInputs of
+         case findResourceByNullifier (Nullifier.toNat nullifier) privateInputs of
            | nothing :=
              trace "findResourceByNullifier returned nothing" >-> false
            | just self :=
@@ -48,7 +48,7 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                       publicInputs;
                     };
 
-Kudos.mk
+mkKudos
   (nonce : Nonce)
   (quantity : Nat)
   (originator owner : ExternalIdentity)
@@ -152,7 +152,7 @@ initialize
       caller : ExternalIdentity := Identity.external (TxContext.caller ctx);
 
       toInitialize : Resource :=
-        Kudos.mk@{
+        mkKudos@{
           kudosSymbol;
           nonce;
           quantity;
@@ -174,7 +174,7 @@ initialize
               };
     let
       tokenCreationTransaction :=
-        TransactionHelper.mk@{
+        mkTransactionHelper@{
           roots := [TxContext.currentRoot ctx];
           actions := [action];
         };
@@ -197,7 +197,7 @@ main
   : TransactionRequest :=
   let
     caller : Identity :=
-      IdentityFromPayload.mk privateKeyPayload publicKeyPayload;
+      mkIdentityFromPayload privateKeyPayload publicKeyPayload;
   in TransactionRequest.build
     rngSeed
     (txContext caller 0)

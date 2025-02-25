@@ -7,8 +7,8 @@ package : Package :=
     name := "kudos";
     dependencies :=
       [
-        github "anoma" "juvix-stdlib" "v0.10.1";
-        github "anoma" "anoma-applib" "v0.8.1";
-        github "anoma" "juvix-mtl" "v0.2.1";
+        github "anoma" "juvix-stdlib" "v0.11.0-rc.5";
+        github "anoma" "anoma-applib" "v0.9.0-rc.2";
+        github "anoma" "juvix-mtl" "v0.3.0-rc.5";
       ];
   };

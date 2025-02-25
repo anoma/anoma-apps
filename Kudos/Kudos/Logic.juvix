@@ -5,7 +5,7 @@ import Applib open;
 import Kudos.Create open;
 
 type LogicWrapper :=
-  LogicWrapper.mk@{
+  mk@{
     logic : Logic;
   };
 

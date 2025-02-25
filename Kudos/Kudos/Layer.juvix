@@ -13,7 +13,7 @@ import Kudos.Extra open;
 computeKudosKind (logic : Logic) (label : Kudos.Label) : Kind :=
   computeKind logic (builtinAnomaEncode label);
 
-ResourceRelationshipAppDataEntry.mk
+mkResourceRelationshipAppDataEntry
   (signer : InternalIdentity)
   (origin : Tag)
   (mustBeConsumed : List Nullifier)
@@ -60,7 +60,7 @@ actionWithAuthorizationAppData
                 nestedMap : Kudos.PublicData :=
                   Map.singleton
                     signatureLookupKey
-                    ResourceRelationshipAppDataEntry.mk@{
+                    mkResourceRelationshipAppDataEntry@{
                       signer := Identity.internal caller;
                       origin := Consumed (Nullifier.mk n);
                       mustBeConsumed := [];
@@ -90,7 +90,7 @@ module Kudos;
   PublicData : Type := Map AnomaAtom PublicDataValue;
 
   type PublicDataValue :=
-    PublicDataValue.mk@{
+    mk@{
       resourceRelationship : ResourceRelationship;
       signature : Signature;
     };
@@ -120,7 +120,7 @@ module Kudos;
           toAnomaContents (ExternalIdentity.toByteArray newOwner);
       };
 
-    Resource.mk
+    mk
       (logic : Logic)
       (ephemeral : Bool)
       (quantity : Nat)
@@ -144,10 +144,8 @@ module Kudos;
       };
   end;
 
-  open Resource using {Resource.mk} public;
-
   type Label :=
-    Label.mk@{
+    mk@{
       originator : ExternalIdentity;
       --- E.g. '€' '🐂' '🙀'
       kudosSymbol : String;

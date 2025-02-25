@@ -27,7 +27,7 @@ main
   : Transaction :=
   let
     caller : Identity :=
-      IdentityFromPayload.mk privateKeyPayload publicKeyPayload;
+      mkIdentityFromPayload privateKeyPayload publicKeyPayload;
 
     helper {M : Type -> Type} {{Monad M}} {{Tx M}} : M Transaction :=
       do {
@@ -36,7 +36,7 @@ main
         let
           owner := ExternalIdentity.fromByteArray publicKeyPayload;
           createdResource : Resource :=
-            Create.Kudos.mk@{
+            Create.mkKudos@{
               nonce := nonceCreated;
               owner;
               originator := ExternalIdentity.fromByteArray wantOriginator;
@@ -54,7 +54,7 @@ main
         root <- TxContext.currentRoot <$> getTxContext;
         let
           actions : List Action := [a];
-          delta : Delta := actionsDelta actions;
+          delta : Delta := Action.listDelta actions;
         in
         pure
           Transaction.mk@{
@@ -65,4 +65,4 @@ main
           };
       };
 
-  in runTx rngSeed (txContext caller giveRoot) helper;
+  in Tx.run rngSeed (txContext caller giveRoot) helper;

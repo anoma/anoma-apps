@@ -69,7 +69,7 @@ kudosMerge
            created := [newResource];
          };
     pure
-      TransactionHelper.mk@{
+      mkTransactionHelper@{
         roots := [currentRoot];
         actions := [a];
       };
@@ -91,14 +91,15 @@ main
   (logic : Logic)
   : TransactionRequest :=
   let
-    receiver : ExternalIdentity := ExternalIdentity.fromByteArray receiverExternalIdentityBytes;
+    receiver : ExternalIdentity :=
+      ExternalIdentity.fromByteArray receiverExternalIdentityBytes;
     callerIdentity : Identity :=
-      IdentityFromPayload.mk@{
+      mkIdentityFromPayload@{
         privateKey := ownerPrivateKeyPayload;
         publicKey := ownerPublicKeyPayload;
       };
-    toMerge : List Resource := map Encode.decode toMergeEncoded;
+    toMerge : List Resource := map Encoded.decode toMergeEncoded;
   in TransactionRequest.build
-        randSeed
-        (txContext callerIdentity latestRoot)
-        (kudosMerge logic toMerge receiver);
+    randSeed
+    (txContext callerIdentity latestRoot)
+    (kudosMerge logic toMerge receiver);

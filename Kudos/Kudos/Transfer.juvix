@@ -56,7 +56,7 @@ transferHelper
            created := [transferred];
          };
     pure
-      TransactionHelper.mk@{
+      mkTransactionHelper@{
         roots := [currentRoot];
         actions := [a];
       };
@@ -78,10 +78,9 @@ main
   (logic : Logic)
   : TransactionRequest :=
   let
-    receiverIden : ExternalIdentity :=
-      ExternalIdentity.fromByteArray receiver;
+    receiverIden : ExternalIdentity := ExternalIdentity.fromByteArray receiver;
     callerIdentity : Identity :=
-      IdentityFromPayload.mk@{
+      mkIdentityFromPayload@{
         privateKey := ownerPrivateKeyPayload;
         publicKey := ownerPublicKeyPayload;
       };

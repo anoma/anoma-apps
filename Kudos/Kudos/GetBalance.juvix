@@ -8,11 +8,11 @@ import Kudos.Layer open;
 
 aggregateBalance
   (ownedResources : List (Encoded Resource)) : Map (Encoded String) Nat :=
-  for (acc := Map.empty) (r in map Encode.decode ownedResources) {
+  for (acc := Map.empty) (r in map Encoded.decode ownedResources) {
     let
       i : Kudos.Label := Kudos.Resource.identity r;
       encodedSymbol : Encoded String :=
-        Kudos.Label.kudosSymbol i |> Encode.encode;
+        Kudos.Label.kudosSymbol i |> Encoded.encode;
     in Map.insertWith (+) encodedSymbol (Resource.quantity r) acc
   };
 
@@ -44,7 +44,7 @@ anomaNatToString (n : Nat) : String :=
 main (ownedResources : List (Encoded Resource)) : String :=
   for (acc := "") (encodedSymbol, balance in aggregateBalance ownedResources) {
     acc
-      ++str Encode.decode encodedSymbol
+      ++str Encoded.decode encodedSymbol
       ++str " : "
       ++str anomaNatToString balance
       ++str "\n"

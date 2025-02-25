@@ -11,7 +11,7 @@ import Stdlib.Debug.Trace open using {trace as stdlib-trace};
 --- @param mustBeConsumed The resources that must be consumed.
 --- @param mustBeCreated The resources that must be created.
 type ResourceRelationship :=
-  ResourceRelationship.mk@{
+  mk@{
     origin : Tag;
     mustBeConsumed : List Nullifier;
     mustBeCreated : List Commitment;
@@ -36,10 +36,9 @@ computeKind (logic : Logic) (label : Nat) : Kind :=
 signatureLookupKey : AnomaAtom :=
   AnomaAtom.fromNat (builtinAnomaEncode "signatureLookupKey");
 
-IdentityFromPayload.mk (privateKey publicKey : ByteArray) : Identity :=
+mkIdentityFromPayload (privateKey publicKey : ByteArray) : Identity :=
   Identity.mk@{
-    internal :=
-      InternalIdentity.fromByteArray privateKey;
+    internal := InternalIdentity.fromByteArray privateKey;
     external := ExternalIdentity.fromByteArray publicKey;
   };
 
@@ -55,8 +54,8 @@ mapM
   : F (t B) := traverse fun l;
 
 trace {A} (a : A) : A :=
-  let debugMode := false
-  in
-  if
-  | debugMode := stdlib-trace a
-  | else := a;
+  let
+    debugMode := false;
+  in if
+    | debugMode := stdlib-trace a
+    | else := a;
