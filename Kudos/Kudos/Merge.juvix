@@ -55,7 +55,7 @@ kudosMerge
     let
       currentRoot := TxContext.currentRoot txCtx;
       newResource :=
-        Kudos.mkResource@{
+        Kudos.Resource.mk@{
           quantity := totalQuantity;
           nonce;
           ephemeral := false;
@@ -69,16 +69,16 @@ kudosMerge
            created := [newResource];
          };
     pure
-      mkTransactionHelper@{
+      TransactionHelper.mk@{
         roots := [currentRoot];
         actions := [a];
       };
   };
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };
 
 main
@@ -93,12 +93,12 @@ main
   let
     receiver : ExternalIdentity := ExternalIdentity.fromByteArray receiverExternalIdentityBytes;
     callerIdentity : Identity :=
-      mkIdentityFromPayload@{
+      IdentityFromPayload.mk@{
         privateKey := ownerPrivateKeyPayload;
         publicKey := ownerPublicKeyPayload;
       };
     toMerge : List Resource := map Encode.decode toMergeEncoded;
-  in buildTransactionRequest
+  in TransactionRequest.build
         randSeed
         (txContext callerIdentity latestRoot)
         (kudosMerge logic toMerge receiver);

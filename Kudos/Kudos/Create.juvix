@@ -48,7 +48,7 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                       publicInputs;
                     };
 
-mkKudos
+Kudos.mk
   (nonce : Nonce)
   (quantity : Nat)
   (originator owner : ExternalIdentity)
@@ -56,10 +56,10 @@ mkKudos
   (kudosSymbol : String)
   {ephemeral : Bool := false}
   : Resource :=
-  Kudos.mkResource@{
+  Kudos.Resource.mk@{
     logic;
     label :=
-      Kudos.mkLabel@{
+      Kudos.Label.mk@{
         originator;
         kudosSymbol;
       };
@@ -93,10 +93,10 @@ isAuthorizedBy
                origin;
                nullifiers :=
                  Set.fromList
-                   (map mkNullifier (Instance.nullifiers publicInputs));
+                   (map Nullifier.mk (Instance.nullifiers publicInputs));
                commitments :=
                  Set.fromList
-                   (map mkCommitment (Instance.commitments publicInputs));
+                   (map Commitment.mk (Instance.commitments publicInputs));
              };
 
 --- Checks that a ;ResourceRelationship; message has the expected values.
@@ -152,7 +152,7 @@ initialize
       caller : ExternalIdentity := Identity.external (TxContext.caller ctx);
 
       toInitialize : Resource :=
-        mkKudos@{
+        Kudos.mk@{
           kudosSymbol;
           nonce;
           quantity;
@@ -174,7 +174,7 @@ initialize
               };
     let
       tokenCreationTransaction :=
-        mkTransactionHelper@{
+        TransactionHelper.mk@{
           roots := [TxContext.currentRoot ctx];
           actions := [action];
         };
@@ -183,9 +183,9 @@ initialize
   };
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };
 
 main
@@ -197,8 +197,8 @@ main
   : TransactionRequest :=
   let
     caller : Identity :=
-      mkIdentityFromPayload privateKeyPayload publicKeyPayload;
-  in buildTransactionRequest
+      IdentityFromPayload.mk privateKeyPayload publicKeyPayload;
+  in TransactionRequest.build
     rngSeed
     (txContext caller 0)
     (initialize logic kudosSymbol quantity);

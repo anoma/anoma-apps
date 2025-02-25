@@ -7,12 +7,12 @@ import Applib open;
 logic (publicInputs : Instance) (privateInputs : Witness) : Bool := true;
 
 type LogicWrapper :=
-  mkLogicWrapper@{
+  mk@{
     logic : Logic;
   };
 
 --- Compute the logic function for the HelloWorld ;Resource;
 main : LogicWrapper :=
-  mkLogicWrapper@{
+  LogicWrapper.mk@{
     logic;
   };

@@ -7,13 +7,13 @@ import AppIdentity open using {label};
 --- Creates a new ;Resource; that stores a ;String; message.
 --- @param nonce A number used to ensure resource uniqueness
 --- @param message The message to store in the ;Resource;.
-mkHelloWorldResource
+HelloWorldResource.mk
   (logic : Logic)
   (nonce : Nat)
   (message : String)
   {ephemeral : Bool := false}
   : Resource :=
-  mkResource@{
+  Resource.mk@{
     label;
     logic;
     value := builtinAnomaEncode message;
@@ -37,7 +37,7 @@ helloWorldTransaction
   : M Transaction :=
   do {
     let
-      newResource := mkHelloWorldResource logic nonce message;
+      newResource := HelloWorldResource.mk logic nonce message;
     in
     prepareStandardTransaction@{
       -- A Transaction must be balanced, so we consume an ephemeral resource of
@@ -48,11 +48,11 @@ helloWorldTransaction
   };
 
 ctx : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := mkRoot 0;
+    currentRoot := Root.fromNat 0;
   };
 
 --- The function that is run to produce a Transaction to send to Anoma.
 main (logic : Logic) (message : String) : TransactionRequest :=
-  buildTransactionRequest 0 ctx (helloWorldTransaction logic 0 message);
+  TransactionRequest.build 0 ctx (helloWorldTransaction logic 0 message);

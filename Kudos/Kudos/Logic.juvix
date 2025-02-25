@@ -5,8 +5,8 @@ import Applib open;
 import Kudos.Create open;
 
 type LogicWrapper :=
-  mkLogicWrapper@{
+  LogicWrapper.mk@{
     logic : Logic;
   };
 
-main : LogicWrapper := mkLogicWrapper isValidLogic;
+main : LogicWrapper := LogicWrapper.mk isValidLogic;

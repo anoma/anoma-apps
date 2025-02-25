@@ -9,9 +9,9 @@ import Kudos.Extra open;
 import Kudos.Create as Create;
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };
 
 main
@@ -27,7 +27,7 @@ main
   : Transaction :=
   let
     caller : Identity :=
-      mkIdentityFromPayload privateKeyPayload publicKeyPayload;
+      IdentityFromPayload.mk privateKeyPayload publicKeyPayload;
 
     helper {M : Type -> Type} {{Monad M}} {{Tx M}} : M Transaction :=
       do {
@@ -36,7 +36,7 @@ main
         let
           owner := ExternalIdentity.fromByteArray publicKeyPayload;
           createdResource : Resource :=
-            Create.mkKudos@{
+            Create.Kudos.mk@{
               nonce := nonceCreated;
               owner;
               originator := ExternalIdentity.fromByteArray wantOriginator;
@@ -57,7 +57,7 @@ main
           delta : Delta := actionsDelta actions;
         in
         pure
-          mkTransaction@{
+          Transaction.mk@{
             roots := [Root.unRoot root];
             actions;
             delta;

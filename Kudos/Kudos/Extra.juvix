@@ -11,7 +11,7 @@ import Stdlib.Debug.Trace open using {trace as stdlib-trace};
 --- @param mustBeConsumed The resources that must be consumed.
 --- @param mustBeCreated The resources that must be created.
 type ResourceRelationship :=
-  mkResourceRelationship@{
+  ResourceRelationship.mk@{
     origin : Tag;
     mustBeConsumed : List Nullifier;
     mustBeCreated : List Commitment;
@@ -20,7 +20,7 @@ type ResourceRelationship :=
 computeKind (logic : Logic) (label : Nat) : Kind :=
   let
     dummy : Resource :=
-      mkResource@{
+      Resource.mk@{
         label;
         logic;
         -- the arguments below don't matter
@@ -36,8 +36,8 @@ computeKind (logic : Logic) (label : Nat) : Kind :=
 signatureLookupKey : AnomaAtom :=
   AnomaAtom.fromNat (builtinAnomaEncode "signatureLookupKey");
 
-mkIdentityFromPayload (privateKey publicKey : ByteArray) : Identity :=
-  mkIdentity@{
+IdentityFromPayload.mk (privateKey publicKey : ByteArray) : Identity :=
+  Identity.mk@{
     internal :=
       InternalIdentity.fromByteArray privateKey;
     external := ExternalIdentity.fromByteArray publicKey;

@@ -71,7 +71,7 @@ swapIntentLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                | else := false;
 
 type SwapIntentLabel :=
-  mkSwapIntentLabel@{
+  SwapIntentLabel.mk@{
     receiver : ExternalIdentity;
     quantity : Nat;
     kind : Kind;
@@ -93,7 +93,7 @@ main
   : Transaction :=
   let
     caller : Identity :=
-      mkIdentityFromPayload privateKeyPayload publicKeyPayload;
+      IdentityFromPayload.mk privateKeyPayload publicKeyPayload;
 
     helper {M : Type -> Type} {{Monad M}} {{Tx M}} : M Transaction :=
       do {
@@ -102,7 +102,7 @@ main
         let
           owner := ExternalIdentity.fromByteArray publicKeyPayload;
           consumedResource : Resource :=
-            Create.mkKudos@{
+            Create.Kudos.mk@{
               nonce := nonceConsumed;
               owner;
               logic := kudosLogic;
@@ -112,14 +112,14 @@ main
             };
           solver : ExternalIdentity := Universal.externalIdentity;
           label : Kudos.Label :=
-            Kudos.mkLabel@{
+            Kudos.Label.mk@{
               originator := ExternalIdentity.fromByteArray wantOriginator;
               kudosSymbol := wantSymbol;
             };
           kudosKind : Kind := computeKudosKind kudosLogic label;
 
           swapIntent : Resource :=
-            mkResource@{
+            Resource.mk@{
               logic := swapIntentLogic;
               nonce := Nonce.toNat nonceIntent;
               ephemeral := true;
@@ -127,7 +127,7 @@ main
               randSeed := 0;
               label :=
                 builtinAnomaEncode
-                  mkSwapIntentLabel@{
+                  SwapIntentLabel.mk@{
                     kind := kudosKind;
                     quantity := wantQuantity;
                     receiver := ExternalIdentity.fromByteArray publicKeyPayload;
@@ -151,7 +151,7 @@ main
           delta : Delta := actionsDelta actions;
         in
         pure
-          mkTransaction@{
+          Transaction.mk@{
             roots := [Root.unRoot root];
             actions;
             delta;
@@ -162,7 +162,7 @@ main
   in runTx rngSeed (txContext caller root) helper;
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };

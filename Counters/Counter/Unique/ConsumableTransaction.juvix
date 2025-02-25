@@ -10,13 +10,14 @@ createConsumableTransaction (resource : Resource) : Transaction :=
     deltaProof := proveDelta delta;
     consumedResource := resource@Resource{ephemeral := true};
     createdResource := resource;
-  in mkTransaction@{
+  in Transaction.mk@{
        roots := [0];
        actions :=
          [
            mkActionHelper@{
              consumed := [consumedResource];
              created := [createdResource];
+             appData := AnomaSet.empty;
            };
          ];
        delta := zeroDelta;

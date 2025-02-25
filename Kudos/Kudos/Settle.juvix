@@ -11,7 +11,7 @@ import Kudos.Create as Create;
 
 module SatisfiedIntent;
   type SatisfiedIntent :=
-    mkSatisfiedIntent@{
+    SatisfiedIntent.mk@{
       intent : Resource;
       created : List Resource;
     };
@@ -27,10 +27,10 @@ module SatisfiedIntent;
   open SatisfiedIntent public;
 end;
 
-open SatisfiedIntent using {SatisfiedIntent; mkSatisfiedIntent} public;
+open SatisfiedIntent using {SatisfiedIntent; SatisfiedIntent.mk} public;
 
 type Solution :=
-  mkSolution@{
+  Solution.mk@{
     solution : List SatisfiedIntent;
   };
 
@@ -45,7 +45,7 @@ main
   let
     toSolve : List Transaction := map Encode.decode toSolveEncoded;
     caller : Identity :=
-      mkIdentityFromPayload privateKeyPayload publicKeyPayload;
+      IdentityFromPayload.mk privateKeyPayload publicKeyPayload;
     self : ExternalIdentity := Identity.external caller;
 
     helper {M : Type -> Type} {{Monad M}} {{Tx M}} : M Transaction :=
@@ -66,7 +66,7 @@ main
               } := pure unit
               | else := txThrow "I must own all resources";
           extraTx : Transaction :=
-            mkTransactionHelper@{
+            TransactionHelper.mk@{
               roots := [root];
               actions;
             };
@@ -79,7 +79,7 @@ main
   in runTx rngSeed (txContext caller root) helper;
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };

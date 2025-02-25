@@ -13,7 +13,7 @@ mkCounter
   {count : Nat := 0}
   {ephemeral : Bool := false}
   : Resource :=
-  mkResource@{
+  Resource.mk@{
     logic;
     label := "SimpleCounter" |> builtinAnomaEncode;
     value := count;

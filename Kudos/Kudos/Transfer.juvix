@@ -56,16 +56,16 @@ transferHelper
            created := [transferred];
          };
     pure
-      mkTransactionHelper@{
+      TransactionHelper.mk@{
         roots := [currentRoot];
         actions := [a];
       };
   };
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };
 
 main
@@ -81,11 +81,11 @@ main
     receiverIden : ExternalIdentity :=
       ExternalIdentity.fromByteArray receiver;
     callerIdentity : Identity :=
-      mkIdentityFromPayload@{
+      IdentityFromPayload.mk@{
         privateKey := ownerPrivateKeyPayload;
         publicKey := ownerPublicKeyPayload;
       };
-  in buildTransactionRequest
+  in TransactionRequest.build
     randSeed
     (txContext callerIdentity latestRoot)
     (transfer logic r receiverIden);

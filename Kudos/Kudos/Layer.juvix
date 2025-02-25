@@ -13,7 +13,7 @@ import Kudos.Extra open;
 computeKudosKind (logic : Logic) (label : Kudos.Label) : Kind :=
   computeKind logic (builtinAnomaEncode label);
 
-mkResourceRelationshipAppDataEntry
+ResourceRelationshipAppDataEntry.mk
   (signer : InternalIdentity)
   (origin : Tag)
   (mustBeConsumed : List Nullifier)
@@ -21,7 +21,7 @@ mkResourceRelationshipAppDataEntry
   : Kudos.PublicDataValue :=
   let
     resourceRelationship : ResourceRelationship :=
-      mkResourceRelationship@{
+      ResourceRelationship.mk@{
         origin;
         mustBeConsumed;
         mustBeCreated;
@@ -31,9 +31,9 @@ mkResourceRelationshipAppDataEntry
         message := resourceRelationship;
         signer;
       };
-  in Kudos.mkPublicDataValue@{
+  in Kudos.PublicDataValue.mk@{
        resourceRelationship;
-       signature := trace "mkPublicDataValue signature" >-> trace signature >-> signature;
+       signature := trace "PublicDataValue.mk signature" >-> trace signature >-> signature;
      };
 
 actionWithAuthorizationAppData
@@ -60,11 +60,11 @@ actionWithAuthorizationAppData
                 nestedMap : Kudos.PublicData :=
                   Map.singleton
                     signatureLookupKey
-                    mkResourceRelationshipAppDataEntry@{
+                    ResourceRelationshipAppDataEntry.mk@{
                       signer := Identity.internal caller;
-                      origin := Consumed (mkNullifier n);
+                      origin := Consumed (Nullifier.mk n);
                       mustBeConsumed := [];
-                      mustBeCreated := map mkCommitment commitments;
+                      mustBeCreated := map Commitment.mk commitments;
                     };
               in n, nestedMap
             }
@@ -90,7 +90,7 @@ module Kudos;
   PublicData : Type := Map AnomaAtom PublicDataValue;
 
   type PublicDataValue :=
-    mkPublicDataValue@{
+    PublicDataValue.mk@{
       resourceRelationship : ResourceRelationship;
       signature : Signature;
     };
@@ -120,7 +120,7 @@ module Kudos;
           toAnomaContents (ExternalIdentity.toByteArray newOwner);
       };
 
-    mkResource
+    Resource.mk
       (logic : Logic)
       (ephemeral : Bool)
       (quantity : Nat)
@@ -128,7 +128,7 @@ module Kudos;
       (label : Label)
       (nonce : Nonce)
       : Resource :=
-      Applib.mkResource@{
+      Applib.Resource.mk@{
         logic;
         ephemeral;
         quantity;
@@ -144,10 +144,10 @@ module Kudos;
       };
   end;
 
-  open Resource using {mkResource} public;
+  open Resource using {Resource.mk} public;
 
   type Label :=
-    mkLabel@{
+    Label.mk@{
       originator : ExternalIdentity;
       --- E.g. '€' '🐂' '🙀'
       kudosSymbol : String;

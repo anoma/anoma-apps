@@ -12,9 +12,9 @@ import Kudos.Layer open;
 import Kudos.Extra open;
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };
 
 split
@@ -67,7 +67,7 @@ splitHelper
            created := splitResources;
          };
     pure
-      mkTransactionHelper@{
+      TransactionHelper.mk@{
         roots := [currentRoot];
         actions := [a];
       };
@@ -87,7 +87,7 @@ main
     receivers : List (Pair ExternalIdentity Nat) :=
       map Encode.decode receiversInput;
     callerIdentity : Identity :=
-      mkIdentityFromPayload@{
+      IdentityFromPayload.mk@{
         privateKey := ownerPrivateKeyPayload;
         publicKey := ownerPublicKeyPayload;
       };
@@ -99,7 +99,7 @@ main
     | totalQuantity /= Resource.quantity toSplit :=
       failwith "total receivers quantity must be equal to toSplit quantity"
     | else :=
-      buildTransactionRequest
+      TransactionRequest.build
         randSeed
         (txContext callerIdentity latestRoot)
         (split logic toSplit receivers);
