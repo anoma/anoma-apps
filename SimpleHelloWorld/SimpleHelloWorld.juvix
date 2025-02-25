@@ -32,11 +32,11 @@ helloWorldTransaction
   {M : Type -> Type} -- polymorphic function with type parameter M
   {{Monad M}} -- additional information for type parameter M
   {{Tx M}} -- random number generator needs side effects / Monad
-  (nonce : Nat) 
-  (label : String) 
+  (nonce : Nat)
+  (label : String)
   : M Transaction :=
   let
-    newResource := HelloWorldResource.mk nonce label;
+    newResource := mkHelloWorldResource nonce label;
   in prepareStandardTransaction@{
        -- A Transaction must be balanced, so we consume an ephemeral resource of
        -- the same kind as the one we're creating.
