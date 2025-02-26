@@ -14,7 +14,7 @@ mkHelloWorldResource
   (message : String)
   {ephemeral : Bool := false}
   : Resource :=
-  mkResource@{
+  Resource.mk@{
     label := builtinAnomaEncode message;
     logic;
     value := 0;
@@ -32,8 +32,8 @@ helloWorldTransaction
   {M : Type -> Type} -- polymorphic function with type parameter M
   {{Monad M}} -- additional information for type parameter M
   {{Tx M}} -- random number generator needs side effects / Monad
-  (nonce : Nat) 
-  (label : String) 
+  (nonce : Nat)
+  (label : String)
   : M Transaction :=
   let
     newResource := mkHelloWorldResource nonce label;
@@ -46,11 +46,11 @@ helloWorldTransaction
 
 --- Produces a ;TxContext; which injects an identity and the state root of a commitment tree into the ;TransactionRequest;
 ctx : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := mkRoot 0;
+    currentRoot := Root.fromNat 0;
   };
 
 --- The function that is run to produce a Transaction to send to Anoma.
 main : TransactionRequest :=
-  buildTransactionRequest 0 ctx (helloWorldTransaction 0 "Hello World!\n");
+  TransactionRequest.build 0 ctx (helloWorldTransaction 0 "Hello World!\n");

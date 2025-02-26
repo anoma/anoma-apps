@@ -14,7 +14,7 @@ main
   let
     originator := ExternalIdentity.fromByteArray originatorPublicKey;
     identity :=
-      Kudos.mkLabel@{
+      Kudos.Label.mk@{
         originator;
         kudosSymbol;
       };
