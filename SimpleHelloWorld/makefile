@@ -2,6 +2,7 @@ ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 base-path = .
 base = SimpleHelloWorld
 get-message = GetMessage
+root = $(shell pwd)
 
 anoma-build-dir = anoma-build
 anoma-build = $(anoma-build-dir)/.exists
@@ -38,7 +39,7 @@ anoma-start:
 	rm -f $(config)
 ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
-		mix run --no-halt $(root)/../../start-config.exs
+		mix run --no-halt $(root)/../start-config.exs
 else
 	juvix dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
@@ -57,7 +58,11 @@ $(message-file): $(anoma-build)
 	> $(message-file)
 
 $(config): $(anoma-build)
+ifdef ANOMA_DEBUG
+	cp $(ANOMA_PATH)/config.yaml $(config)
+else
 	@juvix dev anoma print-config > $(config)
+endif
 
 .PHONY: add-transaction
 add-transaction: $(proved) $(config)
