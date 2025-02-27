@@ -42,8 +42,8 @@ counter-correct? (publicInputs : Instance) (privateInputs : Witness) : Bool :=
     | else := false;
 
 type LogicWrapper :=
-  mkLogicWrapper@{
+  mk@{
     logic : Logic;
   };
 
-main : LogicWrapper := mkLogicWrapper counter-correct?;
+main : LogicWrapper := LogicWrapper.mk counter-correct?;

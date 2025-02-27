@@ -10,7 +10,7 @@ alwaysValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
 -- TODO use monadic interface to generate the random nonce
 main (randSeed : Nat) : Resource :=
   let
-    nonce : Nonce := generateNonce (mkRandSeed (fromAnomaContents 32 randSeed));
+    nonce : Nonce := generateNonce (RandSeed.mkRandSeed (fromAnomaContents 32 randSeed));
   in mkResource@{
        label := 0;
        logic := alwaysValidLogic;

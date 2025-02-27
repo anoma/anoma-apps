@@ -16,7 +16,7 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
   in case tag of
        | Created commitment := true
        | Consumed nullifier :=
-         case findResourceByNullifier (unNullifier nullifier) privateInputs of
+         case findResourceByNullifier (Nullifier.toNat nullifier) privateInputs of
            | nothing :=
              trace "findResourceByNullifier returned nothing" >-> false
            | just self :=
@@ -56,10 +56,10 @@ mkKudos
   (kudosSymbol : String)
   {ephemeral : Bool := false}
   : Resource :=
-  Kudos.mkResource@{
+  Kudos.Resource.mk@{
     logic;
     label :=
-      Kudos.mkLabel@{
+      Kudos.Label.mk@{
         originator;
         kudosSymbol;
       };
@@ -93,10 +93,10 @@ isAuthorizedBy
                origin;
                nullifiers :=
                  Set.fromList
-                   (map mkNullifier (Instance.nullifiers publicInputs));
+                   (map Nullifier.mk (Instance.nullifiers publicInputs));
                commitments :=
                  Set.fromList
-                   (map mkCommitment (Instance.commitments publicInputs));
+                   (map Commitment.mk (Instance.commitments publicInputs));
              };
 
 --- Checks that a ;ResourceRelationship; message has the expected values.
@@ -183,9 +183,9 @@ initialize
   };
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };
 
 main
@@ -198,7 +198,7 @@ main
   let
     caller : Identity :=
       mkIdentityFromPayload privateKeyPayload publicKeyPayload;
-  in buildTransactionRequest
+  in TransactionRequest.build
     rngSeed
     (txContext caller 0)
     (initialize logic kudosSymbol quantity);

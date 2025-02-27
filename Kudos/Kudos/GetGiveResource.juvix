@@ -20,6 +20,6 @@ main
             |> Kudos.Label.kudosSymbol
             |> builtinAnomaEncode)
           == builtinAnomaEncode giveSymbol;
-  in case find isGiveResource (map Encode.decode ownedResources) of
+  in case find isGiveResource (map Encoded.decode ownedResources) of
        | just r := r
        | nothing := failwith "No give resource found";

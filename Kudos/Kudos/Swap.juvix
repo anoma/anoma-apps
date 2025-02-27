@@ -9,9 +9,9 @@ import Kudos.Extra open;
 import Kudos.Create as Create;
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };
 
 main
@@ -54,10 +54,10 @@ main
         root <- TxContext.currentRoot <$> getTxContext;
         let
           actions : List Action := [a];
-          delta : Delta := actionsDelta actions;
+          delta : Delta := Action.listDelta actions;
         in
         pure
-          mkTransaction@{
+          Transaction.mk@{
             roots := [Root.unRoot root];
             actions;
             delta;
@@ -65,4 +65,4 @@ main
           };
       };
 
-  in runTx rngSeed (txContext caller giveRoot) helper;
+  in Tx.run rngSeed (txContext caller giveRoot) helper;

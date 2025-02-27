@@ -51,7 +51,9 @@ swapIntentLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
 
   in case tag of
        | Consumed nullifier :=
-         case findResourceByNullifier (unNullifier nullifier) privateInputs of {
+         case
+           findResourceByNullifier (Nullifier.toNat nullifier) privateInputs
+         of {
            | nothing :=
              trace "findResourceByNullifier returned nothing" >-> false
            | just self :=
@@ -61,7 +63,7 @@ swapIntentLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
          }
        | Created commitment :=
          case
-           findResourceByCommitment (unCommitment commitment) privateInputs
+           findResourceByCommitment (Commitment.toNat commitment) privateInputs
          of
            | nothing :=
              trace "findResourceByCommitment returned nothing" >-> false
@@ -71,7 +73,7 @@ swapIntentLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                | else := false;
 
 type SwapIntentLabel :=
-  mkSwapIntentLabel@{
+  mk@{
     receiver : ExternalIdentity;
     quantity : Nat;
     kind : Kind;
@@ -112,14 +114,14 @@ main
             };
           solver : ExternalIdentity := Universal.externalIdentity;
           label : Kudos.Label :=
-            Kudos.mkLabel@{
+            Kudos.Label.mk@{
               originator := ExternalIdentity.fromByteArray wantOriginator;
               kudosSymbol := wantSymbol;
             };
           kudosKind : Kind := computeKudosKind kudosLogic label;
 
           swapIntent : Resource :=
-            mkResource@{
+            Resource.mk@{
               logic := swapIntentLogic;
               nonce := Nonce.toNat nonceIntent;
               ephemeral := true;
@@ -127,7 +129,7 @@ main
               randSeed := 0;
               label :=
                 builtinAnomaEncode
-                  mkSwapIntentLabel@{
+                  SwapIntentLabel.mk@{
                     kind := kudosKind;
                     quantity := wantQuantity;
                     receiver := ExternalIdentity.fromByteArray publicKeyPayload;
@@ -148,10 +150,10 @@ main
         root <- TxContext.currentRoot <$> getTxContext;
         let
           actions : List Action := [a];
-          delta : Delta := actionsDelta actions;
+          delta : Delta := Action.listDelta actions;
         in
         pure
-          mkTransaction@{
+          Transaction.mk@{
             roots := [Root.unRoot root];
             actions;
             delta;
@@ -159,10 +161,10 @@ main
           };
       };
 
-  in runTx rngSeed (txContext caller root) helper;
+  in Tx.run rngSeed (txContext caller root) helper;
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };

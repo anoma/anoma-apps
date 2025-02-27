@@ -38,7 +38,7 @@ increment
 txContext (latestRoot : Nat) : TxContext :=
   mkTxContext@{
     caller := Universal.identity;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.mkRoot latestRoot;
   };
 
 main

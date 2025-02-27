@@ -21,7 +21,7 @@ mkResourceRelationshipAppDataEntry
   : Kudos.PublicDataValue :=
   let
     resourceRelationship : ResourceRelationship :=
-      mkResourceRelationship@{
+      ResourceRelationship.mk@{
         origin;
         mustBeConsumed;
         mustBeCreated;
@@ -31,9 +31,9 @@ mkResourceRelationshipAppDataEntry
         message := resourceRelationship;
         signer;
       };
-  in Kudos.mkPublicDataValue@{
+  in Kudos.PublicDataValue.mk@{
        resourceRelationship;
-       signature := trace "mkPublicDataValue signature" >-> trace signature >-> signature;
+       signature := trace "PublicDataValue.mk signature" >-> trace signature >-> signature;
      };
 
 actionWithAuthorizationAppData
@@ -62,9 +62,9 @@ actionWithAuthorizationAppData
                     signatureLookupKey
                     mkResourceRelationshipAppDataEntry@{
                       signer := Identity.internal caller;
-                      origin := Consumed (mkNullifier n);
+                      origin := Consumed (Nullifier.mk n);
                       mustBeConsumed := [];
-                      mustBeCreated := map mkCommitment commitments;
+                      mustBeCreated := map Commitment.mk commitments;
                     };
               in n, nestedMap
             }
@@ -90,7 +90,7 @@ module Kudos;
   PublicData : Type := Map AnomaAtom PublicDataValue;
 
   type PublicDataValue :=
-    mkPublicDataValue@{
+    mk@{
       resourceRelationship : ResourceRelationship;
       signature : Signature;
     };
@@ -120,7 +120,7 @@ module Kudos;
           toAnomaContents (ExternalIdentity.toByteArray newOwner);
       };
 
-    mkResource
+    mk
       (logic : Logic)
       (ephemeral : Bool)
       (quantity : Nat)
@@ -128,7 +128,7 @@ module Kudos;
       (label : Label)
       (nonce : Nonce)
       : Resource :=
-      Applib.mkResource@{
+      Applib.Resource.mk@{
         logic;
         ephemeral;
         quantity;
@@ -144,10 +144,8 @@ module Kudos;
       };
   end;
 
-  open Resource using {mkResource} public;
-
   type Label :=
-    mkLabel@{
+    mk@{
       originator : ExternalIdentity;
       --- E.g. '€' '🐂' '🙀'
       kudosSymbol : String;

@@ -15,7 +15,7 @@ initialize
     ephCounterNonce <- genRandomNonce;
     counterNonce <- genRandomNonce;
     let
-      uniqueLabel := mkUniqueCounterLabel consumable;
+      uniqueLabel := CounterLabel.mkUnique consumable;
       ephCounter :=
         mkCounter@{
           logic;
@@ -43,7 +43,7 @@ initialize
 txContext (latestRoot : Nat) : TxContext :=
   mkTxContext@{
     caller := Universal.identity;
-    currentRoot := mkRoot latestRoot;
+    currentRoot := Root.mkRoot latestRoot;
   };
 
 main

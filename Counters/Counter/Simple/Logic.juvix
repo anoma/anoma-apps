@@ -5,8 +5,8 @@ import Applib open;
 import Counter.Simple.Resource open;
 
 type LogicWrapper :=
-  mkLogicWrapper@{
+  mk@{
     logic : Logic;
   };
 
-main : LogicWrapper := mkLogicWrapper valid-counter?;
+main : LogicWrapper := LogicWrapper.mk valid-counter?;

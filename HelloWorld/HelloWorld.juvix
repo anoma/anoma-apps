@@ -50,7 +50,7 @@ helloWorldTransaction
 ctx : TxContext :=
   mkTxContext@{
     caller := Universal.identity;
-    currentRoot := mkRoot 0;
+    currentRoot := Root.mkRoot 0;
   };
 
 --- The function that is run to produce a Transaction to send to Anoma.
