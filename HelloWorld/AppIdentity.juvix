@@ -12,7 +12,7 @@ main (logic : Logic) : Kind :=
     -- Only the logic and label are used in the kind computation, we can use
     -- default values for other fields.
     dummyResource : Resource :=
-      Resource.mk@{
+      mkResource@{
         label;
         logic;
         value := 0;

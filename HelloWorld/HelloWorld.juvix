@@ -13,7 +13,7 @@ mkHelloWorldResource
   (message : String)
   {ephemeral : Bool := false}
   : Resource :=
-  Resource.mk@{
+  mkResource@{
     label;
     logic;
     value := builtinAnomaEncode message;
@@ -48,11 +48,11 @@ helloWorldTransaction
   };
 
 ctx : TxContext :=
-  TxContext.mk@{
+  mkTxContext@{
     caller := Universal.identity;
-    currentRoot := Root.fromNat 0;
+    currentRoot := Root.mkRoot 0;
   };
 
 --- The function that is run to produce a Transaction to send to Anoma.
 main (logic : Logic) (message : String) : TransactionRequest :=
-  TransactionRequest.build 0 ctx (helloWorldTransaction logic 0 message);
+  buildTransactionRequest 0 ctx (helloWorldTransaction logic 0 message);
