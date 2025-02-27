@@ -34,10 +34,10 @@ initialize
   };
 
 ctx : TxContext :=
-  TxContext.mk@{
+  mkTxContext@{
     caller := Universal.identity;
-    currentRoot := Root.fromNat 0;
+    currentRoot := Root.mkRoot 0;
   };
 
 main (logic : Logic) : TransactionRequest :=
-  TransactionRequest.build 0 ctx (initialize logic);
+  buildTransactionRequest 0 ctx (initialize logic);

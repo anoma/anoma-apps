@@ -22,7 +22,7 @@ mkCounter
   (count : Nat)
   (ephemeral : Bool)
   : Resource :=
-  Resource.mk@{
+  mkResource@{
     logic;
     label := builtinAnomaEncode uniqueLabel;
     nonce := Nonce.toNat nonce;

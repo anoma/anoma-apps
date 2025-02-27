@@ -36,9 +36,9 @@ increment
       };
 
 txContext (latestRoot : Nat) : TxContext :=
-  TxContext.mk@{
+  mkTxContext@{
     caller := Universal.identity;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot := Root.mkRoot latestRoot;
   };
 
 main
@@ -47,7 +47,7 @@ main
   (logic : Logic)
   (latestRoot : Nat)
   : TransactionRequest :=
-  TransactionRequest.build
+  buildTransactionRequest
     randSeed
     (txContext latestRoot)
     (increment currentCounter logic);

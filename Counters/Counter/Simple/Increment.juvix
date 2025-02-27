@@ -33,9 +33,9 @@ increment
   };
 
 ctx (latestRoot : Nat) : TxContext :=
-  TxContext.mk@{
+  mkTxContext@{
     caller := Universal.identity;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot := Root.mkRoot latestRoot;
   };
 
 main
@@ -43,4 +43,4 @@ main
   (currentCounter : Resource)
   (latestRoot : Nat)
   : TransactionRequest :=
-  TransactionRequest.build 0 (ctx latestRoot) (increment logic currentCounter);
+  buildTransactionRequest 0 (ctx latestRoot) (increment logic currentCounter);
