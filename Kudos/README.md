@@ -146,7 +146,7 @@ make kudos-initialize owner-id=bob quantity=2
 2. Merge all of bob's `bob` kudos into a single resource and send them to alice:
 
 ``` sh
-make kudos-merge owner-id=bob merge-id=alice receiver-id=alice
+make kudos-merge owner-id=bob merge-id=bob receiver-id=alice
 ```
 
 3. alice now has 7 `bob` kudos:
