@@ -57,7 +57,6 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
           repo: anoma/juvix-nightly-builds
-          tag: nightly-2025-02-13-0.6.9-8b06157
           cache: enable
 
       - name: Checkout Anoma repo
