@@ -3,6 +3,7 @@ module HelloWorld;
 import Stdlib.Prelude open;
 import Applib open;
 import AppIdentity open using {label};
+import HelloWorld.Extra as Extra;
 
 --- Creates a new ;Resource; that stores a ;String; message.
 --- @param nonce A number used to ensure resource uniqueness
@@ -13,7 +14,7 @@ mkHelloWorldResource
   (message : String)
   {ephemeral : Bool := false}
   : Resource :=
-  mkResource@{
+  Resource.mk@{
     label;
     logic;
     value := builtinAnomaEncode message;
@@ -39,7 +40,7 @@ helloWorldTransaction
     let
       newResource := mkHelloWorldResource logic nonce message;
     in
-    prepareStandardTransaction@{
+    Extra.mkTransaction@{
       -- A Transaction must be balanced, so we consume an ephemeral resource of
       -- the same kind as the one we're creating.
       consumed := [newResource@Resource{ephemeral := true}];
@@ -48,11 +49,11 @@ helloWorldTransaction
   };
 
 ctx : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.mkRoot 0;
+    currentRoot := Root.fromNat 0;
   };
 
 --- The function that is run to produce a Transaction to send to Anoma.
 main (logic : Logic) (message : String) : TransactionRequest :=
-  buildTransactionRequest 0 ctx (helloWorldTransaction logic 0 message);
+  TransactionRequest.build 0 ctx (helloWorldTransaction logic 0 message);
