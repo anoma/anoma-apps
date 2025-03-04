@@ -2,6 +2,7 @@ module SimpleHelloWorld;
 
 import Stdlib.Prelude open;
 import Applib open;
+import Extra;
 
 --- A logic function that is always valid.
 logic (publicInputs : Instance) (privateInputs : Witness) : Bool := true;
@@ -14,7 +15,7 @@ mkHelloWorldResource
   (message : String)
   {ephemeral : Bool := false}
   : Resource :=
-  mkResource@{
+  Resource.mk@{
     label := builtinAnomaEncode message;
     logic;
     value := 0;
@@ -37,7 +38,7 @@ helloWorldTransaction
   : M Transaction :=
   let
     newResource := mkHelloWorldResource nonce label;
-  in prepareStandardTransaction@{
+  in Extra.mkTransactionNoPublicData@{
        -- A Transaction must be balanced, so we consume an ephemeral resource of
        -- the same kind as the one we're creating.
        consumed := [newResource@Resource{ephemeral := true}];
@@ -46,11 +47,11 @@ helloWorldTransaction
 
 --- Produces a ;TxContext; which injects an identity and the state root of a commitment tree into the ;TransactionRequest;
 ctx : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.mkRoot 0;
+    currentRoot := Root.fromNat 0;
   };
 
 --- The function that is run to produce a Transaction to send to Anoma.
 main : TransactionRequest :=
-  buildTransactionRequest 0 ctx (helloWorldTransaction 0 "Hello World!\n");
+  TransactionRequest.build 0 ctx (helloWorldTransaction 0 "Hello World!\n");
