@@ -12,6 +12,13 @@
 # ...
 # 5. make anoma-stop # stop the Anoma node when you've finished
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
+
+ifneq ($(XDG_CONFIG_HOME),)
+    juvix-cmd = XDG_CONFIG_HOME=$(XDG_CONFIG_HOME) juvix
+else
+    juvix-cmd = juvix
+endif
+
 base-path = .
 base = HelloWorld
 get-message = GetMessage
@@ -69,7 +76,7 @@ ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
 		mix run --no-halt $(root)/../../start-config.exs
 else
-	juvix dev anoma start --force --anoma-dir $(ANOMA_PATH)
+	$(juvix-cmd) dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
 
 .PHONY: anoma-stop
@@ -77,7 +84,7 @@ anoma-stop:
 ifdef ANOMA_DEBUG
 	@echo "ANOMA_DEBUG is incompatible with anoma-stop" && false
 else
-	juvix dev anoma stop
+	$(juvix-cmd) dev anoma stop
 endif
 
 .PHONY: $(message-file)
@@ -86,7 +93,7 @@ $(message-file): $(anoma-build)
 	> $(message-file)
 
 $(config): $(anoma-build)
-	@juvix dev anoma print-config > $(config)
+	@$(juvix-cmd) dev anoma print-config > $(config)
 
 .PHONY: compile-add-message
 compile-add-message: $(nockma)
@@ -102,7 +109,7 @@ compute-kind: $(kind-proved-cued)
 
 .PHONY: add-transaction
 add-transaction: $(proved) $(config)
-	@juvix dev anoma -c $(config) add-transaction $(proved)
+	@$(juvix-cmd) dev anoma -c $(config) add-transaction $(proved)
 
 .PHONY: get-last-message
 get-last-message: $(last-message-txt)
@@ -111,35 +118,35 @@ get-last-message: $(last-message-txt)
 .PHONY: $(last-message-txt)
 $(last-message-txt): $(get-message-nockma) $(config) $(unspent-resources)
 	@tail -n 1 $(unspent-resources) > $(temp-file)
-	@juvix dev anoma -c $(config) prove $(get-message-nockma) -o $(get-message-proved) --arg 'base64:$(temp-file)'
-	@juvix dev nockma encode --cue --from bytes --to bytes < anoma-build/GetMessage.proved.nockma > $(last-message-txt)
+	@$(juvix-cmd) dev anoma -c $(config) prove $(get-message-nockma) -o $(get-message-proved) --arg 'base64:$(temp-file)'
+	@$(juvix-cmd) dev nockma encode --cue --from bytes --to bytes < anoma-build/GetMessage.proved.nockma > $(last-message-txt)
 
 .PHONY: get-all-messages
 get-all-messages: $(get-message-nockma) $(config) $(unspent-resources)
 	@while IFS= read -r line; do \
 		echo "$$line" > $(temp-file); \
-		juvix dev anoma -c $(config) prove $(get-message-nockma) -o $(get-message-proved) --arg 'base64:$(temp-file)'; \
-		juvix dev nockma encode --cue --from bytes --to bytes < anoma-build/GetMessage.proved.nockma > $(last-message-txt); \
+		$(juvix-cmd) dev anoma -c $(config) prove $(get-message-nockma) -o $(get-message-proved) --arg 'base64:$(temp-file)'; \
+		$(juvix-cmd) dev nockma encode --cue --from bytes --to bytes < anoma-build/GetMessage.proved.nockma > $(last-message-txt); \
 		cat $(last-message-txt); \
 	done < $(unspent-resources)
 
 $(nockma): $(juvix) $(anoma-build)
-	@juvix compile anoma $(juvix) -o $(nockma)
+	$(juvix-cmd) compile anoma $(juvix) -o $(nockma)
 
 $(proved): $(nockma) $(config) $(message-file) $(logic-proved)
-	juvix dev anoma -c $(config) prove $(nockma) -o $(proved) --arg 'bytes:$(logic-proved)' --arg 'bytes-unjammed:$(message-file)'
+	$(juvix-cmd) dev anoma -c $(config) prove $(nockma) -o $(proved) --arg 'bytes:$(logic-proved)' --arg 'bytes-unjammed:$(message-file)'
 
 $(kind-nockma): $(kind-juvix) $(anoma-build)
-	@juvix compile anoma $(kind-juvix) -o $(kind-nockma)
+	@$(juvix-cmd) compile anoma $(kind-juvix) -o $(kind-nockma)
 
 $(kind-proved): $(kind-nockma) $(config) $(logic-proved)
-	@juvix dev anoma -c $(config) prove $(kind-nockma) -o $(kind-proved) --arg 'bytes:$(logic-proved)'
+	@$(juvix-cmd) dev anoma -c $(config) prove $(kind-nockma) -o $(kind-proved) --arg 'bytes:$(logic-proved)'
 
 $(kind-proved-cued): $(kind-proved)
-	@juvix dev nockma encode --cue --from bytes --to bytes < $(kind-proved) > $(kind-proved-cued)
+	@$(juvix-cmd) dev nockma encode --cue --from bytes --to bytes < $(kind-proved) > $(kind-proved-cued)
 
 $(kind-proved-cued-b64): $(kind-proved)
-	@juvix dev nockma encode --cue --from bytes --to base64 < $(kind-proved) > $(kind-proved-cued-b64)
+	@$(juvix-cmd) dev nockma encode --cue --from bytes --to base64 < $(kind-proved) > $(kind-proved-cued-b64)
 
 $(filter-request): $(kind-proved-cued-b64)
 	jq -n --arg KIND $$(cat $(kind-proved-cued-b64)) \
@@ -147,13 +154,13 @@ $(filter-request): $(kind-proved-cued-b64)
 	> $(filter-request)
 
 $(get-message-nockma): $(anoma-build) $(get-message-juvix)
-	@juvix compile anoma $(get-message-juvix) -o $(get-message-nockma)
+	@$(juvix-cmd) compile anoma $(get-message-juvix) -o $(get-message-nockma)
 
 $(logic-nockma): $(anoma-build) $(logic-juvix)
-	juvix compile anoma $(logic-juvix) -o $(logic-nockma)
+	$(juvix-cmd) compile anoma $(logic-juvix) -o $(logic-nockma)
 
 $(logic-proved): $(logic-nockma) $(config)
-	juvix dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
+	$(juvix-cmd) dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
 
 .PHONY: $(unspent-resources)
 $(unspent-resources): $(anoma-build) $(host) $(port) $(filter-request)

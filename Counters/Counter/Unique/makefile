@@ -18,6 +18,12 @@
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 ANOMA_DEBUG ?=
 
+ifneq ($(XDG_CONFIG_HOME),)
+    juvix-cmd = XDG_CONFIG_HOME=$(XDG_CONFIG_HOME) juvix
+else
+    juvix-cmd = juvix
+endif
+
 # Change this to create a new counter identity
 counter_id ?= 0
 
@@ -93,15 +99,15 @@ clean:
 
 .PHONY: create-consumable-resource
 create-consumable-resource: $(config) $(consumable-transaction-proved)
-	juvix dev anoma -c $(config) add-transaction $(consumable-transaction-proved)
+	$(juvix-cmd) dev anoma -c $(config) add-transaction $(consumable-transaction-proved)
 
 .PHONY: counter-initialize
 counter-initialize: $(initialize-proved) $(config)
-	juvix dev anoma -c $(config) add-transaction $(initialize-proved)
+	$(juvix-cmd) dev anoma -c $(config) add-transaction $(initialize-proved)
 
 .PHONY: counter-increment
 counter-increment: $(increment-proved) $(config)
-	juvix dev anoma -c $(config) add-transaction $(increment-proved)
+	$(juvix-cmd) dev anoma -c $(config) add-transaction $(increment-proved)
 
 .PHONY: counter-get
 counter-get: $(get-count-result)
@@ -113,7 +119,7 @@ anoma-stop:
 ifdef ANOMA_DEBUG
 	@echo "ANOMA_DEBUG is incompatible with anoma-stop" && false
 else
-	juvix dev anoma stop
+	$(juvix-cmd) dev anoma stop
 endif
 
 .PHONY: anoma-start
@@ -123,14 +129,14 @@ ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
 		mix run --no-halt $(root)/../../start-config.exs
 else
-	juvix dev anoma start --force --anoma-dir $(ANOMA_PATH)
+	$(juvix-cmd) dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
 
 $(config): $(anoma-build)
 ifdef ANOMA_DEBUG
 	cp $(anoma-config) $(config)
 else
-	juvix dev anoma print-config > $(config)
+	$(juvix-cmd) dev anoma print-config > $(config)
 endif
 
 $(host): $(config)
@@ -169,23 +175,23 @@ $(current-counter): $(anoma-build) $(host) $(port) $(current-counter-request)
 	> $(current-counter)
 
 $(consumable-nockma): $(anoma-build) $(consumable-juvix)
-	juvix compile anoma $(consumable-juvix) -o $(consumable-nockma)
+	$(juvix-cmd) compile anoma $(consumable-juvix) -o $(consumable-nockma)
 
 $(consumable-proved): $(config) $(random-32bytes) $(consumable-nockma)
-	juvix dev anoma -c $(config) prove $(consumable-nockma) -o $(consumable-proved) --arg "bytes-unjammed:$(random-32bytes)"
+	$(juvix-cmd) dev anoma -c $(config) prove $(consumable-nockma) -o $(consumable-proved) --arg "bytes-unjammed:$(random-32bytes)"
 
 $(consumable-transaction-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(consumable-transaction-juvix) -o $(consumable-transaction-nockma)
+	$(juvix-cmd) compile anoma $(consumable-transaction-juvix) -o $(consumable-transaction-nockma)
 
 $(consumable-transaction-proved): $(config) $(consumable-transaction-nockma) $(consumable-proved)
-	juvix dev anoma -c $(config) prove $(consumable-transaction-nockma) -o $(consumable-transaction-proved) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(consumable-transaction-nockma) -o $(consumable-transaction-proved) \
 	--arg "bytes:$(consumable-proved)"
 
 $(logic-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(logic-juvix) -o $(logic-nockma)
+	$(juvix-cmd) compile anoma $(logic-juvix) -o $(logic-nockma)
 
 $(logic-proved): $(logic-nockma) $(config)
-	juvix dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
+	$(juvix-cmd) dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
 
 .PHONY: $(get-latest-root) $(host) $(port)
 $(get-latest-root): $(anoma-build) $(host) $(port)
@@ -194,42 +200,42 @@ $(get-latest-root): $(anoma-build) $(host) $(port)
 	> $(get-latest-root)
 
 $(initialize-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(initialize-juvix) -o $(initialize-nockma)
+	$(juvix-cmd) compile anoma $(initialize-juvix) -o $(initialize-nockma)
 
 $(initialize-proved): $(initialize-nockma) $(logic-proved) $(random-32bytes-initialize) $(consumable-proved) $(get-latest-root) $(config)
-	juvix dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(initialize-nockma) -o $(initialize-proved) \
 	--arg "bytes-unjammed:$(random-32bytes-initialize)" \
 	--arg "bytes:$(consumable-proved)" \
     --arg "bytes:$(logic-proved)" \
 	--arg "base64-unjammed:$(get-latest-root)"
 
 $(increment-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(increment-juvix) -o $(increment-nockma)
+	$(juvix-cmd) compile anoma $(increment-juvix) -o $(increment-nockma)
 
 $(increment-proved): $(increment-nockma) $(logic-proved) $(random-32bytes-increment) $(current-counter) $(get-latest-root) $(config)
-	juvix dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(increment-nockma) -o $(increment-proved) \
 	--arg "bytes-unjammed:$(random-32bytes-increment)" \
 	--arg "base64:$(current-counter)" \
     --arg "bytes:$(logic-proved)" \
 	--arg "base64-unjammed:$(get-latest-root)"
 
 $(counter-kind-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(counter-kind-juvix) -o $(counter-kind-nockma)
+	$(juvix-cmd) compile anoma $(counter-kind-juvix) -o $(counter-kind-nockma)
 
 .PHONY: $(counter-kind-proved)
 $(counter-kind-proved): $(counter-kind-nockma) $(logic-proved) $(consumable-proved) $(config)
-	juvix dev anoma -c $(config) prove $(counter-kind-nockma) -o $(counter-kind-proved) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(counter-kind-nockma) -o $(counter-kind-proved) \
 	--arg "bytes:$(consumable-proved)" \
     --arg "bytes:$(logic-proved)"
 
 $(counter-kind-proved-cued-b64): $(counter-kind-proved)
-	juvix dev nockma encode --cue --from bytes --to base64 < $(counter-kind-proved) > $(counter-kind-proved-cued-b64)
+	$(juvix-cmd) dev nockma encode --cue --from bytes --to base64 < $(counter-kind-proved) > $(counter-kind-proved-cued-b64)
 
 $(get-count-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(get-count-juvix) -o $(get-count-nockma)
+	$(juvix-cmd) compile anoma $(get-count-juvix) -o $(get-count-nockma)
 
 $(get-count-proved): $(current-counter) $(get-count-nockma) $(config)
-	juvix dev anoma -c $(config) prove $(get-count-nockma) -o $(get-count-proved) --arg "base64:$(current-counter)"
+	$(juvix-cmd) dev anoma -c $(config) prove $(get-count-nockma) -o $(get-count-proved) --arg "base64:$(current-counter)"
 
 $(get-count-result): $(get-count-proved)
-	juvix dev nockma encode --from bytes --to text < $(get-count-proved) > $(get-count-result)
+	$(juvix-cmd) dev nockma encode --from bytes --to text < $(get-count-proved) > $(get-count-result)

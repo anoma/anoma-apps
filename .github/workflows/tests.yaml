@@ -112,21 +112,15 @@ jobs:
         run: |
           echo "ANOMA_PATH=${{ github.workspace }}/anoma" >> $GITHUB_ENV
 
-      - name: HelloWorld Run tests
-        run: cd HelloWorld/tests && ./all-tests.sh
+      - name: Run tests
+        run: |
+          ./run-tests.sh
 
-      - name: SimpleHelloWorld Run tests
-        run: cd SimpleHelloWorld/tests && ./all-tests.sh
-        
-      - name: Run Simple Counter tests
-        run: cd Counters/Counter/Simple/tests && ./all-tests.sh
-
-      - name: Run Unique Counter tests
-        run: cd Counters/Counter/Unique/tests && ./all-tests.sh
-
-      - name: Run Kudos tests
-        shell: bash
-        run: cd Kudos/tests && ./all-tests.sh
+      - name: Upload test logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: "**/all-tests.log"
 
       - name: Build HelloWorld app
         working-directory: ${{ github.workspace }}/HelloWorld/web-app

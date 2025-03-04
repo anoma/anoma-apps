@@ -22,13 +22,13 @@ owner-to-split-resource = $(anoma-build-dir)/owner-to-split-resource
 
 .PHONY: kudos-split
 kudos-split: $(split-proved) $(config)
-	juvix dev anoma -c $(config) add-transaction $(split-proved)
+	$(juvix-cmd) dev anoma -c $(config) add-transaction $(split-proved)
 
 $(split-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(split-juvix) -o $(split-nockma)
+	$(juvix-cmd) compile anoma $(split-juvix) -o $(split-nockma)
 
 $(make-part-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(make-part-juvix) -o $(make-part-nockma)
+	$(juvix-cmd) compile anoma $(make-part-juvix) -o $(make-part-nockma)
 
 $(owner-to-split-signing-key): $(addprefix $(person-signing-key)-, $(shell yq -r '.owner' < $(split-spec) | tr -d '\n'))
 	cp $< $@
@@ -43,14 +43,14 @@ $(owner-to-split-kudos-symbol): $(split-spec)
 	yq -r '.owner' < $(split-spec) | tr -d '\n' > $@
 
 $(owner-to-split-kudos-kind-proved): $(kudos-kind-nockma) $(config) $(logic-proved) $(owner-to-split-public-key) $(owner-to-split-kudos-symbol)
-	juvix dev anoma -c $(config) prove $(kudos-kind-nockma) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(kudos-kind-nockma) \
 	--arg 'bytes:$(logic-proved)' \
 	--arg 'bytearray:$(owner-to-split-public-key)' \
 	--arg 'bytes-unjammed:$(owner-to-split-kudos-symbol)' \
 	-o $@
 
 $(owner-to-split-kudos-kind-proved-cued-base64): $(owner-to-split-kudos-kind-proved)
-	juvix dev nockma encode --cue --from bytes --to base64 < $< > $@
+	$(juvix-cmd) dev nockma encode --cue --from bytes --to base64 < $< > $@
 
 $(owner-to-split-resource-request): $(owner-to-split-public-key-base64) $(owner-to-split-kudos-kind-proved-cued-base64)
 	jq -n \
@@ -71,19 +71,19 @@ $(split-quantity)-%: $(anoma-build) $(split-spec)
 	yq -r '.partition.$*' < $(split-spec) > $@
 
 $(make-named-part-bytes)-%: $(config) $(make-part-nockma) $(person-public-key)-% $(split-quantity)-%
-	juvix dev anoma -c $(config) prove $(make-part-nockma) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(make-part-nockma) \
 	--arg 'bytearray:$(person-public-key)-$*' \
 	--arg "nat:$$(cat $(split-quantity)-$*)" \
 	-o $@ \
 
 $(make-named-part-base64)-%: $(make-named-part-bytes)-%
-	juvix dev nockma encode --from bytes --to base64 < $< > $@
+	$(juvix-cmd) dev nockma encode --from bytes --to base64 < $< > $@
 
 $(partition): $(addprefix $(make-named-part-base64)-, $(shell yq -r '.partition | keys[]' < $(split-spec)))
 	paste -d '\n' $^ > $(partition)
 
 $(split-proved): $(config) $(split-nockma) $(random-32bytes) $(partition) $(get-latest-root) $(logic-proved) $(split-nockma) $(owner-to-split-signing-key) $(owner-to-split-public-key) $(owner-to-split-resource)
-	juvix dev anoma -c $(config) prove $(split-nockma) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(split-nockma) \
 	--arg 'base64-unjammed:$(get-latest-root)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
     --arg 'bytearray:$(owner-to-split-signing-key)' \

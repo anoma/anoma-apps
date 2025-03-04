@@ -8,6 +8,12 @@ quantity ?= $(error set the quantity variable to a number)
 root = $(shell pwd)
 merge-id ?= 0
 
+ifneq ($(XDG_CONFIG_HOME),)
+    juvix-cmd = XDG_CONFIG_HOME=$(XDG_CONFIG_HOME) juvix
+else
+    juvix-cmd = juvix
+endif
+
 # block-height is used by has-transaction-after-height
 block-height ?= $(error set the block-height variable)
 
@@ -119,7 +125,7 @@ anoma-stop:
 ifdef ANOMA_DEBUG
 	@echo "ANOMA_DEBUG is incompatible with anoma-stop" && false
 else
-	juvix dev anoma stop
+	$(juvix-cmd) dev anoma stop
 endif
 
 .PHONY: anoma-start
@@ -129,7 +135,7 @@ ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
 		mix run --no-halt $(root)/../start-config.exs
 else
-	juvix dev anoma start --force --anoma-dir $(ANOMA_PATH)
+	$(juvix-cmd) dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
 
 .PHONY: get-balance-resources
@@ -142,15 +148,15 @@ get-balance: $(get-balance-proved-txt)
 
 .PHONY: kudos-initialize
 kudos-initialize: $(create-proved) $(config)
-	juvix dev anoma -c $(config) add-transaction $(create-proved)
+	$(juvix-cmd) dev anoma -c $(config) add-transaction $(create-proved)
 
 .PHONY: kudos-transfer
 kudos-transfer: $(transfer-proved) $(config)
-	juvix dev anoma -c $(config) add-transaction $(transfer-proved)
+	$(juvix-cmd) dev anoma -c $(config) add-transaction $(transfer-proved)
 
 .PHONY: kudos-merge
 kudos-merge: $(merge-proved) $(config)
-	juvix dev anoma -c $(config) add-transaction $(merge-proved)
+	$(juvix-cmd) dev anoma -c $(config) add-transaction $(merge-proved)
 
 .PHONY: get-unspent-resources
 get-unspent-resources: $(unspent-resources)
@@ -159,7 +165,7 @@ get-unspent-resources: $(unspent-resources)
 .PHONY: did-it-work
 did-it-work:
 	rm -f $(config)
-	juvix dev anoma start --anoma-dir $(ANOMA_PATH) -f
+	$(juvix-cmd) dev anoma start --anoma-dir $(ANOMA_PATH) -f
 	make kudos-initialize
 	watch -n 0.5 make get-unspent-resources
 
@@ -172,7 +178,7 @@ $(config): $(anoma-build)
 ifdef ANOMA_DEBUG
 	cp $(anoma-config) $(config)
 else
-	juvix dev anoma print-config > $(config)
+	$(juvix-cmd) dev anoma print-config > $(config)
 endif
 
 $(host): $(config)
@@ -219,17 +225,17 @@ $(has-transaction-after-height): $(anoma-build) $(host) $(port)
 
 $(logic-nockma): $(anoma-build) $(all-juvix)
 	juvix clean
-	juvix compile anoma $(logic-juvix) -o $(logic-nockma)
+	$(juvix-cmd) compile anoma $(logic-juvix) -o $(logic-nockma)
 
 $(logic-proved): $(logic-nockma) $(config)
-	juvix dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
+	$(juvix-cmd) dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
 
 $(create-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(create-juvix) -o $(create-nockma)
+	$(juvix-cmd) compile anoma $(create-juvix) -o $(create-nockma)
 
 $(transfer-nockma): $(anoma-build) $(all-juvix)
 	juvix clean
-	juvix compile anoma $(transfer-juvix) -o $(transfer-nockma)
+	$(juvix-cmd) compile anoma $(transfer-juvix) -o $(transfer-nockma)
 
 $(owner-public-key-base64): $(owner-public-key)
 	base64 < $(owner-public-key) | tr -d "\n\r" > $(owner-public-key-base64)
@@ -261,7 +267,7 @@ $(owner-balance-resources): $(anoma-build) $(host) $(port) $(owner-request)
 	> $@
 
 $(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(owner-id-file)
-	juvix dev anoma -c $(config) prove $(create-nockma) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(create-nockma) \
 	-o $(create-proved) \
 	--arg 'bytearray:$(owner-signing-key)' \
 	--arg 'bytearray:$(owner-public-key)' \
@@ -271,7 +277,7 @@ $(create-proved): $(create-nockma) $(config) $(random-32bytes) $(logic-proved) $
 	--arg 'bytes-unjammed:$(owner-id-file)' \
 
 $(transfer-proved): $(transfer-nockma) $(config) $(random-32bytes) $(logic-proved) $(receiver-public-key) $(owner-first-resource) $(get-latest-root)
-	juvix dev anoma -c $(config) prove $(transfer-nockma) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(transfer-nockma) \
 	-o $(transfer-proved) \
 	--arg 'base64-unjammed:$(get-latest-root)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
@@ -321,10 +327,10 @@ $(merge-public-key): $(person-public-key)-$(merge-id)
 	cp $< $@
 
 $(kudos-kind-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(kudos-kind-juvix) -o $(kudos-kind-nockma)
+	$(juvix-cmd) compile anoma $(kudos-kind-juvix) -o $(kudos-kind-nockma)
 
 $(merge-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(merge-juvix) -o $(merge-nockma)
+	$(juvix-cmd) compile anoma $(merge-juvix) -o $(merge-nockma)
 
 $(to-merge-public-key): $(person-public-key)-$(merge-id)
 	cp $< $@
@@ -334,14 +340,14 @@ $(to-merge-kudos-symbol):
 	echo $(merge-id) | tr -d '\n' > $@
 
 $(merge-kudos-kind-proved): $(kudos-kind-nockma) $(config) $(logic-proved) $(to-merge-public-key) $(to-merge-kudos-symbol)
-	juvix dev anoma -c $(config) prove $(kudos-kind-nockma) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(kudos-kind-nockma) \
 	--arg 'bytes:$(logic-proved)' \
 	--arg 'bytearray:$(to-merge-public-key)' \
 	--arg 'bytes-unjammed:$(to-merge-kudos-symbol)' \
 	-o $@
 
 $(to-merge-kind-cued-proved-base64): $(merge-kudos-kind-proved)
-	juvix dev nockma encode --cue --from bytes --to base64 < $< > $@
+	$(juvix-cmd) dev nockma encode --cue --from bytes --to base64 < $< > $@
 
 $(to-merge-resources-request): $(owner-public-key-base64) $(to-merge-kind-cued-proved-base64)
 	jq -n \
@@ -360,7 +366,7 @@ $(to-merge-resources): $(host) $(port) $(to-merge-resources-request)
 	> $@
 
 $(merge-proved): $(merge-nockma) $(random-32bytes) $(get-latest-root) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(receiver-public-key) $(to-merge-resources)
-	juvix dev anoma -c $(config) prove $(merge-nockma) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(merge-nockma) \
 	--arg 'base64-unjammed:$(get-latest-root)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
     --arg 'bytearray:$(owner-signing-key)' \
@@ -371,12 +377,12 @@ $(merge-proved): $(merge-nockma) $(random-32bytes) $(get-latest-root) $(logic-pr
 	-o $@ \
 
 $(get-balance-nockma): $(anoma-build) $(all-juvix)
-	juvix compile anoma $(get-balance-juvix) -o $(get-balance-nockma)
+	$(juvix-cmd) compile anoma $(get-balance-juvix) -o $(get-balance-nockma)
 
 $(get-balance-proved): $(config) $(get-balance-nockma) $(owner-balance-resources)
-	juvix dev anoma -c $(config) prove $(get-balance-nockma) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(get-balance-nockma) \
 	--arg 'list:$(owner-balance-resources)' \
 	-o $@
 
 $(get-balance-proved-txt): $(get-balance-proved)
-	juvix dev nockma encode --cue --from bytes --to bytes < $< > $@
+	$(juvix-cmd) dev nockma encode --cue --from bytes --to bytes < $< > $@

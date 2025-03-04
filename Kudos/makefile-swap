@@ -84,10 +84,10 @@ $(owned-resources): $(anoma-build) $(host) $(port) $(owner-request)
 
 $(nockma): $(anoma-build) $(all-juvix)
 	juvix clean
-	juvix compile anoma $(juvix-src) -o $(nockma)
+	$(juvix-cmd) compile anoma $(juvix-src) -o $(nockma)
 
 $(proved): $(config) $(nockma) $(random-32bytes) $(get-give-resource-proved) $(get-latest-root) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(give-originator-symbol) $(give-originator-public-key) $(give-quantity) $(want-originator-symbol) $(want-originator-public-key) $(want-quantity)
-	juvix dev anoma -c $(config) prove $(nockma) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(nockma) \
 	--arg 'base64-unjammed:$(get-latest-root)' \
 	--arg 'bytes-unjammed:$(random-32bytes)' \
     --arg 'bytearray:$(owner-signing-key)' \
@@ -125,10 +125,10 @@ list-intents: $(list-intents-request) $(host) $(port)
 	< $(list-intents-request) \
 
 $(get-give-resource-nockma): $(anoma-build) $(get-give-resource-juvix)
-	juvix compile anoma $(get-give-resource-juvix) -o $(get-give-resource-nockma)
+	$(juvix-cmd) compile anoma $(get-give-resource-juvix) -o $(get-give-resource-nockma)
 
 $(get-give-resource-proved): $(config) $(owned-resources) $(give-originator-symbol) $(give-quantity) $(get-give-resource-nockma)
-	juvix dev anoma -c $(config) prove $(get-give-resource-nockma) \
+	$(juvix-cmd) dev anoma -c $(config) prove $(get-give-resource-nockma) \
 	--arg 'bytes-unjammed:$(give-originator-symbol)' \
 	--arg "nat:$$(cat $(give-quantity))" \
 	--arg "list:$(owned-resources)" \
