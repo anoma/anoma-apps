@@ -4,12 +4,11 @@ import PackageDescription.V2 open;
 
 package : Package :=
   defaultPackage@{
-    name := "hello-world";
+    name := "extra";
     dependencies :=
       [
         github "anoma" "juvix-stdlib" "v0.11.0-rc.5";
         github "anoma" "anoma-applib" "v0.9.0-rc.2";
         github "anoma" "juvix-mtl" "v0.3.0-rc.5";
-        path "../Extra";
       ];
   };

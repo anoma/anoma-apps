@@ -3,7 +3,7 @@ module HelloWorld;
 import Stdlib.Prelude open;
 import Applib open;
 import AppIdentity open using {label};
-import HelloWorld.Extra as Extra;
+import Extra;
 
 --- Creates a new ;Resource; that stores a ;String; message.
 --- @param nonce A number used to ensure resource uniqueness
@@ -40,7 +40,7 @@ helloWorldTransaction
     let
       newResource := mkHelloWorldResource logic nonce message;
     in
-    Extra.mkTransaction@{
+    Extra.mkTransactionEmptyPublicData@{
       -- A Transaction must be balanced, so we consume an ephemeral resource of
       -- the same kind as the one we're creating.
       consumed := [newResource@Resource{ephemeral := true}];

@@ -1,4 +1,5 @@
-module HelloWorld.Extra;
+--- A module for things that may belong in anoma-applib
+module Extra;
 
 import Stdlib.Prelude open;
 
@@ -7,10 +8,10 @@ import Applib.Helpers open;
 import Applib.Trait.Tx open;
 import BaseLayer.ResourceMachine as BaseLayer;
 
---- Create a ;BaseLayer.Action; where otherPublic field of instances are 0
+--- Create a ;BaseLayer.Action; where otherPublic field of ;BaseLayer.Action;s are 0
 ---
 --- This function can be used for applications where otherPublic is unused.
-mkAction (consumed created : List Resource) : BaseLayer.Action :=
+mkActionNoPublicData (consumed created : List Resource) : BaseLayer.Action :=
   let
     nullifiers := map BaseLayer.nullifier consumed;
     commitments := map BaseLayer.commitment created;
@@ -41,7 +42,7 @@ mkAction (consumed created : List Resource) : BaseLayer.Action :=
 
 --- Create a ;BaseLayer.Transaction; with ;BaseLayer.Action;s that do not use
 --- the proof ;BaseLayer.Instance; publicData field
-mkTransaction
+mkTransactionNoPublicData
   {M : Type -> Type}
   {{Tx M}}
   {{Monad M}}
@@ -52,6 +53,6 @@ mkTransaction
     pure
       mkTransactionHelper@{
         roots := [TxContext.currentRoot si];
-        actions := [mkAction consumed created];
+        actions := [mkActionNoPublicData consumed created];
       };
   };
