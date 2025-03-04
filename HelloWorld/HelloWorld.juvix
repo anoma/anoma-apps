@@ -40,7 +40,7 @@ helloWorldTransaction
     let
       newResource := mkHelloWorldResource logic nonce message;
     in
-    Extra.mkTransactionEmptyPublicData@{
+    Extra.mkTransactionNoPublicData@{
       -- A Transaction must be balanced, so we consume an ephemeral resource of
       -- the same kind as the one we're creating.
       consumed := [newResource@Resource{ephemeral := true}];

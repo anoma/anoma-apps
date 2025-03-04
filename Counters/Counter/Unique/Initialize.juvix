@@ -3,6 +3,7 @@ module Counter.Unique.Initialize;
 import Stdlib.Prelude open;
 import Applib open;
 import Counter.Unique.Resource open;
+import Extra;
 
 initialize
   {M : Type -> Type}
@@ -34,16 +35,16 @@ initialize
         };
       ephConsumable := consumable@Resource{ephemeral := true};
     in
-    prepareStandardTransaction@{
+    Extra.mkTransactionNoPublicData@{
       consumed := [consumable; ephCounter];
       created := [ephConsumable; newCounter];
     };
   };
 
 txContext (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };
 
 main
@@ -52,7 +53,7 @@ main
   (logic : Logic)
   (latestRoot : Nat)
   : TransactionRequest :=
-  buildTransactionRequest
+  TransactionRequest.build
     randSeed
     (txContext latestRoot)
     (initialize consumable logic);

@@ -4,6 +4,7 @@ import Stdlib.Prelude open;
 import Applib open;
 import Counter.Unique.Resource open;
 import Stdlib.Debug open;
+import Extra;
 
 increment
   {M : Type -> Type}
@@ -29,16 +30,16 @@ increment
               ephemeral := false;
             };
         in
-        prepareStandardTransaction@{
+        Extra.mkTransactionNoPublicData@{
           consumed := [currentCounter];
           created := [newCounter];
         };
       };
 
 txContext (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };
 
 main
@@ -47,7 +48,7 @@ main
   (logic : Logic)
   (latestRoot : Nat)
   : TransactionRequest :=
-  buildTransactionRequest
+  TransactionRequest.build
     randSeed
     (txContext latestRoot)
     (increment currentCounter logic);

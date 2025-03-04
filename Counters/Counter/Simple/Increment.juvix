@@ -3,6 +3,7 @@ module Counter.Simple.Increment;
 import Stdlib.Prelude open;
 import Applib open;
 import Counter.Simple.Resource open;
+import Extra;
 
 --- Increments the counter value by 1.
 --- @param currentCounter The current counter to increment.
@@ -26,16 +27,16 @@ increment
         };
 
     in
-    prepareStandardTransaction@{
+    Extra.mkTransactionNoPublicData@{
       consumed := [currentCounter];
       created := [newCounter];
     };
   };
 
 ctx (latestRoot : Nat) : TxContext :=
-  mkTxContext@{
+  TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.mkRoot latestRoot;
+    currentRoot := Root.fromNat latestRoot;
   };
 
 main
@@ -43,4 +44,4 @@ main
   (currentCounter : Resource)
   (latestRoot : Nat)
   : TransactionRequest :=
-  buildTransactionRequest 0 (ctx latestRoot) (increment logic currentCounter);
+  TransactionRequest.build 0 (ctx latestRoot) (increment logic currentCounter);
