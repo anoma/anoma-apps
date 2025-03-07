@@ -83,7 +83,6 @@ $(owned-resources): $(anoma-build) $(host) $(port) $(owner-request)
 	> $@
 
 $(nockma): $(anoma-build) $(all-juvix)
-	juvix clean
 	$(juvix-cmd) compile anoma $(juvix-src) -o $(nockma)
 
 $(proved): $(config) $(nockma) $(random-32bytes) $(get-give-resource-proved) $(get-latest-root) $(logic-proved) $(owner-signing-key) $(owner-public-key) $(give-originator-symbol) $(give-originator-public-key) $(give-quantity) $(want-originator-symbol) $(want-originator-public-key) $(want-quantity)

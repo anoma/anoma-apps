@@ -224,7 +224,6 @@ $(has-transaction-after-height): $(anoma-build) $(host) $(port)
 	> $@
 
 $(logic-nockma): $(anoma-build) $(all-juvix)
-	juvix clean
 	$(juvix-cmd) compile anoma $(logic-juvix) -o $(logic-nockma)
 
 $(logic-proved): $(logic-nockma) $(config)
@@ -234,7 +233,6 @@ $(create-nockma): $(anoma-build) $(all-juvix)
 	$(juvix-cmd) compile anoma $(create-juvix) -o $(create-nockma)
 
 $(transfer-nockma): $(anoma-build) $(all-juvix)
-	juvix clean
 	$(juvix-cmd) compile anoma $(transfer-juvix) -o $(transfer-nockma)
 
 $(owner-public-key-base64): $(owner-public-key)
