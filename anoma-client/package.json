@@ -13,6 +13,7 @@
     "protoc-gen-js": "^3.21.4"
   },
   "dependencies": {
-    "jsbn": "^1.1.0"
+    "jsbn": "^1.1.0",
+    "typescript": "^5.8.2"
   }
 }
