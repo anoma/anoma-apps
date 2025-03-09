@@ -1,0 +1,25 @@
+module AppIdentity;
+
+import Stdlib.Prelude open;
+import Applib open;
+
+--- The label for HelloWorld resources
+label : Nat := builtinAnomaEncode "HelloWorld";
+
+--- Compute the kind of the HelloWorld ;Resource;
+main (logic : Logic) : Kind :=
+  let
+    -- Only the logic and label are used in the kind computation, we can use
+    -- default values for other fields.
+    dummyResource : Resource :=
+      Resource.mk@{
+        label;
+        logic;
+        value := 0;
+        quantity := 0;
+        nonce := 0;
+        ephemeral := true;
+        randSeed := 0;
+        nullifierKeyCommitment := 0;
+      };
+  in kind dummyResource;

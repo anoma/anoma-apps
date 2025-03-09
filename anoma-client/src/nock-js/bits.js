@@ -120,9 +120,9 @@ function atomToWords(atom) {
   return bytesToWords(atomToBytes(atom));
 }
 
-function atomToWords(atom) {
-  return bytesToWords(atomToBytes(atom));
-}
+// function atomToWords(atom) {
+//   return bytesToWords(atomToBytes(atom));
+// }
 
 function wordsToAtom(words) {
   return bytesToAtom(wordsToBytes(words));
