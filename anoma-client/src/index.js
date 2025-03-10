@@ -1,13 +1,13 @@
 import { BlockServicePromiseClient, IndexerServicePromiseClient, MempoolServicePromiseClient, NockServicePromiseClient } from './grpc-client/anoma_grpc_web_pb';
 
+import * as Filtered from './grpc-client/indexer/blocks/filter_pb.js';
 import * as UnspentResources from './grpc-client/indexer/unspent_resources_pb.js';
 import * as AddTransaction from './grpc-client/mempool/add_transaction_pb.js';
-import * as Filtered from './grpc-client/indexer/blocks/filter_pb.js'
-import * as Prove from './grpc-client/nock/prove_pb.js';
 import { Input } from './grpc-client/nock/input_pb.js';
-import serial from './nock-js/serial.js';
-import noun from './nock-js/noun.js';
+import * as Prove from './grpc-client/nock/prove_pb.js';
 import bits from './nock-js/bits.js';
+import noun from './nock-js/noun.js';
+import serial from './nock-js/serial.js';
 
 export async function fetchBinary(url) {
   const response = await fetch(url);
@@ -19,13 +19,16 @@ export async function fetchBinary(url) {
 }
 
 export function serialize(x) {
+  console.log("x: ", x)
   return new Uint8Array(serial.jam(toNoun(x)).bytes());
 }
 
 function toNoun(x) {
   if (x instanceof Uint8Array) {
+    console.log("hello1")
     return bits.bytesToAtom(x);
   } else {
+    console.log("hello2")
     return noun.dwim(x);
   }
 }
