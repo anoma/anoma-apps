@@ -292,7 +292,8 @@ function can(a, b) {
     }                                                                                                                                         
     if ( 0 === tot ) {                                                                                                                       
       return zero;                                                                                                                               
-    }                                                                                                                                         
+    } 
+    var sal                                                                                                                                        
     sal = slaq(ai, tot);
 
     // chop the list atoms in                                                                                                                  

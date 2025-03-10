@@ -316,14 +316,21 @@ function i(num) {
 }
 
 function m(str) {
-  var i, octs = new Array(str.length);
+  var octs = new Array(str.length);
+  console.log("str: ", str)
+  console.log("octs: ", octs)
+  console.log("str length: ", str.length)
+  console.log("j = octs.length - 1", octs.length - 1)
+  var i, j
   for ( i = 0, j = octs.length - 1; i < octs.length; ++i, --j ) {
+    console.log('j: ', j)
     octs[j] = (str.charCodeAt(i) & 0xff).toString(16);
   }
   return new Atom(new BigInteger(octs.join(''), 16))
 }
 
 function dwim(a) {
+  console.log("a: ", a)
   var n = (arguments.length === 1 ? a : Array.apply(null, arguments));
 	if ( n instanceof Noun ) {
 		return n;
