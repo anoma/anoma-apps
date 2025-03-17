@@ -34,7 +34,7 @@ mkHelloWorldCreatedResource
     nonce := Nonce.fromNat nonce;
     ephemeral;
     randSeed := 0;
-    -- TODO: What should we put here?
+    -- TODO: can this be arbitrary?
     nullifierKeyCommitment := NullifierKeyCommitment.mk (ByteArray.zero 1);
   };
 
@@ -48,13 +48,13 @@ helloWorldTransaction
       ComplianceInputs.mk@{
         consumedResource := mkHelloWorldConsumedResource nonce message;
         createdResource := mkHelloWorldCreatedResource nonce message;
-        -- TODO: I don't know what to use for the following fields. I'm just
-        -- using the values from the Elixir codebase examples.
         inputNullifierKey :=
           NullifierKey.fromByteArray (ByteArray.mk [Byte.fromNat 1]);
+        -- merklePath is arbitrary (unused) for ephemeral resources
         merklePath := MerklePath.mk (replicate 32 (0, false));
+        -- rcv can be chosen randomly
         rcv := 3;
-        ephRoot := 0x7981c0051e6133fdab9d5f578d2d9c656b263ce761dff56861351cba08c8279;
+        ephRoot := Cairo.defaultCairoRoot;
       };
     witnessJson := Json.object [];
   in createFromComplianceInputs [complianceInputs] [logic] [witnessJson] [logic] [witnessJson];
