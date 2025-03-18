@@ -9,9 +9,7 @@ open Shielded;
 label : Label := Label.mk (builtinAnomaEncode "HelloWorld");
 
 mkHelloWorldConsumedResource
-  (nonce : Nat)
-  (message : String)
-  : ConsumedResource :=
+  (nonce : Nat) (message : String) : ConsumedResource :=
   ConsumedResource.mk@{
     label;
     value := AnomaAtom.mk (builtinAnomaEncode message);
@@ -22,9 +20,7 @@ mkHelloWorldConsumedResource
   };
 
 mkHelloWorldCreatedResource
-  (nonce : Nat)
-  (message : String)
-  : CreatedResource :=
+  (nonce : Nat) (message : String) : CreatedResource :=
   CreatedResource.mk@{
     label;
     value := AnomaAtom.mk (builtinAnomaEncode message);
@@ -48,14 +44,20 @@ helloWorldTransaction
         createdResource := mkHelloWorldCreatedResource nonce message;
         inputNullifierKey :=
           NullifierKey.fromByteArray (ByteArray.mk [Byte.fromNat 1]);
-        -- merklePath is arbitrary (unused) for ephemeral resources
+        -- merklePath is arbitrary (unused) for ephemeral consumed resources
         merklePath := MerklePath.mk (replicate 32 (0, false));
         -- rcv can be chosen randomly
         rcv := 3;
+        -- ephRoot can be the default Cairo root for ephemeral consumed
+        -- resources
         ephRoot := Cairo.defaultCairoRoot;
       };
-    witnessJson := Json.object [];
-  in createFromComplianceInputs [complianceInputs] [logic] [witnessJson] [logic] [witnessJson];
+  in createFromComplianceInputs
+    [complianceInputs]
+    [logic]
+    [mkDefaultWitness true]
+    [logic]
+    [mkDefaultWitness false];
 
 --- The function that is run to produce a Transaction to send to Anoma.
 main (logic : ByteArray) (message : String) : TransactionRequest :=
