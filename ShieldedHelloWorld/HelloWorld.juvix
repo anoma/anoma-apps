@@ -11,30 +11,28 @@ label : Label := Label.mk (builtinAnomaEncode "HelloWorld");
 mkHelloWorldConsumedResource
   (nonce : Nat)
   (message : String)
-  {ephemeral : Bool := true}
   : ConsumedResource :=
   ConsumedResource.mk@{
     label;
     value := AnomaAtom.mk (builtinAnomaEncode message);
     quantity := 1;
     nonce := Nonce.fromNat nonce;
-    ephemeral;
+    ephemeral := true;
     randSeed := 0;
   };
 
 mkHelloWorldCreatedResource
   (nonce : Nat)
   (message : String)
-  {ephemeral : Bool := false}
   : CreatedResource :=
   CreatedResource.mk@{
     label;
     value := AnomaAtom.mk (builtinAnomaEncode message);
     quantity := 1;
     nonce := Nonce.fromNat nonce;
-    ephemeral;
+    ephemeral := false;
     randSeed := 0;
-    -- TODO: can this be arbitrary?
+    -- can be arbitrary for intent resources
     nullifierKeyCommitment := NullifierKeyCommitment.mk (ByteArray.zero 1);
   };
 
