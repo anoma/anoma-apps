@@ -5,4 +5,4 @@ import Applib open;
 
 --- Extract the message from a HelloWorld ;Resource;
 main (resource : Resource) : String :=
-  resource |> Resource.label |> builtinAnomaDecode;
+  resource |> Resource.label |> Label.toNat |> builtinAnomaDecode;

@@ -32,13 +32,13 @@ port = $(anoma-build-dir)/port
 host = $(anoma-build-dir)/host
 
 $(anoma-build):
-	@mkdir -p $(anoma-build-dir)
-	@touch $(anoma-build)
+	mkdir -p $(anoma-build-dir)
+	touch $(anoma-build)
 
 .PHONY: clean
 clean:
-	@juvix clean
-	@rm -rf $(anoma-build-dir)
+	juvix clean
+	rm -rf $(anoma-build-dir)
 
 .PHONY: anoma-start
 anoma-start:
@@ -67,12 +67,12 @@ $(config): $(anoma-build)
 ifdef ANOMA_DEBUG
 	cp $(ANOMA_PATH)/config.yaml $(config)
 else
-	@$(juvix-cmd) dev anoma print-config > $(config)
+	$(juvix-cmd) dev anoma print-config > $(config)
 endif
 
 .PHONY: add-transaction
 add-transaction: $(proved) $(config)
-	@$(juvix-cmd) dev anoma -c $(config) add-transaction $(proved)
+	$(juvix-cmd) dev anoma -c $(config) add-transaction $(proved)
 
 .PHONY: get-last-message
 get-last-message: $(last-message-txt)
@@ -80,25 +80,25 @@ get-last-message: $(last-message-txt)
 
 .PHONY: $(last-message-txt)
 $(last-message-txt): $(get-message-nockma) $(config) $(unspent-resources)
-	@tail -n 1 $(unspent-resources) > $(temp-file)
-	@$(juvix-cmd) dev anoma -c $(config) prove $(get-message-nockma) -o $(get-message-proved) --arg 'base64:$(temp-file)'
-	@$(juvix-cmd) dev nockma encode --cue --from bytes --to bytes < anoma-build/GetMessage.proved.nockma > $(last-message-txt)
+	tail -n 1 $(unspent-resources) > $(temp-file)
+	$(juvix-cmd) dev anoma -c $(config) prove $(get-message-nockma) -o $(get-message-proved) --arg 'base64:$(temp-file)'
+	$(juvix-cmd) dev nockma encode --cue --from bytes --to bytes < anoma-build/GetMessage.proved.nockma > $(last-message-txt)
 
 $(nockma): $(juvix) $(anoma-build)
-	@$(juvix-cmd) compile anoma $(juvix) -o $(nockma)
+	$(juvix-cmd) compile anoma $(juvix) -o $(nockma)
 
 $(proved): $(nockma) $(config)
-	@$(juvix-cmd) dev anoma -c $(config) prove $(nockma) -o $(proved)
+	$(juvix-cmd) dev anoma -c $(config) prove $(nockma) -o $(proved)
 
 $(get-message-nockma): $(anoma-build) $(get-message-juvix)
-	@$(juvix-cmd) compile anoma $(get-message-juvix) -o $(get-message-nockma)
+	$(juvix-cmd) compile anoma $(get-message-juvix) -o $(get-message-nockma)
 
 .PHONY: $(unspent-resources)
 $(unspent-resources): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources | jq -r '.unspentResources[-1] // error("no messages exist")' > $(unspent-resources)
+	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources | jq -r '.unspentResources[-1] // error("no messages exist")' > $(unspent-resources)
 
 $(host): $(config)
-	@yq -r '.url' $(config) | tr -d '\n' > $(host)
+	yq -r '.url' $(config) | tr -d '\n' > $(host)
 
 $(port): $(config)
-	@yq -r '.port' $(config) | tr -d '\n' > $(port)
+	yq -r '.port' $(config) | tr -d '\n' > $(port)
