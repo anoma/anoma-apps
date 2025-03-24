@@ -16,7 +16,9 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
   in case tag of
        | Created commitment := true
        | Consumed nullifier :=
-         case findResourceByNullifier (Nullifier.toNat nullifier) privateInputs of
+         case
+           findResourceByNullifier (Nullifier.toNat nullifier) privateInputs
+         of
            | nothing :=
              trace "findResourceByNullifier returned nothing" >-> false
            | just self :=
@@ -84,10 +86,13 @@ isAuthorizedBy
         message := Kudos.PublicDataValue.resourceRelationship value;
       in trace "isAuthorizedBy"
         >-> anomaVerifyDetached
-          (Signature.unSignature (trace "anomaVerifyDetached signature" >-> trace signature >-> signature))
-          message
-          (ExternalIdentity.toByteArray signer)
-        && (trace "isAuthorizedBy ok" >-> true)
+            (Signature.unSignature
+              (trace "anomaVerifyDetached signature"
+                >-> trace signature
+                >-> signature))
+            message
+            (ExternalIdentity.toByteArray signer)
+          && (trace "isAuthorizedBy ok" >-> true)
           && checkResourceRelationship@{
                message;
                origin;
@@ -143,6 +148,49 @@ initialize
   {{Tx M}}
   (logic : Logic)
   (kudosSymbol : String)
+  (quantity : Nat)
+  : M Transaction :=
+  do {
+    ctx <- getTxContext;
+    let
+      originator : ExternalIdentity := Identity.external (TxContext.caller ctx);
+    in
+    initialize' logic kudosSymbol originator quantity;
+  };
+
+createKudos
+  {M : Type -> Type}
+  {{Monad M}}
+  {{Tx M}}
+  (logic : Logic)
+  (kudosSymbol : String)
+  (originator : ExternalIdentity)
+  (quantity : Nat)
+  : M Resource :=
+  do {
+    ctx <- getTxContext;
+    nonce <- genRandomNonce;
+    let
+      owner := Identity.external (TxContext.caller ctx);
+    in
+    pure
+      mkKudos@{
+        kudosSymbol;
+        nonce;
+        quantity;
+        originator;
+        owner;
+        logic;
+      };
+  };
+
+initialize'
+  {M : Type -> Type}
+  {{Monad M}}
+  {{Tx M}}
+  (logic : Logic)
+  (kudosSymbol : String)
+  (kudosOriginator : ExternalIdentity)
   (quantity : Nat)
   : M Transaction :=
   do {

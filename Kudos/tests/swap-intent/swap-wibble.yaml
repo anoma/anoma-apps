@@ -1,0 +1,7 @@
+owner: wibble
+want:
+  symbol: bag
+  quantity: 1
+give:
+  symbol: apple
+  quantity: 1

@@ -1,0 +1,14 @@
+include ./makefile
+
+swap-intent-logic = SwapIntentLogic
+
+swap-intent-logic-juvix = $(base-path)/$(swap-intent-logic).juvix
+swap-intent-logic-nockma = $(anoma-build-dir)/$(swap-intent-logic).nockma
+swap-intent-logic-proved = $(anoma-build-dir)/$(swap-intent-logic).proved.nockma
+
+$(swap-intent-logic-nockma): $(anoma-build) $(swap-intent-logic-juvix)
+	juvix compile anoma $(swap-intent-logic-juvix) -o $(swap-intent-logic-nockma)
+
+$(swap-intent-logic-proved): $(config) $(owned-resources) $(give-originator-symbol) $(give-quantity) $(swap-intent-logic-nockma)
+	juvix dev anoma -c $(config) prove $(swap-intent-logic-nockma) \
+	-o $@ \

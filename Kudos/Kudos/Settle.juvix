@@ -38,7 +38,7 @@ main
   (kudosLogic : Logic)
   (toSolveEncoded : List (Encoded Transaction))
   (solution : Solution)
-  : Transaction :=
+  : TransactionRequest :=
   let
     toSolve : List Transaction := map Encoded.decode toSolveEncoded;
     caller : Identity :=
@@ -73,7 +73,7 @@ main
         checkOwnerShip;
         pure (composeAll allTransactions);
       };
-  in Tx.run rngSeed (txContext caller root) helper;
+  in TransactionRequest.build rngSeed (txContext caller root) helper;
 
 txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
   TxContext.mk@{

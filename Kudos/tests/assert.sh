@@ -135,3 +135,11 @@ kudos_swap_add_intent () {
     printf "Kudos Swap\n" | bold
     make --makefile makefile-swap -C "$make_dir" add-intent swap-spec="$spec"
 }
+
+kudos_swap_intent_add_intent () {
+    #arguments: spec
+    local make_dir
+    make_dir=$(dirname "${BASH_SOURCE[0]}")/..
+    printf "Kudos Swap\n" | bold
+    make --makefile makefile-swap-intent -C "$make_dir" add-intent swap-spec="$spec"
+}

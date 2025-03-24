@@ -32,7 +32,6 @@ main
     helper {M : Type -> Type} {{Monad M}} {{Tx M}} : M Transaction :=
       do {
         nonceCreated <- genRandomNonce;
-        nonceConsumed <- genRandomNonce;
         let
           owner := ExternalIdentity.fromByteArray publicKeyPayload;
           createdResource : Resource :=

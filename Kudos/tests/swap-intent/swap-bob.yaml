@@ -1,0 +1,7 @@
+owner: bob
+want:
+  symbol: apple
+  quantity: 1
+give:
+  symbol: bag
+  quantity: 1

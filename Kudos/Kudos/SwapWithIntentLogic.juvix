@@ -1,0 +1,13 @@
+module Kudos.SwapWithIntentLogic;
+
+import Stdlib.Prelude open;
+import Applib open;
+import Kudos.Create open;
+import Kudos.SwapWithIntent open using {swapIntentLogic};
+
+type LogicWrapper :=
+  mk@{
+    logic : Logic;
+  };
+
+main : LogicWrapper := LogicWrapper.mk swapIntentLogic;
