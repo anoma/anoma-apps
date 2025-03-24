@@ -2,43 +2,10 @@
 module Extra;
 
 import Stdlib.Prelude open;
-
 import Anoma open;
 import Applib.Helpers open;
 import Applib.Trait.Tx open;
 import BaseLayer.ResourceMachine as BaseLayer;
-
---- Create a ;BaseLayer.Action; where otherPublic field of ;BaseLayer.Action;s are 0
----
---- This function can be used for applications where otherPublic is unused.
-mkActionNoPublicData (consumed created : List Resource) : BaseLayer.Action :=
-  let
-    nullifiers := map BaseLayer.nullifier consumed;
-    commitments := map BaseLayer.commitment created;
-    allResources := zip consumed nullifiers ++ zip created commitments;
-    publicInputs (tag : Nat) : BaseLayer.Instance :=
-      BaseLayer.Instance.mk@{
-        commitments;
-        nullifiers;
-        tag;
-        otherPublic := BaseLayer.AnomaAtom.fromNat 0;
-      };
-    privateInputs :=
-      BaseLayer.Witness.mk@{
-        created;
-        consumed;
-        otherPrivate := BaseLayer.AnomaAtom.fromNat 0;
-      };
-    logicProofs : List BaseLayer.Proof :=
-      map (resource, tag in allResources) {
-        BaseLayer.Proof.logic resource (publicInputs tag, privateInputs)
-      };
-  in BaseLayer.Action.mk@{
-       commitments;
-       nullifiers;
-       proofs := logicProofs;
-       appData := BaseLayer.AnomaSet.fromList [];
-     };
 
 --- Create a ;BaseLayer.Transaction; with ;BaseLayer.Action;s that do not use
 --- the proof ;BaseLayer.Instance; publicData field
@@ -53,6 +20,6 @@ mkTransactionNoPublicData
     pure
       mkTransactionHelper@{
         roots := [TxContext.currentRoot si];
-        actions := [mkActionNoPublicData consumed created];
+        actions := [mkActionHelper consumed created AppData.empty];
       };
   };

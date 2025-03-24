@@ -4,7 +4,6 @@ import Stdlib.Prelude open;
 import Applib open;
 import Counter.Unique.Resource open;
 import Stdlib.Debug open;
-import Extra;
 
 increment
   {M : Type -> Type}

@@ -3,22 +3,19 @@ module Counter.Unique.Consumable;
 import Stdlib.Prelude open;
 import Applib open;
 
-alwaysValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
-  true;
-
 -- randSeed is expected to be a Nock atom encoding a 32 byte seed.
 -- TODO use monadic interface to generate the random nonce
-main (randSeed : Nat) : Resource :=
+main (randSeed : AnomaAtom) : Resource :=
   let
     nonce : Nonce :=
       generateNonce (RandSeed.internalMk (fromAnomaContents 32 randSeed));
   in Resource.mk@{
-       label := 0;
-       logic := alwaysValidLogic;
+       label := Label.fromNat 0;
+       logic := Encoded.encode Logic.alwaysTrue;
        ephemeral := false;
        quantity := 1;
        value := 0;
        nullifierKeyCommitment := toAnomaContents Universal.pub;
-       nonce := Nonce.toNat nonce;
-       randSeed := 0;
+       nonce := Nonce.toRaw nonce;
+       unusedRandSeed := 0;
      };

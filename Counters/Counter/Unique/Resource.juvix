@@ -6,10 +6,10 @@ import Applib open;
 --- The counter label being a wrapper around a nullifier.
 type CounterLabel :=
   mk@{
-    unNullifier : Nat;
+    nullifier : Nullifier;
   }
 with
-  mkUnique (consumable : Resource) : CounterLabel := mk (nullifier consumable);
+  mkUnique (consumable : Resource) : CounterLabel := mk (Resource.Transparent.nullifier consumable);
 end;
 
 deriving instance
@@ -23,12 +23,12 @@ mkCounter
   (ephemeral : Bool)
   : Resource :=
   Resource.mk@{
-    logic;
-    label := builtinAnomaEncode uniqueLabel;
-    nonce := Nonce.toNat nonce;
+    logic := Encoded.encode logic;
+    label := Label.mk (builtinAnomaEncode uniqueLabel);
+    nonce := Nonce.toRaw nonce;
     ephemeral;
-    randSeed := 0;
-    value := count;
+    unusedRandSeed := 0;
+    value := AnomaAtom.fromNat count;
     quantity := 1;
     nullifierKeyCommitment := toAnomaContents Universal.pub;
   };
@@ -39,7 +39,7 @@ counterKind (consumable : Resource) (logic : Logic) : Kind :=
       mkCounter@{
         logic;
         uniqueLabel := CounterLabel.mkUnique consumable;
-        nonce := Nonce.fromNat 0;
+        nonce := Nonce.fromAnomaAtom 0;
         count := 0;
         ephemeral := true;
       };
@@ -50,8 +50,8 @@ hasCounterKind (resource : Resource) (logic : Logic) : Bool :=
     dummyCounter :=
       mkCounter@{
         logic;
-        uniqueLabel := Resource.label resource |> builtinAnomaDecode;
-        nonce := Nonce.fromNat 0;
+        uniqueLabel := Resource.label resource |> Label.toNat |> builtinAnomaDecode;
+        nonce := Nonce.fromAnomaAtom 0;
         count := 0;
         ephemeral := true;
       };

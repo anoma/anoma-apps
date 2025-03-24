@@ -3,7 +3,6 @@ module Counter.Unique.Initialize;
 import Stdlib.Prelude open;
 import Applib open;
 import Counter.Unique.Resource open;
-import Extra;
 
 initialize
   {M : Type -> Type}

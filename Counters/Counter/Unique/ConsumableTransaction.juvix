@@ -2,26 +2,22 @@ module Counter.Unique.ConsumableTransaction;
 
 import Stdlib.Prelude open;
 import Applib open;
-import Extra;
 
 --- Returns a ;Transaction; that creates the passed ;Resource;
-createConsumableTransaction (resource : Resource) : Transaction :=
+createConsumableTransaction
+  {M : Type -> Type}
+  {{Tx M}}
+  {{Monad M}}
+  (resource : Resource)
+  : M Transaction :=
   let
     delta := zeroDelta;
-    deltaProof := proveDelta delta;
+    -- deltaProof := proveDelta delta;
     consumedResource := resource@Resource{ephemeral := true};
     createdResource := resource;
-  in Transaction.mk@{
-       roots := [0];
-       actions :=
-         [
-           Extra.mkActionNoPublicData@{
-             consumed := [consumedResource];
-             created := [createdResource];
-           };
-         ];
-       delta := zeroDelta;
-       deltaProof := deltaProof;
+  in mkTransactionNoPublicData@{
+       consumed := [consumedResource];
+       created := [createdResource];
      };
 
 main (resource : Resource) : TransactionRequest :=

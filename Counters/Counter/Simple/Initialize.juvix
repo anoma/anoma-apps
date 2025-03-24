@@ -3,7 +3,6 @@ module Counter.Simple.Initialize;
 import Stdlib.Prelude open;
 import Applib open;
 import Counter.Simple.Resource open;
-import Extra;
 
 --- Initializes a counter that can be incremented by everyone.
 --- @param txContext The transaction function standard inputs.

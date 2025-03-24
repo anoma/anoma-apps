@@ -10,38 +10,44 @@ import Applib open;
 mkCounter
   (logic : Logic)
   (nonce : Nonce)
-  {count : Nat := 0}
+  {count : AnomaAtom := 0}
   {ephemeral : Bool := false}
   : Resource :=
   Resource.mk@{
-    logic;
-    label := "SimpleCounter" |> builtinAnomaEncode;
+    logic := Encoded.encode logic;
+    label := Label.fromNat ("SimpleCounter" |> builtinAnomaEncode);
     value := count;
     quantity := 1;
     ephemeral;
     nullifierKeyCommitment := toAnomaContents Universal.pub;
-    nonce := Nonce.toNat nonce;
-    randSeed := 0;
+    nonce := Nonce.toRaw nonce;
+    unusedRandSeed := 0;
   };
 
-valid-counter? (pub : Instance) (priv : Witness) : Bool :=
-  case findResource (Instance.tag pub) priv of
-    | ConsumedRes self :=
+valid-counter? (args : Logic.Arg) : Bool :=
+  let
+    self := Logic.Arg.self args;
+    isConsumed := Logic.Arg.isConsumed args;
+  in if
+    | isConsumed :=
       if
         | Resource.ephemeral self := Resource.quantity self == 1
-        | else := increment-correct? self priv
-    | CreatedRes self := not (Resource.ephemeral self)
-    | NonExisting := false;
+        | else := increment-correct? args
+    | else := not (Resource.ephemeral self);
 
-increment-correct? (self : Resource) (private : Witness) : Bool :=
-  case Witness.consumed private, Witness.created private of
-    | [consumed], [created] :=
-      same-kind? [self; consumed; created] && incremented? consumed created
-    | _, _ := false;
+increment-correct? (args : Logic.Arg) : Bool :=
+  let
+    self := Logic.Arg.self args;
+  in case Logic.Arg.consumed args, Logic.Arg.created args of
+       | [consumed], [created] :=
+         same-kind? [self; consumed; created] && incremented? consumed created
+       | _, _ := false;
 
 same-kind? : List Resource -> Bool
   | nil := true
   | (x :: xs) := all \{y := kind y == kind x} xs;
 
 incremented? (consumed created : Resource) : Bool :=
-  Resource.value consumed + 1 == Resource.value created;
+  let
+    getCount : Resource -> Nat := Resource.value >> AnomaAtom.toNat;
+  in getCount consumed + 1 == getCount created;
