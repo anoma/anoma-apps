@@ -74,7 +74,7 @@ anoma-start:
 	rm -f $(config)
 ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
-		mix run --no-halt $(root)/../../start-config.exs
+		mix run --no-halt $(root)/../../../start-config.exs
 else
 	$(juvix-cmd) dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
@@ -116,7 +116,7 @@ $(unspent-resources): $(anoma-build) $(host) $(port)
 
 .PHONY: $(get-latest-root)
 $(get-latest-root): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
+	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
 	| jq -r '.root' \
 	> $(get-latest-root)
 

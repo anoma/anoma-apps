@@ -127,7 +127,7 @@ anoma-start:
 	rm -f $(config)
 ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
-		mix run --no-halt $(root)/../../start-config.exs
+		mix run --no-halt $(root)/../../../start-config.exs
 else
 	$(juvix-cmd) dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
@@ -183,8 +183,9 @@ $(consumable-proved): $(config) $(random-32bytes) $(consumable-nockma)
 $(consumable-transaction-nockma): $(anoma-build) $(all-juvix)
 	$(juvix-cmd) compile anoma $(consumable-transaction-juvix) -o $(consumable-transaction-nockma)
 
-$(consumable-transaction-proved): $(config) $(consumable-transaction-nockma) $(consumable-proved)
+$(consumable-transaction-proved): $(get-latest-root) $(config) $(consumable-transaction-nockma) $(consumable-proved)
 	$(juvix-cmd) dev anoma -c $(config) prove $(consumable-transaction-nockma) -o $(consumable-transaction-proved) \
+	--arg "base64-unjammed:$(get-latest-root)" \
 	--arg "bytes:$(consumable-proved)"
 
 $(logic-nockma): $(anoma-build) $(all-juvix)
@@ -193,9 +194,13 @@ $(logic-nockma): $(anoma-build) $(all-juvix)
 $(logic-proved): $(logic-nockma) $(config)
 	$(juvix-cmd) dev anoma -c $(config) prove $(logic-nockma) -o $(logic-proved)
 
+.PHONY: get-latest-root
+get-latest-root: $(get-latest-root)
+	@cat $(get-latest-root)
+
 .PHONY: $(get-latest-root) $(host) $(port)
 $(get-latest-root): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
+	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
 	| jq -r '.root' \
 	> $(get-latest-root)
 

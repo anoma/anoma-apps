@@ -10,13 +10,13 @@ import Applib open;
 mkCounter
   (logic : Logic)
   (nonce : Nonce)
-  {count : AnomaAtom := 0}
+  {count : Nat := 0}
   {ephemeral : Bool := false}
   : Resource :=
   Resource.mk@{
     logic := Encoded.encode logic;
     label := Label.fromNat ("SimpleCounter" |> builtinAnomaEncode);
-    value := count;
+    value := AnomaAtom.fromNat count;
     quantity := 1;
     ephemeral;
     nullifierKeyCommitment := toAnomaContents Universal.pub;
@@ -47,7 +47,7 @@ same-kind? : List Resource -> Bool
   | nil := true
   | (x :: xs) := all \{y := kind y == kind x} xs;
 
+getCount : Resource -> Nat := Resource.value >> AnomaAtom.toNat;
+
 incremented? (consumed created : Resource) : Bool :=
-  let
-    getCount : Resource -> Nat := Resource.value >> AnomaAtom.toNat;
-  in getCount consumed + 1 == getCount created;
+  getCount consumed + 1 == getCount created;

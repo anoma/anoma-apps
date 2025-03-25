@@ -12,7 +12,6 @@ createConsumableTransaction
   : M Transaction :=
   let
     delta := zeroDelta;
-    -- deltaProof := proveDelta delta;
     consumedResource := resource@Resource{ephemeral := true};
     createdResource := resource;
   in mkTransactionNoPublicData@{
@@ -20,5 +19,15 @@ createConsumableTransaction
        created := [createdResource];
      };
 
-main (resource : Resource) : TransactionRequest :=
-  resource |> createConsumableTransaction |> TransactionRequest.fromTransaction;
+main
+  (currentRoot : CommitmentRoot) (resource : Resource) : TransactionRequest :=
+  let
+    ctx : TxContext :=
+      TxContext.mk@{
+        caller := Universal.identity;
+        currentRoot;
+      };
+
+    tx : Transaction := Tx.run 0 ctx (createConsumableTransaction resource);
+
+  in TransactionRequest.fromTransaction tx;

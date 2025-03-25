@@ -34,23 +34,23 @@ initialize
         };
       ephConsumable := consumable@Resource{ephemeral := true};
     in
-    Extra.mkTransactionNoPublicData@{
+    mkTransactionNoPublicData@{
       consumed := [consumable; ephCounter];
       created := [ephConsumable; newCounter];
     };
   };
 
-txContext (latestRoot : Nat) : TxContext :=
+txContext (currentRoot : CommitmentRoot) : TxContext :=
   TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot;
   };
 
 main
   (randSeed : Nat)
   (consumable : Resource)
   (logic : Logic)
-  (latestRoot : Nat)
+  (latestRoot : CommitmentRoot)
   : TransactionRequest :=
   TransactionRequest.build
     randSeed

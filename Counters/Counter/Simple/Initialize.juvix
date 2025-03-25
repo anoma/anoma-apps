@@ -20,7 +20,7 @@ initialize
           ephemeral := false;
         };
     in
-    Extra.mkTransactionNoPublicData@{
+    mkTransactionNoPublicData@{
       consumed :=
         [
           mkCounter@{
@@ -36,7 +36,7 @@ initialize
 ctx : TxContext :=
   TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.fromNat 0;
+    currentRoot := CommitmentRoot.fromNat 0;
   };
 
 main (logic : Logic) : TransactionRequest :=

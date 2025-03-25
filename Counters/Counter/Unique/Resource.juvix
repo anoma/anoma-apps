@@ -45,6 +45,8 @@ counterKind (consumable : Resource) (logic : Logic) : Kind :=
       };
   in kind dummyCounter;
 
+getCount : Resource -> Nat := Resource.value >> AnomaAtom.toNat;
+
 hasCounterKind (resource : Resource) (logic : Logic) : Bool :=
   let
     dummyCounter :=
