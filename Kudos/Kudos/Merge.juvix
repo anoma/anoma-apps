@@ -43,7 +43,7 @@ kudosMerge
           acc + Kudos.Resource.quantity r
         };
 
-      getIdentity : M Kudos.Label :=
+      getIdentity : M Kudos.KLabel :=
         case toMerge of
           | [] := txThrow "must merge at least one resource"
           | h :: _ := pure (Kudos.Resource.identity h);
@@ -75,14 +75,14 @@ kudosMerge
       };
   };
 
-txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
+txContext (caller : Identity) (currentRoot : CommitmentRoot) : TxContext :=
   TxContext.mk@{
     caller;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot;
   };
 
 main
-  (latestRoot : Nat)
+  (latestRoot : CommitmentRoot)
   (randSeed : Nat)
   (ownerPrivateKeyPayload : ByteArray)
   (ownerPublicKeyPayload : ByteArray)

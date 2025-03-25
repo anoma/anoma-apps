@@ -10,8 +10,8 @@ import Anoma.Identity.External open;
 import Anoma.Identity.Internal open;
 import Kudos.Extra open;
 
-computeKudosKind (logic : Logic) (label : Kudos.Label) : Kind :=
-  computeKind logic (builtinAnomaEncode label);
+computeKudosKind (logic : Logic) (label : Kudos.KLabel) : Kind :=
+  computeKind logic (Label.mk (builtinAnomaEncode label));
 
 mkResourceRelationshipAppDataEntry
   (signer : InternalIdentity)
@@ -33,7 +33,8 @@ mkResourceRelationshipAppDataEntry
       };
   in Kudos.PublicDataValue.mk@{
        resourceRelationship;
-       signature := trace "PublicDataValue.mk signature" >-> trace signature >-> signature;
+       signature :=
+         trace "PublicDataValue.mk signature" >-> trace signature >-> signature;
      };
 
 actionWithAuthorizationAppData
@@ -46,7 +47,7 @@ actionWithAuthorizationAppData
   do {
     caller <- TxContext.caller <$> getTxContext;
     let
-      nullifiers := map nullifier consumed;
+      nullifiers := map Resource.Transparent.nullifier consumed;
       commitments := map commitment created;
 
       -- Put signed messages and signatures by the owner in the app data.
@@ -54,7 +55,7 @@ actionWithAuthorizationAppData
       -- where the signature verification is part of the resource logic
       -- requiring the commitments of created resources to be part of the
       -- action.
-      appDataMap : Map Nat Kudos.PublicData :=
+      appDataMap : Map RawTag Kudos.PublicData :=
         (map (n in nullifiers) {
               let
                 nestedMap : Kudos.PublicData :=
@@ -62,31 +63,29 @@ actionWithAuthorizationAppData
                     signatureLookupKey
                     mkResourceRelationshipAppDataEntry@{
                       signer := Identity.internal caller;
-                      origin := Consumed (Nullifier.mk n);
+                      origin := Consumed n;
                       mustBeConsumed := [];
-                      mustBeCreated := map Commitment.mk commitments;
+                      mustBeCreated := commitments;
                     };
-              in n, nestedMap
+              in Nullifier.toRawTag n, nestedMap
             }
             ++ map (c in commitments) {
               let
                 nestedMap : Kudos.PublicData := Map.empty;
-              in c, nestedMap
+              in Commitment.toRawTag c, nestedMap
             })
           |> Map.fromList;
-      map' : Map Nat AnomaAtom :=
+      map' : Map RawTag AnomaAtom :=
         map (builtinAnomaEncode >> AnomaAtom.fromNat) appDataMap;
     in
-    pure
-      mkActionHelper@{
-        consumed;
-        created;
-        appData := AppData.fromMap map';
-      };
+    mkActionHelper@{
+      consumed;
+      created;
+      appData := AppData.fromMap map';
+    };
   };
 
 module Kudos;
-
   PublicData : Type := Map AnomaAtom PublicDataValue;
 
   type PublicDataValue :=
@@ -96,9 +95,12 @@ module Kudos;
     };
 
   module Instance;
-    otherPublic (instance : Instance) : Kudos.PublicData :=
-      builtinAnomaDecode
-        (AnomaAtom.toNat (Applib.Instance.otherPublic instance));
+    -- otherPublic (instance : Instance) : Kudos.PublicData :=
+    --   builtinAnomaDecode
+    --     (AnomaAtom.toNat (Applib.Instance.otherPublic instance));
+  otherPublic (args : Logic.Arg) : Kudos.PublicData :=
+  builtinAnomaDecode
+  (AnomaAtom.toNat (Applib.Instance.otherPublic instance));
   end;
 
   module Resource;
@@ -107,44 +109,42 @@ module Kudos;
     isKudo (kudosLogic : Logic) (resource : Resource) : Bool :=
       computeKind kudosLogic (Resource.label resource) == kind resource;
 
-    identity (r : Resource) : Kudos.Label :=
-      builtinAnomaDecode (Applib.Resource.label r);
+    identity (r : Resource) : Kudos.KLabel :=
+      builtinAnomaDecode (Label.toNat (Applib.Resource.label r));
 
     owner (r : Resource) : ExternalIdentity :=
       ExternalIdentity.fromByteArray
         (fromAnomaContents 32 (Applib.Resource.nullifierKeyCommitment r));
 
     setOwner (newOwner : ExternalIdentity) (r : Resource) : Resource :=
-      r@Resource{
-        nullifierKeyCommitment :=
-          toAnomaContents (ExternalIdentity.toByteArray newOwner);
-      };
+      r@Resource{nullifierKeyCommitment := toAnomaContents
+        (ExternalIdentity.toByteArray newOwner)};
 
     mk
       (logic : Logic)
       (ephemeral : Bool)
       (quantity : Nat)
       (owner : ExternalIdentity)
-      (label : Label)
+      (label : KLabel)
       (nonce : Nonce)
       : Resource :=
       Applib.Resource.mk@{
-        logic;
+        logic := Encoded.encode logic;
         ephemeral;
         quantity;
-        nonce := Nonce.toNat nonce;
-        randSeed := 0;
+        nonce := Nonce.toRaw nonce;
+        unusedRandSeed := 0;
         value := 0;
         nullifierKeyCommitment :=
           -- FIXME the owner should not be put here. We temporarily have it here
             -- because the indexer looks at this field at the moment.
             toAnomaContents
             (ExternalIdentity.toByteArray owner);
-        label := builtinAnomaEncode label
+        label := Label.mk (builtinAnomaEncode label);
       };
   end;
 
-  type Label :=
+  type KLabel :=
     mk@{
       originator : ExternalIdentity;
       --- E.g. '€' '🐂' '🙀'

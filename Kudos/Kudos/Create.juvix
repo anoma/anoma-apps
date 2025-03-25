@@ -10,26 +10,25 @@ import Anoma.Identity.Internal open;
 import Kudos.Extra open;
 import Kudos.Layer open;
 
-isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
+isValidLogic (args : Logic.Arg) : Bool :=
   let
-    tag := Tag.fromNat (Instance.tag publicInputs);
-  in case tag of
-       | Created commitment := true
-       | Consumed nullifier :=
-         case findResourceByNullifier (Nullifier.toNat nullifier) privateInputs of
-           | nothing :=
-             trace "findResourceByNullifier returned nothing" >-> false
-           | just self :=
+    -- tag := Tag.fromNat (Instance.tag publicInputs);
+    self := Logic.Arg.self args;
+    isConsumed := Logic.Arg.isConsumed;
+  in if
+       | not isConsumed := true
+       | else :=
              if
                | Resource.ephemeral self :=
                  let
                    identity := Kudos.Resource.identity self;
-                   originator := Kudos.Label.originator identity;
+                   originator := Kudos.KLabel.originator identity;
                    authorized :=
                      isAuthorizedBy@{
                        signer := originator;
-                       origin := tag;
-                       publicInputs;
+                       -- origin := tag;
+                       origin := todo;
+                       args;
                      };
                  in if
                    | not authorized :=
@@ -44,8 +43,9 @@ isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
                          (Resource.nullifierKeyCommitment self));
                  in isAuthorizedBy@{
                       signer := owner;
-                      origin := tag;
-                      publicInputs;
+                      -- origin := tag;
+                      origin := todo;
+                      args;
                     };
 
 mkKudos
@@ -59,7 +59,7 @@ mkKudos
   Kudos.Resource.mk@{
     logic;
     label :=
-      Kudos.Label.mk@{
+      Kudos.KLabel.mk@{
         originator;
         kudosSymbol;
       };
@@ -70,7 +70,7 @@ mkKudos
   };
 
 isAuthorizedBy
-  (signer : ExternalIdentity) (origin : Tag) (publicInputs : Instance) : Bool :=
+  (signer : ExternalIdentity) (origin : Tag) (args : Logic.Arg) : Bool :=
   case
     lookupPublicInputs@{
       key := signatureLookupKey;
@@ -93,10 +93,12 @@ isAuthorizedBy
                origin;
                nullifiers :=
                  Set.fromList
-                   (map Nullifier.mk (Instance.nullifiers publicInputs));
+                   -- (map Nullifier.mk (Instance.nullifiers publicInputs));
+                   (todo);
                commitments :=
                  Set.fromList
-                   (map Commitment.mk (Instance.commitments publicInputs));
+                   -- (map Commitment.mk (Instance.commitments publicInputs));
+                   (todo);
              };
 
 --- Checks that a ;ResourceRelationship; message has the expected values.
