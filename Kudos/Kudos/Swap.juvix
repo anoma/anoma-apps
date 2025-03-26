@@ -8,14 +8,14 @@ import Kudos.Layer open;
 import Kudos.Extra open;
 import Kudos.Create as Create;
 
-txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
+txContext (caller : Identity) (currentRoot : CommitmentRoot) : TxContext :=
   TxContext.mk@{
     caller;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot;
   };
 
 main
-  (giveRoot : Nat)
+  (giveRoot : CommitmentRoot)
   (rngSeed : Nat)
   (privateKeyPayload publicKeyPayload : ByteArray)
   (logic : Logic)
@@ -47,21 +47,15 @@ main
           created : List Resource := [createdResource];
           consumed : List Resource := [giveResource];
         in
-        a <- actionWithAuthorizationAppData@{
+        action <- actionWithAuthorizationAppData@{
                created;
                consumed;
              };
         root <- TxContext.currentRoot <$> getTxContext;
-        let
-          actions : List Action := [a];
-          delta : Delta := Action.listDelta actions;
-        in
         pure
           Transaction.mk@{
-            roots := [Root.unRoot root];
-            actions;
-            delta;
-            deltaProof : Nat := proveDelta delta;
+            roots := AnomaSet.fromList [root];
+            actions := AnomaSet.fromList [action];
           };
       };
 

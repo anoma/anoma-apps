@@ -93,7 +93,7 @@ kudos_initialize () {
     local make_dir
     make_dir=$(dirname "${BASH_SOURCE[0]}")/..
     block_height=$(make -s -C $make_dir latest-block-height)
-    make -C $make_dir kudos-initialize owner-id="$owner_id" quantity=$quantity
+    make -C "$make_dir" kudos-initialize owner-id="$owner_id" quantity=$quantity
     wait_for_transaction $block_height
 }
 
@@ -103,7 +103,7 @@ kudos_transfer () {
     make_dir=$(dirname "${BASH_SOURCE[0]}")/..
 
     block_height=$(make -s -C $make_dir latest-block-height)
-    make -C $make_dir kudos-transfer owner-id="$owner_id" receiver-id="$receiver_id"
+    make -C "$make_dir" kudos-transfer owner-id="$owner_id" receiver-id="$receiver_id"
     wait_for_transaction $block_height
 }
 

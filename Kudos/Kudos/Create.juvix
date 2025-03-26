@@ -12,9 +12,9 @@ import Kudos.Layer open;
 
 isValidLogic (args : Logic.Arg) : Bool :=
   let
-    -- tag := Tag.fromNat (Instance.tag publicInputs);
     self := Logic.Arg.self args;
-    isConsumed := Logic.Arg.isConsumed;
+    selfTag : Tag := Logic.Arg.selfTag args;
+    isConsumed := Logic.Arg.isConsumed args;
   in if
        | not isConsumed := true
        | else :=
@@ -26,8 +26,7 @@ isValidLogic (args : Logic.Arg) : Bool :=
                    authorized :=
                      isAuthorizedBy@{
                        signer := originator;
-                       -- origin := tag;
-                       origin := todo;
+                       origin := selfTag;
                        args;
                      };
                  in if
@@ -43,8 +42,7 @@ isValidLogic (args : Logic.Arg) : Bool :=
                          (Resource.nullifierKeyCommitment self));
                  in isAuthorizedBy@{
                       signer := owner;
-                      -- origin := tag;
-                      origin := todo;
+                      origin := selfTag;
                       args;
                     };
 
@@ -74,7 +72,7 @@ isAuthorizedBy
   case
     lookupPublicInputs@{
       key := signatureLookupKey;
-      publicInputs := Kudos.Instance.otherPublic publicInputs;
+      publicInputs : Kudos.PublicData := Kudos.Instance.otherPublic args;
     }
   of
     | nothing := true
@@ -93,12 +91,10 @@ isAuthorizedBy
                origin;
                nullifiers :=
                  Set.fromList
-                   -- (map Nullifier.mk (Instance.nullifiers publicInputs));
-                   (todo);
+                   (map Resource.Transparent.nullifier (Logic.Arg.consumed args));
                commitments :=
                  Set.fromList
-                   -- (map Commitment.mk (Instance.commitments publicInputs));
-                   (todo);
+                   (map commitment (Logic.Arg.created args));
              };
 
 --- Checks that a ;ResourceRelationship; message has the expected values.
@@ -167,7 +163,7 @@ initialize
         toInitialize@Resource{
           ephemeral := true;
           -- TODO this needs to agree with what the indexer function for owners does.
-          nullifierKeyCommitment := ExternalIdentity.toNat caller;
+          nullifierKeyCommitment := ExternalIdentity.toAnomaAtom caller;
         };
     in
     action <- actionWithAuthorizationAppData@{
@@ -184,10 +180,10 @@ initialize
     pure tokenCreationTransaction;
   };
 
-txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
+txContext (caller : Identity) (currentRoot : CommitmentRoot) : TxContext :=
   TxContext.mk@{
     caller;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot;
   };
 
 main
@@ -202,5 +198,5 @@ main
       mkIdentityFromPayload privateKeyPayload publicKeyPayload;
   in TransactionRequest.build
     rngSeed
-    (txContext caller 0)
+    (txContext caller (CommitmentRoot.fromNat 0))
     (initialize logic kudosSymbol quantity);

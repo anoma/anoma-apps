@@ -75,7 +75,7 @@ splitHelper
   };
 
 main
-  (latestRoot : Nat)
+  (latestRoot : CommitmentRoot)
   (randSeed : Nat)
   (ownerPrivateKeyPayload : ByteArray)
   (ownerPublicKeyPayload : ByteArray)

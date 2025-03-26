@@ -20,9 +20,10 @@ includesKudos
       && receiver == Kudos.Resource.owner r
   };
 
-swapIntentLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
+swapIntentLogic (args : Logic.Arg) : Bool :=
   let
-    tag := Tag.fromNat (Instance.tag publicInputs);
+    selfTag := Logic.Arg.selfTag args;
+    self : Resource := Logic.Arg.self args;
 
     -- the important case
     ephemeralConsumptionBranch (self : Resource) : Bool :=
@@ -32,45 +33,32 @@ swapIntentLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
         checkSolverIdentity : Bool :=
           Create.isAuthorizedBy@{
             signer := solver;
-            origin := tag;
-            publicInputs;
+            origin := selfTag;
+            args;
           };
 
         intentLabel : SwapIntentLabel :=
-          builtinAnomaDecode (Resource.label self);
+          builtinAnomaDecode (Label.toNat (Resource.label self));
 
         checkIntentSatisfied : Bool :=
           includesKudos@{
             kudosKind := SwapIntentLabel.kind intentLabel;
             quantity := SwapIntentLabel.quantity intentLabel;
             receiver := SwapIntentLabel.receiver intentLabel;
-            resourcesToCheck := Witness.created privateInputs;
+            resourcesToCheck := Logic.Arg.created args;
           };
 
       in checkSolverIdentity && checkIntentSatisfied;
 
-  in case tag of
+  in case selfTag of
        | Consumed nullifier :=
-         case
-           findResourceByNullifier (Nullifier.toNat nullifier) privateInputs
-         of {
-           | nothing :=
-             trace "findResourceByNullifier returned nothing" >-> false
-           | just self :=
-             if
-               | Resource.ephemeral self := ephemeralConsumptionBranch self
-               | else := false
-         }
+         if
+           | Resource.ephemeral self := ephemeralConsumptionBranch self
+           | else := false
        | Created commitment :=
-         case
-           findResourceByCommitment (Commitment.toNat commitment) privateInputs
-         of
-           | nothing :=
-             trace "findResourceByCommitment returned nothing" >-> false
-           | just self :=
-             if
-               | Resource.ephemeral self := true
-               | else := false;
+         if
+           | Resource.ephemeral self := true
+           | else := false;
 
 type SwapIntentLabel :=
   mk@{
@@ -80,7 +68,7 @@ type SwapIntentLabel :=
   };
 
 main
-  (root : Nat)
+  (root : CommitmentRoot)
   (rngSeed : Nat)
   (privateKeyPayload publicKeyPayload : ByteArray)
   (kudosLogic : Logic)
@@ -113,8 +101,8 @@ main
               kudosSymbol := giveSymbol;
             };
           solver : ExternalIdentity := Universal.externalIdentity;
-          label : Kudos.Label :=
-            Kudos.Label.mk@{
+          label : Kudos.KLabel :=
+            Kudos.KLabel.mk@{
               originator := ExternalIdentity.fromByteArray wantOriginator;
               kudosSymbol := wantSymbol;
             };
@@ -122,20 +110,22 @@ main
 
           swapIntent : Resource :=
             Resource.mk@{
-              logic := swapIntentLogic;
-              nonce := Nonce.toNat nonceIntent;
+              logic := Encoded.encode (Logic.mk swapIntentLogic);
+              nonce := Nonce.toRaw nonceIntent;
               ephemeral := true;
               quantity := 1;
-              randSeed := 0;
+              unusedRandSeed := 0;
               label :=
-                builtinAnomaEncode
-                  SwapIntentLabel.mk@{
-                    kind := kudosKind;
-                    quantity := wantQuantity;
-                    receiver := ExternalIdentity.fromByteArray publicKeyPayload;
-                  };
+                Label.fromNat
+                  (builtinAnomaEncode
+                    SwapIntentLabel.mk@{
+                      kind := kudosKind;
+                      quantity := wantQuantity;
+                      receiver :=
+                        ExternalIdentity.fromByteArray publicKeyPayload;
+                    });
               value := 0;
-              nullifierKeyCommitment := ExternalIdentity.toNat solver;
+              nullifierKeyCommitment := ExternalIdentity.toAnomaAtom solver;
             };
 
           createdResource : Resource := swapIntent;
@@ -143,28 +133,22 @@ main
           consumed : List Resource := [consumedResource];
           created : List Resource := [createdResource];
         in
-        a <- actionWithAuthorizationAppData@{
-               created;
-               consumed;
-             };
+        action <- actionWithAuthorizationAppData@{
+                    created;
+                    consumed;
+                  };
         root <- TxContext.currentRoot <$> getTxContext;
-        let
-          actions : List Action := [a];
-          delta : Delta := Action.listDelta actions;
-        in
         pure
           Transaction.mk@{
-            roots := [Root.unRoot root];
-            actions;
-            delta;
-            deltaProof : Nat := proveDelta delta;
+            roots := AnomaSet.fromList [root];
+            actions := AnomaSet.fromList [action];
           };
       };
 
   in Tx.run rngSeed (txContext caller root) helper;
 
-txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
+txContext (caller : Identity) (latestRoot : CommitmentRoot) : TxContext :=
   TxContext.mk@{
     caller;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot := latestRoot;
   };

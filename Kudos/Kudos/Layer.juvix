@@ -2,6 +2,7 @@ module Kudos.Layer;
 
 import Kudos.Extra open;
 import Stdlib.Prelude open;
+import Stdlib.Debug.Fail open;
 import Stdlib.Data.Set as Set open using {Set};
 import Stdlib.Data.Map as Map open using {Map};
 import Applib open;
@@ -95,12 +96,13 @@ module Kudos;
     };
 
   module Instance;
-    -- otherPublic (instance : Instance) : Kudos.PublicData :=
-    --   builtinAnomaDecode
-    --     (AnomaAtom.toNat (Applib.Instance.otherPublic instance));
-  otherPublic (args : Logic.Arg) : Kudos.PublicData :=
-  builtinAnomaDecode
-  (AnomaAtom.toNat (Applib.Instance.otherPublic instance));
+    otherPublic (args : Logic.Arg) : Kudos.PublicData :=
+      let
+        m : Map RawTag AnomaAtom := AppData.toMap (Logic.Arg.appData args);
+        selfTag : RawTag := RawTag.fromTag (Logic.Arg.selfTag args);
+      in case Map.lookup selfTag m of
+           | nothing := failwith "Kudos public data missing from AppData"
+           | just r := builtinAnomaDecode (AnomaAtom.toNat r);
   end;
 
   module Resource;
