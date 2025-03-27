@@ -3,25 +3,24 @@ module HelloWorld;
 import Stdlib.Prelude open;
 import Applib open;
 import AppIdentity open using {label};
-import Extra;
 
 --- Creates a new ;Resource; that stores a ;String; message.
 --- @param nonce A number used to ensure resource uniqueness
 --- @param message The message to store in the ;Resource;.
 mkHelloWorldResource
   (logic : Logic)
-  (nonce : Nat)
+  (nonce : Nonce)
   (message : String)
   {ephemeral : Bool := false}
   : Resource :=
   Resource.mk@{
     label;
-    logic;
-    value := builtinAnomaEncode message;
+    logic := Encoded.encode logic;
+    value := AnomaAtom.fromNat (builtinAnomaEncode message);
     quantity := 1;
-    nonce;
+    nonce := Nonce.toRaw nonce;
     ephemeral;
-    randSeed := 0;
+    unusedRandSeed := 0;
     nullifierKeyCommitment := 0;
   };
 
@@ -33,14 +32,14 @@ helloWorldTransaction
   {{Monad M}}
   {{Tx M}}
   (logic : Logic)
-  (nonce : Nat)
+  (nonce : Nonce)
   (message : String)
   : M Transaction :=
   do {
     let
       newResource := mkHelloWorldResource logic nonce message;
     in
-    Extra.mkTransactionNoPublicData@{
+    mkTransactionNoPublicData@{
       -- A Transaction must be balanced, so we consume an ephemeral resource of
       -- the same kind as the one we're creating.
       consumed := [newResource@Resource{ephemeral := true}];
@@ -51,9 +50,9 @@ helloWorldTransaction
 ctx : TxContext :=
   TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.fromNat 0;
+    currentRoot := CommitmentRoot.fromNat 0;
   };
 
 --- The function that is run to produce a Transaction to send to Anoma.
 main (logic : Logic) (message : String) : TransactionRequest :=
-  TransactionRequest.build 0 ctx (helloWorldTransaction logic 0 message);
+  TransactionRequest.build 0 ctx (helloWorldTransaction logic (Nonce.fromAnomaAtom 0) message);

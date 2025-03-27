@@ -4,7 +4,7 @@ import Stdlib.Prelude open;
 import Applib open;
 
 --- A logic function that is always valid.
-logic (publicInputs : Instance) (privateInputs : Witness) : Bool := true;
+logic : Logic := Logic.alwaysTrue;
 
 type LogicWrapper :=
   mk@{
