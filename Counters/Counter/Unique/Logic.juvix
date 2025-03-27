@@ -3,10 +3,10 @@ module Counter.Unique.Logic;
 import Stdlib.Prelude open;
 import Applib open;
 
-initialize-correct? (res : Resource) (args : Logic.Arg) : Bool :=
+initialize-correct? (res : Resource) (args : Logic.Args) : Bool :=
   let
     quantity := Resource.quantity res;
-  in quantity == 1 && Logic.Arg.isConsumed args;
+  in quantity == 1 && Logic.Args.isConsumed args;
 
 same-kind? : List Resource -> Bool
   | nil := true
@@ -17,18 +17,18 @@ incremented? (consumed created : Resource) : Bool :=
     getVal : Resource -> Nat := Resource.value >> AnomaAtom.toNat;
   in getVal consumed + 1 == getVal created;
 
-increment-correct? (res : Resource) (args : Logic.Arg) : Bool :=
-  case Logic.Arg.consumed args, Logic.Arg.created args of
+increment-correct? (res : Resource) (args : Logic.Args) : Bool :=
+  case Logic.Args.consumed args, Logic.Args.created args of
     | [consumed], [created] :=
       same-kind? [res; consumed; created] && incremented? consumed created
     | _, _ := false;
 
-counter-correct? (args : Logic.Arg) : Bool :=
+counter-correct? (args : Logic.Args) : Bool :=
   let
-    isConsumed := Logic.Arg.isConsumed args;
+    isConsumed := Logic.Args.isConsumed args;
   in if
     | isConsumed :=
-      case Logic.Arg.consumed args, Logic.Arg.created args of {
+      case Logic.Args.consumed args, Logic.Args.created args of {
         | [consumable; ephCounter], [ephConsumable; newCounter] :=
           -- This is called for consumable and ephCounter
             initialize-correct?

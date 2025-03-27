@@ -24,10 +24,10 @@ mkCounter
     unusedRandSeed := 0;
   };
 
-valid-counter? (args : Logic.Arg) : Bool :=
+valid-counter? (args : Logic.Args) : Bool :=
   let
-    self := Logic.Arg.self args;
-    isConsumed := Logic.Arg.isConsumed args;
+    self := Logic.Args.self args;
+    isConsumed := Logic.Args.isConsumed args;
   in if
     | isConsumed :=
       if
@@ -35,10 +35,10 @@ valid-counter? (args : Logic.Arg) : Bool :=
         | else := increment-correct? args
     | else := not (Resource.ephemeral self);
 
-increment-correct? (args : Logic.Arg) : Bool :=
+increment-correct? (args : Logic.Args) : Bool :=
   let
-    self := Logic.Arg.self args;
-  in case Logic.Arg.consumed args, Logic.Arg.created args of
+    self := Logic.Args.self args;
+  in case Logic.Args.consumed args, Logic.Args.created args of
        | [consumed], [created] :=
          same-kind? [self; consumed; created] && incremented? consumed created
        | _, _ := false;
