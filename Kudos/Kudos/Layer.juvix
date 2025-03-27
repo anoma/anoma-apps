@@ -82,7 +82,7 @@ actionWithAuthorizationAppData
     mkActionHelper@{
       consumed;
       created;
-      appData := AppData.fromMap map';
+      appData := AppData.fromMap1 map';
     };
   };
 
@@ -96,10 +96,10 @@ module Kudos;
     };
 
   module Instance;
-    otherPublic (args : Logic.Arg) : Kudos.PublicData :=
+    otherPublic (args : Logic.Args) : Kudos.PublicData :=
       let
-        m : Map RawTag AnomaAtom := AppData.toMap (Logic.Arg.appData args);
-        selfTag : RawTag := RawTag.fromTag (Logic.Arg.selfTag args);
+        m : Map RawTag AnomaAtom := AppData.toMap1 (Logic.Args.appData args);
+        selfTag : RawTag := RawTag.fromTag (Logic.Args.selfTag args);
       in case Map.lookup selfTag m of
            | nothing := failwith "Kudos public data missing from AppData"
            | just r := builtinAnomaDecode (AnomaAtom.toNat r);

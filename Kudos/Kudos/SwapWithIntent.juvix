@@ -20,10 +20,10 @@ includesKudos
       && receiver == Kudos.Resource.owner r
   };
 
-swapIntentLogic (args : Logic.Arg) : Bool :=
+swapIntentLogic (args : Logic.Args) : Bool :=
   let
-    selfTag := Logic.Arg.selfTag args;
-    self : Resource := Logic.Arg.self args;
+    selfTag := Logic.Args.selfTag args;
+    self : Resource := Logic.Args.self args;
 
     -- the important case
     ephemeralConsumptionBranch (self : Resource) : Bool :=
@@ -45,7 +45,7 @@ swapIntentLogic (args : Logic.Arg) : Bool :=
             kudosKind := SwapIntentLabel.kind intentLabel;
             quantity := SwapIntentLabel.quantity intentLabel;
             receiver := SwapIntentLabel.receiver intentLabel;
-            resourcesToCheck := Logic.Arg.created args;
+            resourcesToCheck := Logic.Args.created args;
           };
 
       in checkSolverIdentity && checkIntentSatisfied;
