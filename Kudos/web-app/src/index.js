@@ -1,13 +1,12 @@
-import { AnomaClient, deserializeToString, fetchBinary, serialize } from 'anoma-client';
+import { AnomaClient, deserializeToString, fetchBinary, serialize, toByteArray, genRandomBytes } from 'anoma-client';
 import config from '../config.json';
 import appIdentity from '../nockma/AppIdentity.cued.nockma';
 import getMessage from '../nockma/GetMessage.nockma';
 import helloWorld from '../nockma/HelloWorld.nockma';
 import logic from '../nockma/Logic.proved.nockma';
 
-// TODO: Create files
-import universalPublicKey from '../keys/universalPublicKey';
-import universalSigningKey from '../keys/universalSigningKey';
+import universalKeyPair from '../keys/universalKeyPair';
+import universalVerifyingKey from '../keys/universalVerifyingKey';
 
 const grpcServer = `http://${config.proxyHost}:${config.proxyPort}`
 const anomaClient = new AnomaClient(grpcServer);
@@ -20,21 +19,22 @@ async function addMessage(message) {
 }
 
 async function createKudos(ownerId, quantity) {
-  // Singing key == private key + public key concatenated
-  const uniSigingKey = await fetchBinary(universalSigningKey);
-  const uniPublicKey = await fetchBinary(universalPublicKey);
-
-  var array = new Uint8Array(32);
-  const rand = Crypto.getRandomValues(array);
+  // keyPair == signing key + verifying key concatenated
+  const uniKeyPairPayload = await fetchBinary(universalKeyPair);
+  const uniVerifyingKeyPayload = await fetchBinary(universalVerifyingKey);
+  const keyPairByteArray = toByteArray(uniKeyPairPayload);
+  const verifyingKeyByteArray = toByteArray(uniVerifyingKeyPayload);
 
   const logicProgram = await fetchBinary(logic);
+
+  const randomBytes = genRandomBytes(32);
 
   const encoder = new TextEncoder('utf-8');
   const encodedOwnerIdString = encoder.encode(ownerId);
 
   const kudosCreateProgram = await fetchBinary(kudosCreate);
 
-  const tx = await anomaClient.prove(kudosCreateProgram, [uniSigingKey, uniPublicKey, rand, logicProgram, quantity, encodedOwnerIdString]);
+  const tx = await anomaClient.prove(kudosCreateProgram, [uniSigingKey, uniPublicKey, randomBytes, logicProgram, quantity, encodedOwnerIdString]);
   return await anomaClient.addTransaction(tx);
 }
 
