@@ -22,6 +22,30 @@ export function serialize(x) {
   return new Uint8Array(serial.jam(toNoun(x)).bytes());
 }
 
+/**
+  * Wrap bytes in a Nock ByteArray noun
+  *
+  * @param {!Uint8Array} bytesPayload - The bytes to wrap.
+  * @return {!Noun} The Nock noun representing the ByteArray.
+  * */
+export function toByteArray(bytesPayload) {
+  const payload = bits.bytesToAtom(bytesPayload);
+  const length = noun.dwim(bytesPayload.length);
+  return noun.Cell(length, payload);
+}
+
+/**
+  * Generate random bytes
+  *
+  * @param {!Number} length - The number of bytes to generate.
+  * @return {!Uint8Array} The random bytes.
+  * */
+export function genRandomBytes(length) {
+  var bytes = new Uint8Array(length);
+  Crypto.getRandomValues(bytes);
+  return bytes;
+}
+
 function toNoun(x) {
   if (x instanceof Uint8Array) {
     return bits.bytesToAtom(x);
