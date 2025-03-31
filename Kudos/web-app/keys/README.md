@@ -11,6 +11,6 @@ You can generate the keys using the Python `pynacl` library as follows:
 python3 -m venv venv
 source venv/bin/activate
 pip install pynacl
-python3 -c "from nacl.signing import SigningKey; sk = SigningKey(b'\x00'*32); open('universalKeyPair','wb').write(sk.encode() + sk.verify_key.encode())"
-python3 -c "from nacl.signing import SigningKey; sk = SigningKey(b'\x00'*32); open('universalVerifyingKey','wb').write(sk.verify_key.encode())"
+python3 -c "from nacl.signing import SigningKey; sk = SigningKey(b'\x00'*32); open('universalKeyPair.bin','wb').write(sk.encode() + sk.verify_key.encode())"
+python3 -c "from nacl.signing import SigningKey; sk = SigningKey(b'\x00'*32); open('universalVerifyingKey.bin','wb').write(sk.verify_key.encode())"
 ```
