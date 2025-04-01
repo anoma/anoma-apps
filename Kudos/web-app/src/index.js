@@ -18,23 +18,8 @@ async function createKudos(ownerId, quantity) {
     .nat(quantity)
     .string(ownerId)
     .build();
-  const tx = await anomaClient.prove(await fetchBinary(kudosCreate), proveArgs);
-  return await anomaClient.addTransaction(tx);
-}
-
-async function getMessages() {
-  const kind = await fetchBinary(appIdentity);
-  const unspent = await anomaClient.filterKind(kind);
-  if (unspent.length == 0) {
-    throw Error("There are no stored messages");
-  }
-  const getMessageProgram = await fetchBinary(getMessage);
-  let messages = [];
-  for (const m of unspent) {
-    const result = await anomaClient.prove(getMessageProgram, [m]);
-    messages.push(deserializeToString(result));
-  }
-  return messages;
+  const txResult = await anomaClient.prove(await fetchBinary(kudosCreate), proveArgs);
+  return await anomaClient.addTransaction(txResult.data);
 }
 
 const responseContainer = document.getElementById('response-container');
