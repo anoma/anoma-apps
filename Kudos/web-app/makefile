@@ -5,29 +5,24 @@ dst = nockma
 anoma-build-dir = anoma-build
 anoma-build = $(anoma-build-dir)/.exists
 
-envoy-tag = hello-world-tag
+envoy-tag = kudos-tag
 envoy-config-tmpl = envoy.yaml.tmpl
 envoy-config = $(anoma-build-dir)/envoy.yaml
 anoma-config = $(anoma-build-dir)/anoma-config.yaml
 anoma-port = $(anoma-build-dir)/port
 
-add-message-program = HelloWorld.nockma
-get-message-program = GetMessage.nockma
+kudos-create-program = Create.nockma
 logic-program = Logic.proved.nockma
-kind = AppIdentity.cued.nockma
 
-add-message-program-src = $(src)/$(add-message-program)
-get-message-program-src = $(src)/$(get-message-program)
+kudos-create-program-src = $(src)/$(kudos-create-program)
 logic-program-src = $(src)/$(logic-program)
 kind-src = $(src)/$(kind)
 
-add-message-program-dst = $(dst)/$(add-message-program)
-get-message-program-dst = $(dst)/$(get-message-program)
+kudos-create-program-dst = $(dst)/$(kudos-create-program)
 logic-program-dst = $(dst)/$(logic-program)
-kind-dst = $(dst)/$(kind)
 
 .PHONY: build
-build: $(add-message-program-dst) $(get-message-program-dst) $(logic-program-dst) $(kind-dst)
+build: $(kudos-create-program-dst) $(logic-program-dst)
 
 .PHONY: clean
 clean:
@@ -71,8 +66,8 @@ $(anoma-port): $(anoma-config)
 $(envoy-config): $(anoma-build) $(anoma-port)
 	sed "s/__ANOMA_PORT__/$(shell cat $(anoma-port))/" $(envoy-config-tmpl) > $(envoy-config)
 
-$(add-message-program-dst): $(dst) $(add-message-program-src)
-	cp $(add-message-program-src) $(add-message-program-dst)
+$(kudos-create-program-dst): $(dst) $(kudos-create-program-src)
+	cp $(kudos-create-program-src) $(kudos-create-program-dst)
 
 $(get-message-program-dst): $(dst) $(get-message-program-src)
 	cp $(get-message-program-src) $(get-message-program-dst)
@@ -83,14 +78,8 @@ $(logic-program-dst): $(dst) $(logic-program-src)
 $(kind-dst): $(dst) $(kind-src)
 	cp $(kind-src) $(kind-dst)
 
-$(add-message-program-src):
-	make -C $(app-path) compile-add-message
-
-$(get-message-program-src):
-	make -C $(app-path) compile-get-message
+$(kudos-create-program-src):
+	make -C $(app-path) compile-kudos-create
 
 $(logic-program-src):
 	make -C $(app-path) compile-logic
-
-$(kind-src):
-	make -C $(app-path) compute-kind

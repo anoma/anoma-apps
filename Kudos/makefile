@@ -162,6 +162,12 @@ kudos-merge: $(merge-proved) $(config)
 get-unspent-resources: $(unspent-resources)
 	@cat $(unspent-resources)
 
+.PHONY: compile-kudos-create
+compile-kudos-create: $(create-nockma)
+
+.PHONY: compile-logic
+compile-logic: $(logic-proved)
+
 .PHONY: did-it-work
 did-it-work:
 	rm -f $(config)
