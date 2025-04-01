@@ -31,7 +31,7 @@ export function serialize(x) {
 export function toByteArray(bytesPayload) {
   const payload = bits.bytesToAtom(bytesPayload);
   const length = noun.dwim(bytesPayload.length);
-  return noun.Cell(length, payload);
+  return new noun.Cell(length, payload);
 }
 
 /**
