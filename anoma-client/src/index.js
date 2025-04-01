@@ -111,3 +111,96 @@ export class AnomaClient {
     return await this.mempoolClient.add(request);
   }
 }
+
+/**
+ * A builder for arguments to AnomaClient.prove.
+ */
+export class ProveArgsBuilder {
+  #args;
+  constructor() {
+    this.#args = [];
+  }
+
+  /**
+   * Build the arguments to AnomaClient.prove.
+   *
+   * @return {Array!<!Uint8Array>} Arguments to pass to AnomaClient.prove
+   */
+  build() {
+    return this.#args;
+  }
+
+  /**
+   * Add a ByteArray argument
+   *
+   * @param {!Uint8Array} b - An argument passed as a Nock ByteArray noun.
+   * @return {!ProveArgsBuilder} The builder with the argument added
+   */
+  bytearray(b) {
+    return this.#unjammed(toByteArray(b));
+  }
+
+  /**
+   * Add an unjammed bytes argument
+   *
+   * @param {!Uint8Array} b - Bytes that represent an unjammed atom
+   * @return {!ProveArgsBuilder} The builder with the argument added
+   */
+  bytesUnjammed(b) {
+    return this.#unjammed(b);
+  }
+
+  /**
+   * Add a string argument as UTF-8 encoded bytes
+   *
+   * @param {string} s - A string
+   * @return {!ProveArgsBuilder} The builder with the argument added
+   */
+  string(s) {
+    const encoder = new TextEncoder('utf-8');
+    return this.#unjammed(encoder.encode(s));
+  }
+
+  /**
+   * Add a bytes argument
+   *
+   * @param {!Uint8Array} b - Bytes that represent a jammed noun
+   * @return {!ProveArgsBuilder} The builder with the argument added
+   */
+  bytes(b) {
+    return this.#jammed(b);
+  }
+
+  /**
+   * Add a non-negative integer argument
+   *
+   * @param {number} n - A non-negative integer
+   * @return {!ProveArgsBuilder} The builder with the argument added
+   */
+  nat(n) {
+    return this.#unjammed(n);
+  }
+
+  /**
+   * Add an unjammed argument
+   *
+   * @param {any} x - An unjammed noun
+   * @return {!ProveArgsBuilder} The builder with the argument added
+   */
+  #unjammed(x) {
+    this.#args.push(serialize(x));
+    return this;
+  }
+
+  /**
+   * Add a jammed argument
+   *
+   * @param {any} x - A jammed noun
+   * @return {!ProveArgsBuilder} The builder with the argument added
+   */
+  #jammed(x) {
+    this.#args.push(x);
+    return this;
+  }
+
+}

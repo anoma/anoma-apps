@@ -1,4 +1,4 @@
-import { AnomaClient, deserializeToString, fetchBinary, serialize, toByteArray, genRandomBytes } from 'anoma-client';
+import { ProveArgsBuilder, AnomaClient, deserializeToString, fetchBinary, serialize, genRandomBytes } from 'anoma-client';
 import config from '../config.json';
 
 import universalKeyPair from '../keys/universalKeyPair.bin';
@@ -11,53 +11,23 @@ const anomaClient = new AnomaClient(grpcServer);
 
 async function createKudos(ownerId, quantity) {
   // keyPair == signing key + verifying key concatenated
-  console.log(universalKeyPair);
   const uniKeyPairPayload = await fetchBinary(universalKeyPair);
-
   const uniVerifyingKeyPayload = await fetchBinary(universalVerifyingKey);
-  const keyPairByteArray = toByteArray(uniKeyPairPayload);
-  const verifyingKeyByteArray = toByteArray(uniVerifyingKeyPayload);
 
   const logicProgram = await fetchBinary(logic);
   const randomBytes = genRandomBytes(32);
 
-  const encoder = new TextEncoder('utf-8');
-  const encodedOwnerIdString = encoder.encode(ownerId);
-
   const kudosCreateProgram = await fetchBinary(kudosCreate);
 
-  /**
-   * TODO: The gRPC prove call expects all arguments to be jammed (i.e nock
-   * serialized). However some arguments are already jammed, and these should
-   * not be double jammed.
-   *
-   * You must call `serialize` on all unjammed arguments.
-   *
-   * A better solution would be to use a builder pattern to construct the
-   * arguments to prove:
-   *
-   * builder = new ArgsBuilder();
-   * builder.byteArray(keyPairByteArray);
-   * builder.program(logicProgram);
-   * args = builder.build();
-   * anomaClient.prove(args);
-   *
-   * each method (e.g byteArray) knows whether to jam / serialize the argument.
-   * In this case the `program` method would not serialize, but `byteArray`
-   * would serialize.
-   *
-   * You can see which method to use from the makefile `juvix dev anoma prove` invocation.
-   *
-   * https://github.com/anoma/anoma-apps/blob/fb93dabe868118429d743011050f0544be9d2907/Kudos/makefile#L267-L275
-   *
-   * e.g 'bytearray:' prefix means 'call byteArray method etc.'. Whether each
-   * prefix represents jammed or unjammed data is documented in
-   *
-   * `juvix dev anoma prove --help`.
-   *
-   */
-
-  const tx = await anomaClient.prove(kudosCreateProgram, [serialize(keyPairByteArray), serialize(verifyingKeyByteArray), serialize(randomBytes), logicProgram, serialize(quantity), serialize(encodedOwnerIdString)]);
+  const proveArgs = new ProveArgsBuilder()
+    .bytearray(uniKeyPairPayload)
+    .bytearray(uniVerifyingKeyPayload)
+    .bytesUnjammed(randomBytes)
+    .bytes(logicProgram)
+    .nat(quantity)
+    .string(ownerId)
+    .build();
+  const tx = await anomaClient.prove(kudosCreateProgram, proveArgs);
   return await anomaClient.addTransaction(tx);
 }
 
