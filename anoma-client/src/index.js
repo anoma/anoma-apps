@@ -182,6 +182,23 @@ export class ProveArgsBuilder {
   }
 
   /**
+   * Add a list of jammed nouns argument
+   *
+   * @param {!Array<!Uint8Array>} xs - An array of bytes representing jammed nouns
+   * @return {!ProveArgsBuilder} The builder with the argument added
+   */
+  list(xs) {
+    // The Nock atom 0 is the representation of the empty list.
+    var nockList = toNoun(0);
+    // The list is reversed because we are folding right:
+    // [1,2,3] -> [1 [2 [3 0]]]
+    for (const x of xs.reverse()) {
+      nockList = new Cell(toNoun(x), nockList);
+    }
+    return this.#unjammed(nockList);
+  }
+
+  /**
    * Add an unjammed argument
    *
    * @param {any} x - An unjammed noun
