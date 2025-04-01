@@ -37,28 +37,19 @@ async function getMessages() {
   return messages;
 }
 
-const button = document.getElementById('get-message');
-const sendButton = document.getElementById('send-message');
 const responseContainer = document.getElementById('response-container');
-const input = document.getElementById("message-input");
-
 const createKudosButton = document.getElementById('create-kudos');
-const quantityInput = document.getElementById("kudos-quantity-input");
-const ownerIdInput = document.getElementById("kudos-ownerId-input");
+const getBalanceButton = document.getElementById("get-balance")
 
 createKudosButton.addEventListener('click', async () => {
   createKudosButton.disabled = true;
   createKudosButton.textContent = "Loading..."
-  // const quantity = quantityInput.value;
 
   try {
-    // if (!quantity.trim()) {
-    //   throw Error("Please enter a message")
-    // }
     await createKudos("alice", 2);
-  // }
-  // catch (error) {
-  //   responseContainer.innerHTML = `<p style="color: red;">${error}</p>`;
+  }
+  catch (error) {
+    responseContainer.innerHTML = `<p style="color: red;">${error}</p>`;
   } finally {
     createKudosButton.disabled = false;
     createKudosButton.textContent = "Create Kudos";
