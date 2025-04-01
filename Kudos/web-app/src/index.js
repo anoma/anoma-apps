@@ -41,7 +41,7 @@ createKudosButton.addEventListener('click', async () => {
     if (!quantity.trim()) {
       throw Error("Please enter a quantity")
     }
-    await createKudos(ownerId, quantity);
+    await createKudos(ownerId, parseInt(quantity));
   }
   catch (error) {
     responseContainer.innerHTML = `<p style="color: red;">${error}</p>`;
