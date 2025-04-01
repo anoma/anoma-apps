@@ -1,4 +1,4 @@
-import { ProveArgsBuilder, AnomaClient, deserializeToString, fetchBinary, serialize, genRandomBytes } from 'anoma-client';
+import { AnomaClient, deserializeToString, fetchBinary, genRandomBytes, ProveArgsBuilder } from 'anoma-client';
 import config from '../config.json';
 
 import universalKeyPair from '../keys/universalKeyPair.bin';
@@ -39,14 +39,24 @@ async function getMessages() {
 
 const responseContainer = document.getElementById('response-container');
 const createKudosButton = document.getElementById('create-kudos');
-const getBalanceButton = document.getElementById("get-balance")
+const getBalanceButton = document.getElementById("get-balance");
+const ownerIdInput = document.getElementById("owner-id-input");
+const quantityInput = document.getElementById("quantity-input");
 
 createKudosButton.addEventListener('click', async () => {
   createKudosButton.disabled = true;
   createKudosButton.textContent = "Loading..."
+  const ownerId = ownerIdInput.value;
+  const quantity = quantityInput.value;
 
   try {
-    await createKudos("alice", 2);
+    if (!ownerId.trim()) {
+      throw Error("Please enter an owner id")
+    }
+    if (!quantity.trim()) {
+      throw Error("Please enter a quantity")
+    }
+    await createKudos(ownerId, quantity);
   }
   catch (error) {
     responseContainer.innerHTML = `<p style="color: red;">${error}</p>`;
