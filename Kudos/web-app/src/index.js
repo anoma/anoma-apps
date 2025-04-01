@@ -10,24 +10,15 @@ const grpcServer = `http://${config.proxyHost}:${config.proxyPort}`
 const anomaClient = new AnomaClient(grpcServer);
 
 async function createKudos(ownerId, quantity) {
-  // keyPair == signing key + verifying key concatenated
-  const uniKeyPairPayload = await fetchBinary(universalKeyPair);
-  const uniVerifyingKeyPayload = await fetchBinary(universalVerifyingKey);
-
-  const logicProgram = await fetchBinary(logic);
-  const randomBytes = genRandomBytes(32);
-
-  const kudosCreateProgram = await fetchBinary(kudosCreate);
-
   const proveArgs = new ProveArgsBuilder()
-    .bytearray(uniKeyPairPayload)
-    .bytearray(uniVerifyingKeyPayload)
-    .bytesUnjammed(randomBytes)
-    .bytes(logicProgram)
+    .bytearray(await fetchBinary(universalKeyPair))
+    .bytearray(await fetchBinary(universalVerifyingKey))
+    .bytesUnjammed(genRandomBytes(32))
+    .bytes(await fetchBinary(logic))
     .nat(quantity)
     .string(ownerId)
     .build();
-  const tx = await anomaClient.prove(kudosCreateProgram, proveArgs);
+  const tx = await anomaClient.prove(await fetchBinary(kudosCreate), proveArgs);
   return await anomaClient.addTransaction(tx);
 }
 
