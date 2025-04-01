@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# requires `pip install cryptography`
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 
