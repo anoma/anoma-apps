@@ -22,7 +22,7 @@ async function createKudos(ownerId, quantity) {
 
   // const randomBytes = genRandomBytes(32);
   // const randomBytes = new Uint8Array(32);
-  const randomBytes = 0;
+  const zeroRandomBytes = 0;
 
   const dummyOwnerId = 'alice';
 
@@ -100,8 +100,9 @@ createKudosButton.addEventListener('click', async () => {
     //   throw Error("Please enter a message")
     // }
     await createKudos("alice", 2);
-  } catch (error) {
-    responseContainer.innerHTML = `<p style="color: red;">${error}</p>`;
+  // }
+  // catch (error) {
+  //   responseContainer.innerHTML = `<p style="color: red;">${error}</p>`;
   } finally {
     createKudosButton.disabled = false;
     createKudosButton.textContent = "Create Kudos";
