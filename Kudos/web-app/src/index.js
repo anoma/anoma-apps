@@ -1,4 +1,4 @@
-import { AnomaClient, deserializeToString, fetchBinary, serialize, toByteArray } from 'anoma-client';
+import { AnomaClient, deserializeToString, fetchBinary, serialize, toByteArray, genRandomBytes } from 'anoma-client';
 import config from '../config.json';
 
 import universalKeyPair from '../keys/universalKeyPair.bin';
@@ -19,12 +19,7 @@ async function createKudos(ownerId, quantity) {
   const verifyingKeyByteArray = toByteArray(uniVerifyingKeyPayload);
 
   const logicProgram = await fetchBinary(logic);
-
-  // const randomBytes = genRandomBytes(32);
-  // const randomBytes = new Uint8Array(32);
-  const zeroRandomBytes = 0;
-
-  const dummyOwnerId = 'alice';
+  const randomBytes = genRandomBytes(32);
 
   const encoder = new TextEncoder('utf-8');
   const encodedOwnerIdString = encoder.encode(ownerId);
@@ -62,7 +57,7 @@ async function createKudos(ownerId, quantity) {
    *
    */
 
-  const tx = await anomaClient.prove(kudosCreateProgram, [serialize(keyPairByteArray), serialize(verifyingKeyByteArray), serialize(zeroRandomBytes), logicProgram, serialize(quantity), serialize(encodedOwnerIdString)]);
+  const tx = await anomaClient.prove(kudosCreateProgram, [serialize(keyPairByteArray), serialize(verifyingKeyByteArray), serialize(randomBytes), logicProgram, serialize(quantity), serialize(encodedOwnerIdString)]);
   return await anomaClient.addTransaction(tx);
 }
 

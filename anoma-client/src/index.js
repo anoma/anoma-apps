@@ -42,7 +42,7 @@ export function toByteArray(bytesPayload) {
   * */
 export function genRandomBytes(length) {
   var bytes = new Uint8Array(length);
-  Crypto.getRandomValues(bytes);
+  crypto.getRandomValues(bytes);
   return bytes;
 }
 
