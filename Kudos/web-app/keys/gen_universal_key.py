@@ -14,5 +14,5 @@ private_key_der = private_key.private_bytes(
     encryption_algorithm=serialization.NoEncryption()
 )
 
-with open("universalKeyPair.der", "wb") as f:
+with open("universalSigningKey.der", "wb") as f:
     f.write(private_key_der)
