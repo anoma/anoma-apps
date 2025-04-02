@@ -7,8 +7,8 @@ package : Package :=
     name := "hello-world";
     dependencies :=
       [
-        github "anoma" "juvix-stdlib" "v0.11.0-rc.5";
-        github "anoma" "anoma-applib" "6463cc14bed0c6117eab449b7ceba1fca968897f";
-        github "anoma" "juvix-mtl" "v0.3.0-rc.5";
+        github "anoma" "juvix-stdlib" "v0.11.0";
+        github "anoma" "anoma-applib" "b0c18887dd858a3f6683f16d7e4376402c239770";
+        github "anoma" "juvix-mtl" "v0.3.0";
       ];
   };

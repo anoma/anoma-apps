@@ -14,7 +14,7 @@ mkHelloWorldConsumedResource
     label;
     value := AnomaAtom.mk (builtinAnomaEncode message);
     quantity := 1;
-    nonce := Nonce.fromNat nonce;
+    nonce := Nonce.fromAnomaAtom (AnomaAtom.fromNat nonce);
     ephemeral := true;
     randSeed := 0;
   };
@@ -25,7 +25,7 @@ mkHelloWorldCreatedResource
     label;
     value := AnomaAtom.mk (builtinAnomaEncode message);
     quantity := 1;
-    nonce := Nonce.fromNat nonce;
+    nonce := Nonce.fromAnomaAtom (AnomaAtom.fromNat nonce);
     ephemeral := false;
     randSeed := 0;
     -- can be arbitrary for intent resources
