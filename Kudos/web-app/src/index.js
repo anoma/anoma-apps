@@ -24,7 +24,7 @@ async function createKudos(ownerId, quantity) {
   return await anomaClient.addTransaction(txResult.data);
 }
 
-async function getBalances(owner) {
+async function getBalances(ownerId) {
   const pubKeyUrl = universalVerifyingKey;
   // Filter arguments are NOT jammed
   const pubKey = await fetchBinary(pubKeyUrl)
@@ -35,6 +35,7 @@ async function getBalances(owner) {
   const getBalancesProgram = await fetchBinary(getBalance);
   const proveArgs = new ProveArgsBuilder()
     .list(rawBalances)
+    .string(ownerId)
     .build();
   const txResult = await anomaClient.prove(getBalancesProgram, proveArgs);
   return txResult.data;
