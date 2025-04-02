@@ -386,9 +386,10 @@ $(merge-proved): $(merge-nockma) $(random-32bytes) $(get-latest-root) $(logic-pr
 $(get-balance-nockma): $(anoma-build) $(all-juvix)
 	$(juvix-cmd) compile anoma $(get-balance-juvix) -o $(get-balance-nockma)
 
-$(get-balance-proved): $(config) $(get-balance-nockma) $(owner-balance-resources)
+$(get-balance-proved): $(config) $(get-balance-nockma) $(owner-balance-resources) $(owner-id-file)
 	$(juvix-cmd) dev anoma -c $(config) prove $(get-balance-nockma) \
 	--arg 'list:$(owner-balance-resources)' \
+	--arg 'bytes-unjammed:$(owner-id-file)' \
 	-o $@
 
 $(get-balance-proved-txt): $(get-balance-proved)
