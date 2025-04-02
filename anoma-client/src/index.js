@@ -1,17 +1,17 @@
-import { BlockServicePromiseClient, IndexerServicePromiseClient, MempoolServicePromiseClient, NockServicePromiseClient, IntentsServiceClient } from './grpc-client/anoma_grpc_web_pb';
+import { BlockServicePromiseClient, IndexerServicePromiseClient, IntentsServiceClient, MempoolServicePromiseClient, NockServicePromiseClient } from './grpc-client/anoma_grpc_web_pb';
+import * as Filtered from './grpc-client/indexer/blocks/filter_pb';
+import * as Latest from './grpc-client/indexer/blocks/latest_pb';
+import * as Root from './grpc-client/indexer/blocks/root_pb';
 import * as UnspentResources from './grpc-client/indexer/unspent_resources_pb';
-import * as AddTransaction from './grpc-client/mempool/add_transaction_pb';
-import * as Filtered from './grpc-client/indexer/blocks/filter_pb'
-import * as Prove from './grpc-client/nock/prove_pb';
-import * as ListIntents from './grpc-client/intents/list_intents_pb'
-import * as Root from './grpc-client/indexer/blocks/root_pb'
-import * as Latest from './grpc-client/indexer/blocks/latest_pb'
 import * as AddIntent from './grpc-client/intents/add_intent_pb';
 import * as Intent from './grpc-client/intents/intent_pb';
+import * as ListIntents from './grpc-client/intents/list_intents_pb';
+import * as AddTransaction from './grpc-client/mempool/add_transaction_pb';
 import { Input } from './grpc-client/nock/input_pb';
-import serial from './nock-js/serial';
-import noun from './nock-js/noun';
+import * as Prove from './grpc-client/nock/prove_pb';
 import bits from './nock-js/bits';
+import noun from './nock-js/noun';
+import serial from './nock-js/serial';
 
 /**
  * Fetches data from a URL.
@@ -330,7 +330,7 @@ export class ProveArgsBuilder {
     // The list is reversed because we are folding right:
     // [1,2,3] -> [1 [2 [3 0]]]
     for (const x of xs.reverse()) {
-      nockList = new Cell(toNoun(x), nockList);
+      nockList = new noun.Cell(toNoun(x), nockList);
     }
     return this.#unjammed(nockList);
   }

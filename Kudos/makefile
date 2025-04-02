@@ -165,6 +165,9 @@ get-unspent-resources: $(unspent-resources)
 .PHONY: compile-kudos-create
 compile-kudos-create: $(create-nockma)
 
+.PHONY: compile-get-balance
+compile-get-balance: $(get-balance-nockma)
+
 .PHONY: compile-logic
 compile-logic: $(logic-proved)
 

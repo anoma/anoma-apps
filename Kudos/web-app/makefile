@@ -12,17 +12,20 @@ anoma-config = $(anoma-build-dir)/anoma-config.yaml
 anoma-port = $(anoma-build-dir)/port
 
 kudos-create-program = Create.nockma
+get-balance-program = GetBalance.nockma
 logic-program = Logic.proved.nockma
 
 kudos-create-program-src = $(src)/$(kudos-create-program)
+get-balance-program-src = $(src)/$(get-balance-program)
 logic-program-src = $(src)/$(logic-program)
 kind-src = $(src)/$(kind)
 
 kudos-create-program-dst = $(dst)/$(kudos-create-program)
+get-balance-program-dst = $(dst)/$(get-balance-program)
 logic-program-dst = $(dst)/$(logic-program)
 
 .PHONY: build
-build: $(kudos-create-program-dst) $(logic-program-dst)
+build: $(kudos-create-program-dst) $(get-balance-program-dst) $(logic-program-dst)
 
 .PHONY: clean
 clean:
@@ -69,6 +72,9 @@ $(envoy-config): $(anoma-build) $(anoma-port)
 $(kudos-create-program-dst): $(dst) $(kudos-create-program-src)
 	cp $(kudos-create-program-src) $(kudos-create-program-dst)
 
+$(get-balance-program-dst): $(dst) $(get-balance-program-src)
+	cp $(get-balance-program-src) $(get-balance-program-dst)
+
 $(get-message-program-dst): $(dst) $(get-message-program-src)
 	cp $(get-message-program-src) $(get-message-program-dst)
 
@@ -83,3 +89,6 @@ $(kudos-create-program-src):
 
 $(logic-program-src):
 	make -C $(app-path) compile-logic
+
+$(get-balance-program-src):
+	make -C $(app-path) compile-get-balance
