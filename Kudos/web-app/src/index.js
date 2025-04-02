@@ -28,6 +28,7 @@ async function getBalances(ownerId) {
   const pubKeyUrl = universalVerifyingKey;
   // Filter arguments are NOT jammed
   const pubKey = await fetchBinary(pubKeyUrl)
+  // TODO: Additionally filter by Kudos Kind, i.e. replace [] by [kind]
   const rawBalances = await anomaClient.filter([], [pubKey]);
   if (rawBalances.legth == 0) {
     throw Error("There are no stored balances");
