@@ -21,7 +21,7 @@ module.exports = {
     module: {
         rules: [
         {
-            test: /\.(nockma|bin)$/,
+            test: /\.nockma$/,
             use: 'file-loader'
         },
         ],
