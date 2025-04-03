@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Kudos</title>
+  </head>
+  <style>
+    /* TODO: Fix css */
+    #container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    
+    #get-message {
+        display: block;
+        margin-bottom: 10px;
+    }
+  </style>
+  <body>
+    <!-- <div id="keygen-container">
+      <p>Create keypair</p>
+      <input type="text" id="key-alias" placeholder="Enter alias" />
+      <button id="gen-keypair">Generate keypair</button>
+    </div> -->
+    <div id='create-kudos-container'>
+      <p>Create Kudos</p>
+      <input type="text" id="owner-id-input" placeholder="Type an owner id">
+      <input type="text" id="quantity-input" placeholder="Type a quantity">
+      <button id="create-kudos">Create Kudos</button>
+    </div>
+    <div id="get-balance-container">
+      <p>Get Balance</p>
+      <input type="text" id="balance-owner-input" placeholder="Type an owner">
+      <button id="get-balance">Get Balance</button>
+    </div>
+
+    <div id="response-container"></div>
+
+    <script src="main.js"></script>
+  </body>
+</html>

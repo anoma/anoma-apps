@@ -12,12 +12,12 @@ async function addMessage(message) {
   const logicProgram = await fetchBinary(logic);
   const helloWorldProgram = await fetchBinary(helloWorld);
   const tx = await anomaClient.prove(helloWorldProgram, [logicProgram, serialize(message)]);
-  return await anomaClient.addTransaction(tx);
+  return await anomaClient.addTransaction(tx.data);
 }
 
 async function getMessages() {
   const kind = await fetchBinary(appIdentity);
-  const unspent = await anomaClient.filterKind(kind);
+  const unspent = await anomaClient.filter([kind], []);
   if (unspent.length == 0) {
     throw Error("There are no stored messages");
   }
@@ -25,7 +25,7 @@ async function getMessages() {
   let messages = [];
   for (const m of unspent) {
     const result = await anomaClient.prove(getMessageProgram, [m]);
-    messages.push(deserializeToString(result));
+    messages.push(deserializeToString(result.data));
   }
   return messages;
 }

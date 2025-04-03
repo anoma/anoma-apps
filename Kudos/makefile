@@ -162,6 +162,15 @@ kudos-merge: $(merge-proved) $(config)
 get-unspent-resources: $(unspent-resources)
 	@cat $(unspent-resources)
 
+.PHONY: compile-kudos-create
+compile-kudos-create: $(create-nockma)
+
+.PHONY: compile-get-balance
+compile-get-balance: $(get-balance-nockma)
+
+.PHONY: compile-logic
+compile-logic: $(logic-proved)
+
 .PHONY: did-it-work
 did-it-work:
 	rm -f $(config)
@@ -377,7 +386,7 @@ $(merge-proved): $(merge-nockma) $(random-32bytes) $(get-latest-root) $(logic-pr
 $(get-balance-nockma): $(anoma-build) $(all-juvix)
 	$(juvix-cmd) compile anoma $(get-balance-juvix) -o $(get-balance-nockma)
 
-$(get-balance-proved): $(config) $(get-balance-nockma) $(owner-balance-resources)
+$(get-balance-proved): $(config) $(get-balance-nockma) $(owner-balance-resources) $(owner-id-file)
 	$(juvix-cmd) dev anoma -c $(config) prove $(get-balance-nockma) \
 	--arg 'list:$(owner-balance-resources)' \
 	-o $@
