@@ -7,16 +7,13 @@ import Stdlib.Debug.Fail open;
 import Kudos.Layer open;
 
 aggregateBalance
-  (ownedResources : List (Encoded Resource)) (ownerIdFilter : String) : Map (Encoded String) Nat :=
+  (ownedResources : List (Encoded Resource)) : Map (Encoded String) Nat :=
   for (acc := Map.empty) (r in map Encoded.decode ownedResources) {
     let
       i : Kudos.KLabel := Kudos.Resource.identity r;
-      symbol : String := Kudos.KLabel.kudosSymbol i;
       encodedSymbol : Encoded String :=
-        symbol |> Encoded.encode;
-    in if
-      | symbol == ownerIdFilter := Map.insertWith (+) encodedSymbol (Resource.quantity r) acc
-      | else := acc
+        Kudos.KLabel.kudosSymbol i |> Encoded.encode;
+    in Map.insertWith (+) encodedSymbol (Resource.quantity r) acc
   };
 
 anomaNatToString (n : Nat) : String :=
@@ -44,8 +41,8 @@ anomaNatToString (n : Nat) : String :=
     | n == 0 := "0"
     | else := go n;
 
-main (ownedResources : List (Encoded Resource)) (ownerIdFilter : String) : String :=
-  for (acc := "") (encodedSymbol, balance in aggregateBalance ownedResources ownerIdFilter) {
+main (ownedResources : List (Encoded Resource)) : String :=
+  for (acc := "") (encodedSymbol, balance in aggregateBalance ownedResources) {
     acc
       ++str Encoded.decode encodedSymbol
       ++str " : "

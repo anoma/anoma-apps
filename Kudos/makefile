@@ -389,7 +389,6 @@ $(get-balance-nockma): $(anoma-build) $(all-juvix)
 $(get-balance-proved): $(config) $(get-balance-nockma) $(owner-balance-resources) $(owner-id-file)
 	$(juvix-cmd) dev anoma -c $(config) prove $(get-balance-nockma) \
 	--arg 'list:$(owner-balance-resources)' \
-	--arg 'bytes-unjammed:$(owner-id-file)' \
 	-o $@
 
 $(get-balance-proved-txt): $(get-balance-proved)

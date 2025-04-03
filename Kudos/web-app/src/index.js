@@ -58,7 +58,6 @@ async function getBalances(ownerId) {
   const getBalancesProgram = await fetchBinary(getBalance);
   const proveArgs = new ProveArgsBuilder()
     .list(rawBalances)
-    .string(ownerId)
     .build();
   const txResult = await anomaClient.prove(getBalancesProgram, proveArgs);
   return txResult.data;
