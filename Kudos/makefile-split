@@ -60,9 +60,11 @@ $(owner-to-split-resource-request): $(owner-to-split-public-key-base64) $(owner-
 	> $@ \
 
 $(owner-to-split-resource): $(host) $(port) $(owner-to-split-resource-request)
-	grpcurl -plaintext \
-	-d @ \
-	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	curl -X POST \
+	$$(cat $(host)):$$(cat $(port))/indexer/filter-resources \
+	-H "accept: application/json" \
+	-H "Content-Type: application/json" \
+	-d @- \
 	< $(owner-to-split-resource-request) \
 	| jq -r 'try .resources[]' \
 	> $@

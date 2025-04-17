@@ -171,8 +171,8 @@ did-it-work:
 
 .PHONY: $(unspent-resources)
 $(unspent-resources): $(anoma-build) $(host) $(port)
-	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources \
-	| jq -r 'try .unspentResources[]' > $(unspent-resources) \
+	curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/unspent-resources \
+	| jq -r 'try .unspent_resources[]' > $(unspent-resources) \
 
 $(config): $(anoma-build)
 ifdef ANOMA_DEBUG
@@ -194,7 +194,7 @@ $(random-32bytes): $(anoma-build)
 
 .PHONY: $(get-latest-root)
 $(get-latest-root): $(anoma-build) $(host) $(port)
-	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
+	curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/root \
 	| jq -r '.root' \
 	> $(get-latest-root)
 
@@ -204,7 +204,7 @@ latest-block-height: $(latest-block-height)
 
 .PHONY: $(latest-block-height)
 $(latest-block-height): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Latest \
+	@curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/latest-block \
 	| jq -r '.block.height' \
 	| tr -d '\n' \
 	> $@
@@ -215,10 +215,12 @@ has-transaction-after-height: $(has-transaction-after-height)
 
 .PHONY: $(has-transaction-after-height)
 $(has-transaction-after-height): $(anoma-build) $(host) $(port)
-	echo '{"after": $(block-height)}' \
-	| grpcurl -plaintext \
-	-d @ \
-	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Get \
+	echo '{"direction": "after", "offset": $(block-height)}' \
+	| curl -X POST \
+	$$(cat $(host)):$$(cat $(port))/indexer/blocks \
+	-H "accept: application/json" \
+	-H "Content-Type: application/json" \
+	-d @- \
 	| jq '.blocks | map(has("transactions")) | any' \
 	| tr -d '\n' \
 	> $@
@@ -257,9 +259,11 @@ get-first-resource: $(owner-first-resource)
 
 .PHONY: $(owner-balance-resources)
 $(owner-balance-resources): $(anoma-build) $(host) $(port) $(owner-request)
-	grpcurl -plaintext \
-	-d @ \
-	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	curl -X POST \
+	$$(cat $(host)):$$(cat $(port))/indexer/filter-resources \
+	-H "accept: application/json" \
+	-H "Content-Type: application/json" \
+	-d @- \
 	< $(owner-request) \
 	| jq -r 'try .resources[]' \
 	> $@
@@ -356,9 +360,11 @@ $(to-merge-resources-request): $(owner-public-key-base64) $(to-merge-kind-cued-p
 
 .PHONY: $(to-merge-resources)
 $(to-merge-resources): $(host) $(port) $(to-merge-resources-request)
-	grpcurl -plaintext \
-	-d @ \
-	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	curl -X POST \
+	$$(cat $(host)):$$(cat $(port))/indexer/filter-resources \
+	-H "accept: application/json" \
+	-H "Content-Type: application/json" \
+	-d @- \
 	< $(to-merge-resources-request) \
 	| jq -r 'try .resources[]' \
 	> $@

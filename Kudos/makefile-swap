@@ -75,9 +75,9 @@ $(owner-request): $(anoma-build) $(owner-public-key-base64)
 
 .PHONY: $(owned-resources)
 $(owned-resources): $(anoma-build) $(host) $(port) $(owner-request)
-	grpcurl -plaintext \
-	-d @ \
-	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	curl -X POST \
+	$$(cat $(host)):$$(cat $(port))/indexer/filter-resources \
+	-d @- \
 	< $(owner-request) \
 	| jq -r 'try .resources[]' \
 	> $@
@@ -108,20 +108,18 @@ $(add-intent-request): $(anoma-build) $(proved-base64)
 
 .PHONY: add-intent
 add-intent: $(add-intent-request) $(host) $(port)
-	grpcurl -plaintext \
-	-d @ \
-	$$(cat $(host)):$$(cat $(port))  Anoma.Protobuf.IntentsService.AddIntent \
+	curl -X POST \
+	$$(cat $(host)):$$(cat $(port))/intents \
+	-H "accept: application/json" \
+	-H "Content-Type: application/json" \
+	-d @- \
 	< $(add-intent-request) \
 
-$(list-intents-request):
-	echo '{"node_info": {"node_id": ""}}' > $@
-
 .PHONY: list-intents
-list-intents: $(list-intents-request) $(host) $(port)
-	grpcurl -plaintext \
+list-intents: $(host) $(port)
+	curl -X GET \
 	-d @ \
-	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IntentsService.ListIntents \
-	< $(list-intents-request) \
+	$$(cat $(host)):$$(cat $(port))/intents \
 
 $(get-give-resource-nockma): $(anoma-build) $(get-give-resource-juvix)
 	$(juvix-cmd) compile anoma $(get-give-resource-juvix) -o $(get-give-resource-nockma)

@@ -1,7 +1,7 @@
 # dependencies:
 # 	- jq
 # 	- yq
-# 	- grpcurl
+# 	- curl
 
 # How to run:
 # 0. set ANOMA_PATH environment variable to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
@@ -164,9 +164,11 @@ $(logic-proved): $(logic-nockma) $(config)
 
 .PHONY: $(unspent-resources)
 $(unspent-resources): $(anoma-build) $(host) $(port) $(filter-request)
-	@grpcurl -plaintext \
-	-d @ \
-	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	@curl -X POST \
+	$$(cat $(host)):$$(cat $(port))/indexer/filter-resources \
+	-H "accept: application/json" \
+	-H "Content-Type: application/json" \
+	-d @- \
 	< $(filter-request) \
 	| jq -r 'if has("resources") then .resources[] else empty end' \
 	> $(unspent-resources)

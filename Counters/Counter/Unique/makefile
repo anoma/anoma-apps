@@ -167,7 +167,7 @@ $(current-counter-request): $(anoma-build) $(counter-kind-proved-cued-b64)
 
 .PHONY: $(current-counter)
 $(current-counter): $(anoma-build) $(host) $(port) $(current-counter-request)
-	@grpcurl -plaintext \
+	@curl \
 	-d @ \
 	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
 	< $(current-counter-request) \
@@ -200,7 +200,7 @@ get-latest-root: $(get-latest-root)
 
 .PHONY: $(get-latest-root) $(host) $(port)
 $(get-latest-root): $(anoma-build) $(host) $(port)
-	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
+	curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/root \
 	| jq -r '.root' \
 	> $(get-latest-root)
 
