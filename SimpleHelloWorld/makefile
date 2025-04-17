@@ -95,7 +95,7 @@ $(get-message-nockma): $(anoma-build) $(get-message-juvix)
 
 .PHONY: $(unspent-resources)
 $(unspent-resources): $(anoma-build) $(host) $(port)
-	curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/unspent-resources | jq -r '.unspentResources[-1] // error("no messages exist")' > $(unspent-resources)
+	curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/unspent-resources | jq -r '.unspent_resources[-1] // error("no messages exist")' > $(unspent-resources)
 
 $(host): $(config)
 	yq -r '.url' $(config) | tr -d '\n' > $(host)

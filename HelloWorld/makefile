@@ -109,7 +109,7 @@ compute-kind: $(kind-proved-cued)
 
 .PHONY: add-transaction
 add-transaction: $(proved) $(config)
-	@$(juvix-cmd) dev anoma -c $(config) add-transaction $(proved)
+	$(juvix-cmd) dev anoma -c $(config) add-transaction $(proved)
 
 .PHONY: get-last-message
 get-last-message: $(last-message-txt)
@@ -137,24 +137,24 @@ $(proved): $(nockma) $(config) $(message-file) $(logic-proved)
 	$(juvix-cmd) dev anoma -c $(config) prove $(nockma) -o $(proved) --arg 'bytes:$(logic-proved)' --arg 'bytes-unjammed:$(message-file)'
 
 $(kind-nockma): $(kind-juvix) $(anoma-build)
-	@$(juvix-cmd) compile anoma $(kind-juvix) -o $(kind-nockma)
+	$(juvix-cmd) compile anoma $(kind-juvix) -o $(kind-nockma)
 
 $(kind-proved): $(kind-nockma) $(config) $(logic-proved)
-	@$(juvix-cmd) dev anoma -c $(config) prove $(kind-nockma) -o $(kind-proved) --arg 'bytes:$(logic-proved)'
+	$(juvix-cmd) dev anoma -c $(config) prove $(kind-nockma) -o $(kind-proved) --arg 'bytes:$(logic-proved)'
 
 $(kind-proved-cued): $(kind-proved)
-	@$(juvix-cmd) dev nockma encode --cue --from bytes --to bytes < $(kind-proved) > $(kind-proved-cued)
+	$(juvix-cmd) dev nockma encode --cue --from bytes --to bytes < $(kind-proved) > $(kind-proved-cued)
 
 $(kind-proved-cued-b64): $(kind-proved)
-	@$(juvix-cmd) dev nockma encode --cue --from bytes --to base64 < $(kind-proved) > $(kind-proved-cued-b64)
+	$(juvix-cmd) dev nockma encode --cue --from bytes --to base64 < $(kind-proved) > $(kind-proved-cued-b64)
 
 $(filter-request): $(kind-proved-cued-b64)
 	jq -n --arg KIND $$(cat $(kind-proved-cued-b64)) \
-	'{node_info: {node_id: ""}, filters: [{kind: $$KIND}]}' \
+	'{filters: [{kind: $$KIND}]}' \
 	> $(filter-request)
 
 $(get-message-nockma): $(anoma-build) $(get-message-juvix)
-	@$(juvix-cmd) compile anoma $(get-message-juvix) -o $(get-message-nockma)
+	$(juvix-cmd) compile anoma $(get-message-juvix) -o $(get-message-nockma)
 
 $(logic-nockma): $(anoma-build) $(logic-juvix)
 	$(juvix-cmd) compile anoma $(logic-juvix) -o $(logic-nockma)
@@ -164,7 +164,7 @@ $(logic-proved): $(logic-nockma) $(config)
 
 .PHONY: $(unspent-resources)
 $(unspent-resources): $(anoma-build) $(host) $(port) $(filter-request)
-	@curl -X POST \
+	curl -X POST \
 	$$(cat $(host)):$$(cat $(port))/indexer/filter-resources \
 	-H "accept: application/json" \
 	-H "Content-Type: application/json" \
