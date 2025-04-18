@@ -215,12 +215,8 @@ has-transaction-after-height: $(has-transaction-after-height)
 
 .PHONY: $(has-transaction-after-height)
 $(has-transaction-after-height): $(anoma-build) $(host) $(port)
-	echo '{"direction": "after", "offset": $(block-height)}' \
-	| curl -X POST \
-	$$(cat $(host)):$$(cat $(port))/indexer/blocks \
-	-H "accept: application/json" \
-	-H "Content-Type: application/json" \
-	-d @- \
+	| curl -X GET \
+	$$(cat $(host)):$$(cat $(port))/indexer/blocks/after/$(block-height) \
 	| jq '.blocks | map(has("transactions")) | any' \
 	| tr -d '\n' \
 	> $@
