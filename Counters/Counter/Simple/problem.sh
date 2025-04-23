@@ -9,5 +9,5 @@ sleep 1
 curl -X GET $(cat anoma-build/host):$(cat anoma-build/port)/indexer/root
 make counter-initialize
 sleep 2
-curl -X GET $(cat anoma-build/host):$(cat anoma-build/port)/indexer/root -H "accept: application/json" -H "Content-Type: application/json"
+curl -X GET $(cat anoma-build/host):$(cat anoma-build/port)/indexer/root
 make anoma-stop

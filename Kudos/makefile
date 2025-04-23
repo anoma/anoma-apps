@@ -351,7 +351,7 @@ $(to-merge-resources-request): $(owner-public-key-base64) $(to-merge-kind-cued-p
 	jq -n \
 	--arg OWNER $$(cat $(owner-public-key-base64)) \
 	--arg KIND $$(cat $(to-merge-kind-cued-proved-base64)) \
-	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}, {kind: $$KIND}]}' \
+	'{filters: [{owner: $$OWNER}, {kind: $$KIND}]}' \
 	> $@ \
 
 .PHONY: $(to-merge-resources)

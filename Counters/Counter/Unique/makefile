@@ -162,14 +162,16 @@ $(random-32bytes-increment): $(anoma-build)
 
 $(current-counter-request): $(anoma-build) $(counter-kind-proved-cued-b64)
 	jq -n --arg KIND $$(cat $(counter-kind-proved-cued-b64)) \
-	'{node_info: {node_id: ""}, filters: [{kind: $$KIND}]}' \
+	'{filters: [{kind: $$KIND}]}' \
 	> $(current-counter-request)
 
 .PHONY: $(current-counter)
 $(current-counter): $(anoma-build) $(host) $(port) $(current-counter-request)
-	@curl \
-	-d @ \
-	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	curl -X POST \
+	$$(cat $(host)):$$(cat $(port))/indexer/filter-resources \
+	-H "accept: application/json" \
+	-H "Content-Type: application/json" \
+	-d @- \
 	< $(current-counter-request) \
 	| jq -r 'try .resources[]' \
 	> $(current-counter)

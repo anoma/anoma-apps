@@ -56,7 +56,7 @@ $(owner-to-split-resource-request): $(owner-to-split-public-key-base64) $(owner-
 	jq -n \
 	--arg OWNER $$(cat $(owner-to-split-public-key-base64)) \
 	--arg KIND $$(cat $(owner-to-split-kudos-kind-proved-cued-base64)) \
-	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}, {kind: $$KIND}]}' \
+	'{filters: [{owner: $$OWNER}, {kind: $$KIND}]}' \
 	> $@ \
 
 $(owner-to-split-resource): $(host) $(port) $(owner-to-split-resource-request)

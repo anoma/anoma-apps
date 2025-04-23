@@ -70,7 +70,7 @@ $(owner-signing-key): $(addprefix $(person-signing-key)-, $(shell yq -r '.owner'
 
 $(owner-request): $(anoma-build) $(owner-public-key-base64)
 	jq -n --arg OWNER $$(cat $(owner-public-key-base64)) \
-	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}]}' \
+	'{filters: [{owner: $$OWNER}]}' \
 	> $(owner-request) \
 
 .PHONY: $(owned-resources)
