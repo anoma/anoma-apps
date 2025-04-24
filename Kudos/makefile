@@ -171,7 +171,7 @@ did-it-work:
 
 .PHONY: $(unspent-resources)
 $(unspent-resources): $(anoma-build) $(host) $(port)
-	curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/unspent-resources \
+	@curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/unspent-resources \
 	| jq -r 'try .unspent_resources[]' > $(unspent-resources) \
 
 $(config): $(anoma-build)
@@ -194,7 +194,7 @@ $(random-32bytes): $(anoma-build)
 
 .PHONY: $(get-latest-root)
 $(get-latest-root): $(anoma-build) $(host) $(port)
-	curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/root \
+	@curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/root \
 	| jq -r '.root' \
 	> $(get-latest-root)
 
@@ -211,13 +211,13 @@ $(latest-block-height): $(anoma-build) $(host) $(port)
 
 .PHONY: has-transaction-after-height
 has-transaction-after-height: $(has-transaction-after-height)
-	@cat $<
+	cat $<
 
 .PHONY: $(has-transaction-after-height)
 $(has-transaction-after-height): $(anoma-build) $(host) $(port)
-	| curl -X GET \
+	@curl -X GET \
 	$$(cat $(host)):$$(cat $(port))/indexer/blocks/after/$(block-height) \
-	| jq '.blocks | map(has("transactions")) | any' \
+	| jq '.blocks | map(has("block")) | any' \
 	| tr -d '\n' \
 	> $@
 
@@ -238,7 +238,7 @@ $(owner-public-key-base64): $(owner-public-key)
 
 $(owner-request): $(anoma-build) $(owner-public-key) $(owner-public-key-base64)
 	jq -n --arg OWNER $$(cat $(owner-public-key-base64)) \
-	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}]}' \
+	'{filters: [{owner: $$OWNER}]}' \
 	> $(owner-request) \
 
 .PHONY: $(owner-id-file)

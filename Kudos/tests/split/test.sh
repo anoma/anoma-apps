@@ -23,9 +23,11 @@ make -C $make_dir anoma-start
 sleep 1
 
 owner_id=$robin quantity=$quantity_robin kudos_initialize
+sleep 3
 assert_balance $LINENO $robin "$robin : $quantity_robin"
 
 spec="$(pwd)/split.yaml" kudos_split
+sleep 3
 assert_balance $LINENO $caracalla "$robin : $quantity_caracalla"
 assert_balance $LINENO $wibble "$robin : $quantity_wibble"
 assert_broke $LINENO $robin

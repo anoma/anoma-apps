@@ -22,18 +22,23 @@ make -C $make_dir anoma-start
 sleep 1
 
 owner_id=$caracalla quantity=$quantity_1 kudos_initialize
+sleep 1
 assert_balance $LINENO $caracalla "$caracalla : $quantity_1"
 
 owner_id=$caracalla receiver_id=$bob kudos_transfer
+sleep 1
 assert_balance $LINENO "$bob" "$caracalla : $quantity_1"
 
 owner_id=$caracalla quantity=$quantity_2 kudos_initialize
+sleep 1
 assert_balance $LINENO $caracalla "$caracalla : $quantity_2"
 
 owner_id=$caracalla receiver_id=$bob kudos_transfer
+sleep 1
 assert_balance $LINENO "$bob" "$caracalla : $expected_merge_quantity"
 
 owner_id=$bob merge_id=$caracalla receiver_id=$wibble kudos_merge
+sleep 1
 assert_balance $LINENO $wibble "$caracalla : $expected_merge_quantity"
 
 test_passed
