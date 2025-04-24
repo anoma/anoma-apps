@@ -32,4 +32,6 @@ assert_balance $LINENO $caracalla "$robin : $quantity_caracalla"
 assert_balance $LINENO $wibble "$robin : $quantity_wibble"
 assert_broke $LINENO $robin
 
+make -C $make_dir anoma-stop
+
 test_passed

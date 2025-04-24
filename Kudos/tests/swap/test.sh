@@ -47,4 +47,6 @@ wait_for_transaction $block_height
 assert_balance $LINENO $wibble "$bag : 1"
 assert_balance $LINENO $bob "$apple : 1"
 
+make -C $make_dir anoma-stop
+
 test_passed

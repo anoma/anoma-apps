@@ -41,4 +41,6 @@ owner_id=$bob merge_id=$caracalla receiver_id=$wibble kudos_merge
 sleep 1
 assert_balance $LINENO $wibble "$caracalla : $expected_merge_quantity"
 
+make -C $make_dir anoma-stop
+
 test_passed
