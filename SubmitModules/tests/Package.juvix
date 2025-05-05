@@ -1,0 +1,10 @@
+module Package;
+
+import PackageDescription.V2 open;
+
+package : Package :=
+  defaultPackage@{
+    name := "SubmissionTests";
+    version := mkVersion 0 1 0;
+    dependencies := [defaultStdlib];
+  };

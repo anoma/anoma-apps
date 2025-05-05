@@ -1,0 +1,7 @@
+module M2;
+
+import Stdlib.Prelude open;
+
+{-# inline: false, eval: false #-}
+g (x : Nat) : Nat :=
+  2 * x;
