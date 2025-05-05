@@ -1,0 +1,15 @@
+module SubmitLocalModules;
+
+import Stdlib.Prelude open;
+import Applib open;
+import Anoma open;
+import BaseLayer open;
+
+ctx : TxContext :=
+  TxContext.mk@{
+    caller := Universal.identity;
+    currentRoot := CommitmentRoot.fromNat 0;
+  };
+
+main (modules : List Nat) : Transaction :=
+  Tx.run 0 ctx (moduleSubmissionTransaction modules);
