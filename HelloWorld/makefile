@@ -1,6 +1,6 @@
 ANOMA_PATH ?= $(error set the ANOMA_PATH variable to a path to an anoma clone)
 base-path = .
-base = SimpleHelloWorld
+base = HelloWorld
 get-message = GetMessage
 root = $(shell pwd)
 

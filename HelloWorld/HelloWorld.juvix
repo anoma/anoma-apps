@@ -1,4 +1,4 @@
-module SimpleHelloWorld;
+module HelloWorld;
 
 import Stdlib.Prelude open;
 import Applib open;
