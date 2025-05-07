@@ -11,7 +11,7 @@ type LogicWrapper :=
     logic : Logic;
   };
 
---- Compute the logic function for the HelloWorld ;Resource;
+--- Compute the logic function for the WebHelloWorld ;Resource;
 main : LogicWrapper :=
   LogicWrapper.mk@{
     logic;

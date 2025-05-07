@@ -3,6 +3,6 @@ module GetMessage;
 import Stdlib.Prelude open;
 import Applib open;
 
---- Extract the message from a HelloWorld ;Resource;
+--- Extract the message from a WebHelloWorld ;Resource;
 main (resource : Resource) : String :=
   resource |> Resource.value |> AnomaAtom.toNat |> builtinAnomaDecode;

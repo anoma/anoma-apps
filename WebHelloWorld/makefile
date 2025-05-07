@@ -6,8 +6,8 @@
 # How to run:
 # 0. set ANOMA_PATH environment variable to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
 # 1. make anoma-start # start the Anoma node
-# 3. make message="my message" add-transaction # Submit the HelloWorld transaction to anoma with a message
-# 4. make get-last-message # Get the message from the latest HelloWorld Resource (my message)
+# 3. make message="my message" add-transaction # Submit the WebHelloWorld transaction to anoma with a message
+# 4. make get-last-message # Get the message from the latest WebHelloWorld Resource (my message)
 # 5. make get-all-messages # Get all messages from Anoma
 # ...
 # 5. make anoma-stop # stop the Anoma node when you've finished
@@ -20,7 +20,7 @@ else
 endif
 
 base-path = .
-base = HelloWorld
+base = WebHelloWorld
 get-message = GetMessage
 kind = AppIdentity
 logic = Logic
