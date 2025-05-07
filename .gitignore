@@ -7,3 +7,5 @@ anoma-build/
 .nockma
 .vscode
 config.yaml
+
+*.log

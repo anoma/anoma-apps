@@ -29,7 +29,7 @@ run_test() {
 
 tests=(
   "HelloWorld/tests"
-  "SimpleHelloWorld/tests"
+  "WebHelloWorld/tests"
   "Counters/Counter/Simple/tests"
   "Counters/Counter/Unique/tests"
   "Kudos/tests"
