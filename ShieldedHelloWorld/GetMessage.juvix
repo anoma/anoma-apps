@@ -1,0 +1,8 @@
+module GetMessage;
+
+import Stdlib.Prelude open;
+import Applib open;
+
+--- Extract the message from a HelloWorld ;Resource;
+main (resource : Resource) : String :=
+  resource |> Resource.label |> Label.toNat |> builtinAnomaDecode;

@@ -60,5 +60,6 @@ helloWorldTransaction
     [mkDefaultWitness false];
 
 --- The function that is run to produce a Transaction to send to Anoma.
-main (logic : ByteArray) (message : String) : TransactionRequest :=
-  TransactionRequest.fromTransaction (helloWorldTransaction logic 0 message);
+main (logic : ByteArray) : TransactionRequest :=
+  TransactionRequest.fromTransaction
+    (helloWorldTransaction logic 0 "Hello World!");
