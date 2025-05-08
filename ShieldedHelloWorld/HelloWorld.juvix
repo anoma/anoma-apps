@@ -53,11 +53,12 @@ helloWorldTransaction
         ephRoot := Cairo.defaultCairoRoot;
       };
   in createFromComplianceInputs
-    [complianceInputs]
-    [logic]
-    [mkDefaultWitness true]
-    [logic]
-    [mkDefaultWitness false];
+      [complianceInputs]
+      [logic]
+      [mkDefaultWitness true]
+      [logic]
+      [mkDefaultWitness false]
+    |> Transaction.proveDelta;
 
 --- The function that is run to produce a Transaction to send to Anoma.
 main (logic : ByteArray) : TransactionRequest :=
