@@ -33,6 +33,7 @@ tests=(
   "Counters/Counter/Simple/tests"
   "Counters/Counter/Unique/tests"
   "Kudos/tests"
+  "SubmitModules/tests"
 )
 
 for test in "${tests[@]}"; do
