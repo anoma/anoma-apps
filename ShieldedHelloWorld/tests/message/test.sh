@@ -2,7 +2,7 @@
 
 # Assumption: There is no running anoma node
 
-set -ex
+set -e
 
 main_dir=../../
 build_dir=$main_dir/anoma-build
