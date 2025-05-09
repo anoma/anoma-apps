@@ -118,8 +118,8 @@ jobs:
           name: test-logs
           path: "**/all-tests.log"
 
-      - name: Build HelloWorld app
-        working-directory: ${{ github.workspace }}/HelloWorld/web-app
+      - name: Build WebHelloWorld app
+        working-directory: ${{ github.workspace }}/WebHelloWorld/web-app
         run: |
           make anoma-start
           make build
