@@ -1,0 +1,66 @@
+module HelloWorld;
+
+import Stdlib.Prelude open;
+import Applib open;
+
+open Shielded;
+
+--- The label for HelloWorld resources
+label : Label := Label.mk (builtinAnomaEncode "HelloWorld");
+
+mkHelloWorldConsumedResource
+  (nonce : Nat) (message : String) : ConsumedResource :=
+  ConsumedResource.mk@{
+    label;
+    value := AnomaAtom.mk (builtinAnomaEncode message);
+    quantity := 1;
+    nonce := Nonce.fromAnomaAtom (AnomaAtom.fromNat nonce);
+    ephemeral := true;
+    randSeed := 0;
+  };
+
+mkHelloWorldCreatedResource
+  (nonce : Nat) (message : String) : CreatedResource :=
+  CreatedResource.mk@{
+    label;
+    value := AnomaAtom.mk (builtinAnomaEncode message);
+    quantity := 1;
+    nonce := Nonce.fromAnomaAtom (AnomaAtom.fromNat nonce);
+    ephemeral := false;
+    randSeed := 0;
+    -- can be arbitrary for intent resources
+    nullifierKeyCommitment := NullifierKeyCommitment.mk (ByteArray.zero 1);
+  };
+
+--- Produces a ;Transaction; that creates a HelloWorld ;Resource;
+--- @param nonce A number used to ensure ;Resource; uniqueness.
+--- @param message The message to store in the ;Resource;
+helloWorldTransaction
+  (logic : ByteArray) (nonce : Nat) (message : String) : Transaction :=
+  let
+    complianceInputs :=
+      ComplianceInputs.mk@{
+        consumedResource := mkHelloWorldConsumedResource nonce message;
+        createdResource := mkHelloWorldCreatedResource nonce message;
+        inputNullifierKey :=
+          NullifierKey.fromByteArray (ByteArray.mk [Byte.fromNat 1]);
+        -- merklePath is arbitrary (unused) for ephemeral consumed resources
+        merklePath := MerklePath.mk (replicate 32 (0, false));
+        -- rcv can be chosen randomly
+        rcv := 3;
+        -- ephRoot can be the default Cairo root for ephemeral consumed
+        -- resources
+        ephRoot := Cairo.defaultCairoRoot;
+      };
+  in createFromComplianceInputs
+      [complianceInputs]
+      [logic]
+      [mkDefaultWitness true]
+      [logic]
+      [mkDefaultWitness false]
+    |> Transaction.proveDelta;
+
+--- The function that is run to produce a Transaction to send to Anoma.
+main (logic : ByteArray) : TransactionRequest :=
+  TransactionRequest.fromTransaction
+    (helloWorldTransaction logic 0 "Hello World!");
