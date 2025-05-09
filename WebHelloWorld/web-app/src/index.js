@@ -1,5 +1,5 @@
 import { AnomaClient, fetchBinary, serialize, deserializeToString } from 'anoma-client';
-import helloWorld from '../nockma/HelloWorld.nockma';
+import webHelloWorld from '../nockma/WebHelloWorld.nockma';
 import getMessage from '../nockma/GetMessage.nockma'
 import logic from '../nockma/Logic.proved.nockma'
 import appIdentity from '../nockma/AppIdentity.cued.nockma'
@@ -10,8 +10,8 @@ const anomaClient = new AnomaClient(grpcServer);
 
 async function addMessage(message) {
   const logicProgram = await fetchBinary(logic);
-  const helloWorldProgram = await fetchBinary(helloWorld);
-  const tx = await anomaClient.prove(helloWorldProgram, [logicProgram, serialize(message)]);
+  const webHelloWorldProgram = await fetchBinary(webHelloWorld);
+  const tx = await anomaClient.prove(webHelloWorldProgram, [logicProgram, serialize(message)]);
   return await anomaClient.addTransaction(tx);
 }
 

@@ -6,4 +6,4 @@ pushd message
 ./test.sh
 popd
 
-echo "All SimpleHelloWorld tests passed"
+echo "All WebHelloWorld tests passed"

@@ -17,18 +17,18 @@ type ResourceRelationship :=
     mustBeCreated : List Commitment;
   };
 
-computeKind (logic : Logic) (label : Nat) : Kind :=
+computeKind (logic : Logic) (label : Label) : Kind :=
   let
     dummy : Resource :=
       Resource.mk@{
         label;
-        logic;
+        logic := Encoded.encode logic;
         -- the arguments below don't matter
         ephemeral := true;
-        nonce := 0;
+        nonce := Nonce.Raw.mk 0;
         value := 0;
         quantity := 0;
-        randSeed := 0;
+        unusedRandSeed := 0;
         nullifierKeyCommitment := 0;
       };
   in kind dummy;

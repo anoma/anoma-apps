@@ -14,34 +14,40 @@ mkCounter
   {ephemeral : Bool := false}
   : Resource :=
   Resource.mk@{
-    logic;
-    label := "SimpleCounter" |> builtinAnomaEncode;
-    value := count;
+    logic := Encoded.encode logic;
+    label := Label.fromNat ("SimpleCounter" |> builtinAnomaEncode);
+    value := AnomaAtom.fromNat count;
     quantity := 1;
     ephemeral;
     nullifierKeyCommitment := toAnomaContents Universal.pub;
-    nonce := Nonce.toNat nonce;
-    randSeed := 0;
+    nonce := Nonce.toRaw nonce;
+    unusedRandSeed := 0;
   };
 
-valid-counter? (pub : Instance) (priv : Witness) : Bool :=
-  case findResource (Instance.tag pub) priv of
-    | ConsumedRes self :=
+valid-counter? (args : Logic.Args) : Bool :=
+  let
+    self := Logic.Args.self args;
+    isConsumed := Logic.Args.isConsumed args;
+  in if
+    | isConsumed :=
       if
         | Resource.ephemeral self := Resource.quantity self == 1
-        | else := increment-correct? self priv
-    | CreatedRes self := not (Resource.ephemeral self)
-    | NonExisting := false;
+        | else := increment-correct? args
+    | else := not (Resource.ephemeral self);
 
-increment-correct? (self : Resource) (private : Witness) : Bool :=
-  case Witness.consumed private, Witness.created private of
-    | [consumed], [created] :=
-      same-kind? [self; consumed; created] && incremented? consumed created
-    | _, _ := false;
+increment-correct? (args : Logic.Args) : Bool :=
+  let
+    self := Logic.Args.self args;
+  in case Logic.Args.consumed args, Logic.Args.created args of
+       | [consumed], [created] :=
+         same-kind? [self; consumed; created] && incremented? consumed created
+       | _, _ := false;
 
 same-kind? : List Resource -> Bool
   | nil := true
   | (x :: xs) := all \{y := kind y == kind x} xs;
 
+getCount : Resource -> Nat := Resource.value >> AnomaAtom.toNat;
+
 incremented? (consumed created : Resource) : Bool :=
-  Resource.value consumed + 1 == Resource.value created;
+  getCount consumed + 1 == getCount created;

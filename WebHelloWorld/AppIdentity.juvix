@@ -3,10 +3,10 @@ module AppIdentity;
 import Stdlib.Prelude open;
 import Applib open;
 
---- The label for HelloWorld resources
-label : Nat := builtinAnomaEncode "HelloWorld";
+--- The label for WebHelloWorld resources
+label : Label := Label.fromNat (builtinAnomaEncode "HelloWorld");
 
---- Compute the kind of the HelloWorld ;Resource;
+--- Compute the kind of the WebHelloWorld ;Resource;
 main (logic : Logic) : Kind :=
   let
     -- Only the logic and label are used in the kind computation, we can use
@@ -14,12 +14,12 @@ main (logic : Logic) : Kind :=
     dummyResource : Resource :=
       Resource.mk@{
         label;
-        logic;
+        logic := Encoded.encode logic;
         value := 0;
         quantity := 0;
-        nonce := 0;
+        nonce := Nonce.toRaw (Nonce.fromAnomaAtom 0);
         ephemeral := true;
-        randSeed := 0;
+        unusedRandSeed := 0;
         nullifierKeyCommitment := 0;
       };
   in kind dummyResource;

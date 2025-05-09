@@ -11,10 +11,10 @@ import Anoma.Identity.Internal open;
 import Kudos.Layer open;
 import Kudos.Extra open;
 
-txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
+txContext (caller : Identity) (currentRoot : CommitmentRoot) : TxContext :=
   TxContext.mk@{
     caller;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot;
   };
 
 split
@@ -55,7 +55,7 @@ splitHelper
         toSplit
           |> Kudos.Resource.setOwner receiver
           |> (@Resource{quantity})
-          |> (@Resource{nonce := Nonce.toNat nonce})
+          |> (@Resource{nonce := Nonce.toRaw nonce})
           |> pure;
       }
     };
@@ -75,7 +75,7 @@ splitHelper
   };
 
 main
-  (latestRoot : Nat)
+  (latestRoot : CommitmentRoot)
   (randSeed : Nat)
   (ownerPrivateKeyPayload : ByteArray)
   (ownerPublicKeyPayload : ByteArray)

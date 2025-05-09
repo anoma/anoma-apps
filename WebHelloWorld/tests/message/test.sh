@@ -9,7 +9,7 @@ make_dir=../../
 
 make -C $make_dir anoma-start
 sleep 2
-make -C $make_dir add-transaction
+make message="Hello World!" -C $make_dir add-transaction
 sleep 2
 make -C $make_dir get-last-message
 sleep 2

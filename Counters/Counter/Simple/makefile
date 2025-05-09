@@ -1,7 +1,7 @@
 # dependencies:
 # 	- jq
 # 	- yq
-# 	- grpcurl
+# 	- curl
 # how to run:
 # - set ANOMA_PATH environment variable to the folder where anoma is cloned and compiled (branch origin/artem/juvix-node-integration-v0.28)
 # - make anoma-start
@@ -74,7 +74,7 @@ anoma-start:
 	rm -f $(config)
 ifdef ANOMA_DEBUG
 	cd $(ANOMA_PATH) && \
-		mix run --no-halt $(root)/../../start-config.exs
+		mix phx.server --no-halt $(root)/../../../start-config.exs
 else
 	$(juvix-cmd) dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
@@ -112,11 +112,11 @@ $(port): $(config)
 
 .PHONY: $(unspent-resources)
 $(unspent-resources): $(anoma-build) $(host) $(port)
-	grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IndexerService.ListUnspentResources | jq -r 'try .unspentResources[]' > $(unspent-resources)
+	curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/unspent-resources | jq -r 'try .unspent_resources[]' > $(unspent-resources)
 
 .PHONY: $(get-latest-root)
 $(get-latest-root): $(anoma-build) $(host) $(port)
-	@grpcurl -plaintext $$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Root \
+	curl -X GET $$(cat $(host)):$$(cat $(port))/indexer/root \
 	| jq -r '.root' \
 	> $(get-latest-root)
 

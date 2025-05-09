@@ -3,7 +3,6 @@ module Counter.Simple.Initialize;
 import Stdlib.Prelude open;
 import Applib open;
 import Counter.Simple.Resource open;
-import Extra;
 
 --- Initializes a counter that can be incremented by everyone.
 --- @param txContext The transaction function standard inputs.
@@ -21,7 +20,7 @@ initialize
           ephemeral := false;
         };
     in
-    Extra.mkTransactionNoPublicData@{
+    mkTransactionNoPublicData@{
       consumed :=
         [
           mkCounter@{
@@ -37,7 +36,7 @@ initialize
 ctx : TxContext :=
   TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.fromNat 0;
+    currentRoot := CommitmentRoot.fromNat 0;
   };
 
 main (logic : Logic) : TransactionRequest :=

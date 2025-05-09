@@ -2,58 +2,56 @@ module HelloWorld;
 
 import Stdlib.Prelude open;
 import Applib open;
-import AppIdentity open using {label};
-import Extra;
+import Anoma.Encode open;
+
+--- A logic function that is always valid.
+logic : Logic := Logic.mk \{_ := true};
 
 --- Creates a new ;Resource; that stores a ;String; message.
 --- @param nonce A number used to ensure resource uniqueness
 --- @param message The message to store in the ;Resource;.
 mkHelloWorldResource
-  (logic : Logic)
-  (nonce : Nat)
+  (nonce : Nonce)
   (message : String)
   {ephemeral : Bool := false}
   : Resource :=
   Resource.mk@{
-    label;
-    logic;
-    value := builtinAnomaEncode message;
+    label := Label.fromNat (builtinAnomaEncode message);
+    logic := Encoded.encode logic;
+    value := AnomaAtom.fromNat 0;
     quantity := 1;
-    nonce;
+    nonce := Nonce.toRaw nonce;
     ephemeral;
-    randSeed := 0;
-    nullifierKeyCommitment := 0;
+    unusedRandSeed := 0;
+    nullifierKeyCommitment := AnomaAtom.fromNat 0;
   };
 
 --- Produces a ;Transaction; that creates a HelloWorld ;Resource;
 --- @param nonce A number used to ensure ;Resource; uniqueness.
 --- @param message The message to store in the ;Resource;
 helloWorldTransaction
-  {M : Type -> Type}
-  {{Monad M}}
-  {{Tx M}}
-  (logic : Logic)
-  (nonce : Nat)
-  (message : String)
+  {M : Type -> Type} -- polymorphic function with type parameter M
+  {{Monad M}} -- additional information for type parameter M
+  {{Tx M}} -- random number generator needs side effects / Monad
+  (nonce : Nonce)
+  (label : String)
   : M Transaction :=
-  do {
-    let
-      newResource := mkHelloWorldResource logic nonce message;
-    in
-    Extra.mkTransactionNoPublicData@{
-      -- A Transaction must be balanced, so we consume an ephemeral resource of
-      -- the same kind as the one we're creating.
-      consumed := [newResource@Resource{ephemeral := true}];
-      created := [newResource];
-    };
-  };
+  let
+    newResource := mkHelloWorldResource nonce label;
+  in mkTransactionNoPublicData@{
+       -- A Transaction must be balanced, so we consume an ephemeral resource of
+       -- the same kind as the one we're creating.
+       consumed := [newResource@Resource{ephemeral := true}];
+       created := [newResource];
+     };
 
+--- Produces a ;TxContext; which injects an identity and the state root of a commitment tree into the ;TransactionRequest;
 ctx : TxContext :=
   TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.fromNat 0;
+    currentRoot := CommitmentRoot.fromNat 0;
   };
 
 --- The function that is run to produce a Transaction to send to Anoma.
-main (logic : Logic) (message : String) : TransactionRequest :=
-  TransactionRequest.build 0 ctx (helloWorldTransaction logic 0 message);
+main : TransactionRequest :=
+  TransactionRequest.build 0 ctx (helloWorldTransaction (Nonce.fromAnomaAtom 0) "Hello World!\n");

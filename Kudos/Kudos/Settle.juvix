@@ -32,7 +32,7 @@ type Solution :=
   };
 
 main
-  (root : Nat)
+  (root : CommitmentRoot)
   (rngSeed : Nat)
   (privateKeyPayload publicKeyPayload : ByteArray)
   (kudosLogic : Logic)
@@ -75,8 +75,8 @@ main
       };
   in Tx.run rngSeed (txContext caller root) helper;
 
-txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
+txContext (caller : Identity) (currentRoot : CommitmentRoot) : TxContext :=
   TxContext.mk@{
     caller;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot;
   };

@@ -4,7 +4,6 @@ import Stdlib.Prelude open;
 import Applib open;
 import Counter.Unique.Resource open;
 import Stdlib.Debug open;
-import Extra;
 
 increment
   {M : Type -> Type}
@@ -25,28 +24,28 @@ increment
               logic;
               nonce;
               uniqueLabel :=
-                currentCounter |> Resource.label |> builtinAnomaDecode;
-              count := Resource.value currentCounter + 1;
+                currentCounter |> Resource.label |> Label.toNat |> builtinAnomaDecode;
+              count := getCount currentCounter + 1;
               ephemeral := false;
             };
         in
-        Extra.mkTransactionNoPublicData@{
+        mkTransactionNoPublicData@{
           consumed := [currentCounter];
           created := [newCounter];
         };
       };
 
-txContext (latestRoot : Nat) : TxContext :=
+txContext (currentRoot : CommitmentRoot) : TxContext :=
   TxContext.mk@{
     caller := Universal.identity;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot;
   };
 
 main
   (randSeed : Nat)
   (currentCounter : Resource)
   (logic : Logic)
-  (latestRoot : Nat)
+  (latestRoot : CommitmentRoot)
   : TransactionRequest :=
   TransactionRequest.build
     randSeed

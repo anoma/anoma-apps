@@ -9,4 +9,4 @@ type LogicWrapper :=
     logic : Logic;
   };
 
-main : LogicWrapper := LogicWrapper.mk valid-counter?;
+main : LogicWrapper := LogicWrapper.mk (Logic.mk valid-counter?);

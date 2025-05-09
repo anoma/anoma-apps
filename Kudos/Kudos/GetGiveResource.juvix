@@ -17,7 +17,7 @@ main
       Resource.quantity r == giveQuantity
         && (r
             |> Kudos.Resource.identity
-            |> Kudos.Label.kudosSymbol
+            |> Kudos.KLabel.kudosSymbol
             |> builtinAnomaEncode)
           == builtinAnomaEncode giveSymbol;
   in case find isGiveResource (map Encoded.decode ownedResources) of

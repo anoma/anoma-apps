@@ -4,14 +4,14 @@ import Stdlib.Prelude open;
 import Applib open;
 
 --- A logic function that is always valid.
-logic (publicInputs : Instance) (privateInputs : Witness) : Bool := true;
+logic : Logic := Logic.alwaysTrue;
 
 type LogicWrapper :=
   mk@{
     logic : Logic;
   };
 
---- Compute the logic function for the HelloWorld ;Resource;
+--- Compute the logic function for the WebHelloWorld ;Resource;
 main : LogicWrapper :=
   LogicWrapper.mk@{
     logic;

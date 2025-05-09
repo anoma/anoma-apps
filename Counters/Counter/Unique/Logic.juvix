@@ -3,47 +3,45 @@ module Counter.Unique.Logic;
 import Stdlib.Prelude open;
 import Applib open;
 
-initialize-correct? (self : Resource) (publicInputs : Instance) : Bool :=
+initialize-correct? (res : Resource) (args : Logic.Args) : Bool :=
   let
-    quantity := Resource.quantity self;
-    labelNullifier := Resource.label self |> builtinAnomaDecode;
-    nullifiers := Instance.nullifiers publicInputs;
-  in quantity == 1 && isMember labelNullifier nullifiers;
+    quantity := Resource.quantity res;
+  in quantity == 1 && Logic.Args.isConsumed args;
 
 same-kind? : List Resource -> Bool
   | nil := true
   | (x :: xs) := all \{y := kind y == kind x} xs;
 
 incremented? (consumed created : Resource) : Bool :=
-  Resource.value consumed + 1 == Resource.value created;
+  let
+    getVal : Resource -> Nat := Resource.value >> AnomaAtom.toNat;
+  in getVal consumed + 1 == getVal created;
 
-increment-correct? (self : Resource) (private : Witness) : Bool :=
-  case Witness.consumed private, Witness.created private of
+increment-correct? (res : Resource) (args : Logic.Args) : Bool :=
+  case Logic.Args.consumed args, Logic.Args.created args of
     | [consumed], [created] :=
-      same-kind? [self; consumed; created] && incremented? consumed created
+      same-kind? [res; consumed; created] && incremented? consumed created
     | _, _ := false;
 
-counter-correct? (publicInputs : Instance) (privateInputs : Witness) : Bool :=
+counter-correct? (args : Logic.Args) : Bool :=
   let
-    tag := Instance.tag publicInputs;
+    isConsumed := Logic.Args.isConsumed args;
   in if
-    | isNullifier tag :=
-      case Witness.consumed privateInputs, Witness.created privateInputs of {
+    | isConsumed :=
+      case Logic.Args.consumed args, Logic.Args.created args of {
         | [consumable; ephCounter], [ephConsumable; newCounter] :=
           -- This is called for consumable and ephCounter
             initialize-correct?
             ephCounter
-            publicInputs
-        | [prevCounter], [nextCounter] :=
-          increment-correct? prevCounter privateInputs
+            args
+        | [prevCounter], [nextCounter] := increment-correct? prevCounter args
         | _ := false
       }
-    | isCommitment tag := true
-    | else := false;
+    | else := true;
 
 type LogicWrapper :=
   mk@{
     logic : Logic;
   };
 
-main : LogicWrapper := LogicWrapper.mk counter-correct?;
+main : LogicWrapper := LogicWrapper.mk (Logic.mk counter-correct?);

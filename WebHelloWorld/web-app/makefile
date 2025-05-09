@@ -11,7 +11,7 @@ envoy-config = $(anoma-build-dir)/envoy.yaml
 anoma-config = $(anoma-build-dir)/anoma-config.yaml
 anoma-port = $(anoma-build-dir)/port
 
-add-message-program = HelloWorld.nockma
+add-message-program = WebHelloWorld.nockma
 get-message-program = GetMessage.nockma
 logic-program = Logic.proved.nockma
 kind = AppIdentity.cued.nockma

@@ -1,0 +1,7 @@
+module GetKind;
+
+import Stdlib.Prelude open;
+import Applib open;
+
+--- Compute the kind of a ;Resource;
+main (resource : Resource) : Kind := kind resource;

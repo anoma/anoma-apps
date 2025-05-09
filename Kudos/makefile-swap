@@ -70,14 +70,16 @@ $(owner-signing-key): $(addprefix $(person-signing-key)-, $(shell yq -r '.owner'
 
 $(owner-request): $(anoma-build) $(owner-public-key-base64)
 	jq -n --arg OWNER $$(cat $(owner-public-key-base64)) \
-	'{node_info: {node_id: ""}, filters: [{owner: $$OWNER}]}' \
+	'{filters: [{owner: $$OWNER}]}' \
 	> $(owner-request) \
 
 .PHONY: $(owned-resources)
 $(owned-resources): $(anoma-build) $(host) $(port) $(owner-request)
-	grpcurl -plaintext \
-	-d @ \
-	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.BlockService.Filter \
+	curl -X POST \
+	$$(cat $(host)):$$(cat $(port))/indexer/filter-resources \
+	-H "accept: application/json" \
+	-H "Content-Type: application/json" \
+	-d @- \
 	< $(owner-request) \
 	| jq -r 'try .resources[]' \
 	> $@
@@ -103,25 +105,23 @@ $(proved-base64): $(proved)
 
 $(add-intent-request): $(anoma-build) $(proved-base64)
 	jq -n --rawfile PROVED $(proved-base64) \
-	'{node_info: {node_id: ""}, intent: {intent : $$PROVED}}' \
+	'{intent: $$PROVED}' \
 	> $@
 
 .PHONY: add-intent
 add-intent: $(add-intent-request) $(host) $(port)
-	grpcurl -plaintext \
-	-d @ \
-	$$(cat $(host)):$$(cat $(port))  Anoma.Protobuf.IntentsService.AddIntent \
+	curl -X POST \
+	$$(cat $(host)):$$(cat $(port))/intents \
+	-H "accept: application/json" \
+	-H "Content-Type: application/json" \
+	-d @- \
 	< $(add-intent-request) \
 
-$(list-intents-request):
-	echo '{"node_info": {"node_id": ""}}' > $@
-
 .PHONY: list-intents
-list-intents: $(list-intents-request) $(host) $(port)
-	grpcurl -plaintext \
+list-intents: $(host) $(port)
+	curl -X GET \
 	-d @ \
-	$$(cat $(host)):$$(cat $(port)) Anoma.Protobuf.IntentsService.ListIntents \
-	< $(list-intents-request) \
+	$$(cat $(host)):$$(cat $(port))/intents \
 
 $(get-give-resource-nockma): $(anoma-build) $(get-give-resource-juvix)
 	$(juvix-cmd) compile anoma $(get-give-resource-juvix) -o $(get-give-resource-nockma)
@@ -131,4 +131,4 @@ $(get-give-resource-proved): $(config) $(owned-resources) $(give-originator-symb
 	--arg 'bytes-unjammed:$(give-originator-symbol)' \
 	--arg "nat:$$(cat $(give-quantity))" \
 	--arg "list:$(owned-resources)" \
-	-o $@ \
+	-o $@

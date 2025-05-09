@@ -10,43 +10,43 @@ import Anoma.Identity.Internal open;
 import Kudos.Extra open;
 import Kudos.Layer open;
 
-isValidLogic (publicInputs : Instance) (privateInputs : Witness) : Bool :=
+isValidLogic (args : Logic.Args) : Bool := true ||
   let
-    tag := Tag.fromNat (Instance.tag publicInputs);
-  in case tag of
-       | Created commitment := true
-       | Consumed nullifier :=
-         case findResourceByNullifier (Nullifier.toNat nullifier) privateInputs of
-           | nothing :=
-             trace "findResourceByNullifier returned nothing" >-> false
-           | just self :=
-             if
-               | Resource.ephemeral self :=
-                 let
-                   identity := Kudos.Resource.identity self;
-                   originator := Kudos.Label.originator identity;
-                   authorized :=
-                     isAuthorizedBy@{
-                       signer := originator;
-                       origin := tag;
-                       publicInputs;
-                     };
-                 in if
-                   | not authorized :=
-                     trace "failed isAuthorizedBy originator tag" >-> false
-                   | else := true
-               | else :=
-                 let
-                   owner :=
-                     ExternalIdentity.fromByteArray
-                       (fromAnomaContents
-                         32
-                         (Resource.nullifierKeyCommitment self));
-                 in isAuthorizedBy@{
-                      signer := owner;
-                      origin := tag;
-                      publicInputs;
-                    };
+    self := Logic.Args.self args;
+    selfTag : Tag := Logic.Args.selfTag args;
+    isConsumed := Logic.Args.isConsumed args;
+  in if
+    | not isConsumed := true
+    | else :=
+      if
+        | Resource.ephemeral self :=
+          let
+            identity := Kudos.Resource.identity self;
+            originator := Kudos.KLabel.originator identity;
+            authorized :=
+              isAuthorizedBy@{
+                signer := originator;
+                origin := selfTag;
+                args;
+              };
+          in if
+            | not authorized :=
+              trace "failed isAuthorizedBy originator tag" >-> false
+            | else := true
+        | else :=
+          let
+            owner :=
+              ExternalIdentity.fromAnomaAtom
+                (Resource.nullifierKeyCommitment self);
+            authorized :=
+              isAuthorizedBy@{
+                signer := owner;
+                origin := selfTag;
+                args;
+              };
+          in if
+            | not authorized := trace "isValidLogic: not athorized" >-> false
+            | else := true;
 
 mkKudos
   (nonce : Nonce)
@@ -59,7 +59,7 @@ mkKudos
   Kudos.Resource.mk@{
     logic;
     label :=
-      Kudos.Label.mk@{
+      Kudos.KLabel.mk@{
         originator;
         kudosSymbol;
       };
@@ -70,11 +70,11 @@ mkKudos
   };
 
 isAuthorizedBy
-  (signer : ExternalIdentity) (origin : Tag) (publicInputs : Instance) : Bool :=
+  (signer : ExternalIdentity) (origin : Tag) (args : Logic.Args) : Bool :=
   case
     lookupPublicInputs@{
       key := signatureLookupKey;
-      publicInputs := Kudos.Instance.otherPublic publicInputs;
+      publicInputs : Kudos.PublicData := Kudos.Instance.otherPublic args;
     }
   of
     | nothing := true
@@ -84,19 +84,23 @@ isAuthorizedBy
         message := Kudos.PublicDataValue.resourceRelationship value;
       in trace "isAuthorizedBy"
         >-> anomaVerifyDetached
-          (Signature.unSignature (trace "anomaVerifyDetached signature" >-> trace signature >-> signature))
-          message
-          (ExternalIdentity.toByteArray signer)
-        && (trace "isAuthorizedBy ok" >-> true)
+            (Signature.unSignature
+              (trace "anomaVerifyDetached signature"
+                >-> trace signature
+                >-> signature))
+            message
+            (ExternalIdentity.toByteArray signer)
+          && (trace "isAuthorizedBy ok" >-> true)
           && checkResourceRelationship@{
                message;
                origin;
                nullifiers :=
                  Set.fromList
-                   (map Nullifier.mk (Instance.nullifiers publicInputs));
+                   (map
+                     Resource.Transparent.nullifier
+                     (Logic.Args.consumed args));
                commitments :=
-                 Set.fromList
-                   (map Commitment.mk (Instance.commitments publicInputs));
+                 Set.fromList (map commitment (Logic.Args.created args));
              };
 
 --- Checks that a ;ResourceRelationship; message has the expected values.
@@ -165,7 +169,7 @@ initialize
         toInitialize@Resource{
           ephemeral := true;
           -- TODO this needs to agree with what the indexer function for owners does.
-          nullifierKeyCommitment := ExternalIdentity.toNat caller;
+          nullifierKeyCommitment := ExternalIdentity.toAnomaAtom caller;
         };
     in
     action <- actionWithAuthorizationAppData@{
@@ -182,10 +186,10 @@ initialize
     pure tokenCreationTransaction;
   };
 
-txContext (caller : Identity) (latestRoot : Nat) : TxContext :=
+txContext (caller : Identity) (currentRoot : CommitmentRoot) : TxContext :=
   TxContext.mk@{
     caller;
-    currentRoot := Root.fromNat latestRoot;
+    currentRoot;
   };
 
 main
@@ -200,5 +204,5 @@ main
       mkIdentityFromPayload privateKeyPayload publicKeyPayload;
   in TransactionRequest.build
     rngSeed
-    (txContext caller 0)
+    (txContext caller (CommitmentRoot.fromNat 0))
     (initialize logic kudosSymbol quantity);
