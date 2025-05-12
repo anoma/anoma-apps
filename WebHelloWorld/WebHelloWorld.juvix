@@ -18,7 +18,7 @@ mkWebHelloWorldResource
     logic := Encoded.encode logic;
     value := AnomaAtom.fromNat (builtinAnomaEncode message);
     quantity := 1;
-    nonce := Nonce.toRaw nonce;
+    nonce;
     ephemeral;
     unusedRandSeed := 0;
     nullifierKeyCommitment := 0;

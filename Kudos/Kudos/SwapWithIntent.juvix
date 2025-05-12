@@ -111,7 +111,7 @@ main
           swapIntent : Resource :=
             Resource.mk@{
               logic := Encoded.encode (Logic.mk swapIntentLogic);
-              nonce := Nonce.toRaw nonceIntent;
+              nonce := nonceIntent;
               ephemeral := true;
               quantity := 1;
               unusedRandSeed := 0;

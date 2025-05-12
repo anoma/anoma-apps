@@ -25,7 +25,7 @@ mkCounter
   Resource.mk@{
     logic := Encoded.encode logic;
     label := Label.mk (builtinAnomaEncode uniqueLabel);
-    nonce := Nonce.toRaw nonce;
+    nonce;
     ephemeral;
     unusedRandSeed := 0;
     value := AnomaAtom.fromNat count;

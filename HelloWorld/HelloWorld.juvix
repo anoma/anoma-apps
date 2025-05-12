@@ -20,7 +20,7 @@ mkHelloWorldResource
     logic := Encoded.encode logic;
     value := AnomaAtom.fromNat 0;
     quantity := 1;
-    nonce := Nonce.toRaw nonce;
+    nonce;
     ephemeral;
     unusedRandSeed := 0;
     nullifierKeyCommitment := AnomaAtom.fromNat 0;
