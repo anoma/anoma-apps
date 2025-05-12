@@ -10,7 +10,7 @@ import Anoma.Identity.Internal open;
 import Kudos.Extra open;
 import Kudos.Layer open;
 
-isValidLogic (args : Logic.Args) : Bool := true ||
+isValidLogic (args : Logic.Args) : Bool :=
   let
     self := Logic.Args.self args;
     selfTag : Tag := Logic.Args.selfTag args;
