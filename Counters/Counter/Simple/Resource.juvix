@@ -20,7 +20,7 @@ mkCounter
     quantity := 1;
     ephemeral;
     nullifierKeyCommitment := toAnomaContents Universal.pub;
-    nonce := Nonce.toRaw nonce;
+    nonce;
     unusedRandSeed := 0;
   };
 

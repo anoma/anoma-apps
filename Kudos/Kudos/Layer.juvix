@@ -134,7 +134,7 @@ module Kudos;
         logic := Encoded.encode logic;
         ephemeral;
         quantity;
-        nonce := Nonce.toRaw nonce;
+        nonce;
         unusedRandSeed := 0;
         value := 0;
         nullifierKeyCommitment :=

@@ -55,7 +55,7 @@ splitHelper
         toSplit
           |> Kudos.Resource.setOwner receiver
           |> (@Resource{quantity})
-          |> (@Resource{nonce := Nonce.toRaw nonce})
+          |> (@Resource{nonce})
           |> pure;
       }
     };

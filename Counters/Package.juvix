@@ -7,7 +7,7 @@ package : Package :=
     name := "counters";
     dependencies :=
       [
-        github "anoma" "juvix-stdlib" "v0.11.0";
+        github "anoma" "juvix-stdlib" "v0.12.0";
         github "anoma" "anoma-applib" "v0.11.0";
         github "anoma" "juvix-mtl" "v0.3.3";
       ];

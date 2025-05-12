@@ -16,6 +16,6 @@ main (randSeed : AnomaAtom) : Resource :=
        quantity := 1;
        value := 0;
        nullifierKeyCommitment := toAnomaContents Universal.pub;
-       nonce := Nonce.toRaw nonce;
+       nonce;
        unusedRandSeed := 0;
      };

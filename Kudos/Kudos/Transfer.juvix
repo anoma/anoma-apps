@@ -49,7 +49,7 @@ transferHelper
       transferred : Resource :=
         toTransfer
           |> Kudos.Resource.setOwner receiver
-          |> (@Resource{nonce := Nonce.toRaw nonce});
+          |> (@Resource{nonce});
     in
     a <- actionWithAuthorizationAppData@{
            consumed := [toTransfer];
