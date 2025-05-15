@@ -23,7 +23,7 @@ mkHelloWorldResource
     nonce;
     ephemeral;
     unusedRandSeed := 0;
-    nullifierKeyCommitment := AnomaAtom.fromNat 0;
+    nullifierKeyCommitment := NullifierKeyCommitment.zero;
   };
 
 --- Produces a ;Transaction; that creates a HelloWorld ;Resource;
