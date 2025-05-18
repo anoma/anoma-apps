@@ -19,7 +19,7 @@ mkCounter
     value := AnomaAtom.fromNat count;
     quantity := 1;
     ephemeral;
-    nullifierKeyCommitment := toAnomaContents Universal.pub;
+    nullifierKeyCommitment := Universal.nullifierKeyCommitment;
     nonce;
     unusedRandSeed := 0;
   };

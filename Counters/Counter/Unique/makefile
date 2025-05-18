@@ -126,8 +126,8 @@ endif
 anoma-start:
 	rm -f $(config)
 ifdef ANOMA_DEBUG
-	cd $(ANOMA_PATH) && \
-		mix phx.server --no-halt $(root)/../../../start-config.exs
+	NODE_GRPC_PORT=50052 cd $(ANOMA_PATH) && \
+		NODE_GRPC_PORT=50052 CLIENT_HTTP_PORT=50053 CLIENT_GRPC_PORT=40052 mix phx.server --no-halt $(root)/../../../start-config.exs
 else
 	$(juvix-cmd) dev anoma start --force --anoma-dir $(ANOMA_PATH)
 endif
