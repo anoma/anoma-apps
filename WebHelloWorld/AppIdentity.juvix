@@ -20,6 +20,6 @@ main (logic : Logic) : Kind :=
         nonce := Nonce.fromAnomaAtom 0;
         ephemeral := true;
         unusedRandSeed := 0;
-        nullifierKeyCommitment := 0;
+        nullifierKeyCommitment := NullifierKeyCommitment.zero;
       };
   in kind dummyResource;

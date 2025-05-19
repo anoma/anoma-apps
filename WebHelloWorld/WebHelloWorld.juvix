@@ -21,7 +21,7 @@ mkWebHelloWorldResource
     nonce;
     ephemeral;
     unusedRandSeed := 0;
-    nullifierKeyCommitment := 0;
+    nullifierKeyCommitment := NullifierKeyCommitment.zero;
   };
 
 --- Produces a ;Transaction; that creates a WebHelloWorld ;Resource;
