@@ -125,7 +125,7 @@ main
                         ExternalIdentity.fromByteArray publicKeyPayload;
                     });
               value := 0;
-              nullifierKeyCommitment := ExternalIdentity.toAnomaAtom solver;
+              nullifierKeyCommitment := NullifierKeyCommitment.fromByteArray (ExternalIdentity.toByteArray solver);
             };
 
           createdResource : Resource := swapIntent;

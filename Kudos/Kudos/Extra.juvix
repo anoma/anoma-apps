@@ -29,7 +29,7 @@ computeKind (logic : Logic) (label : Label) : Kind :=
         value := 0;
         quantity := 0;
         unusedRandSeed := 0;
-        nullifierKeyCommitment := 0;
+        nullifierKeyCommitment := NullifierKeyCommitment.zero;
       };
   in kind dummy;
 

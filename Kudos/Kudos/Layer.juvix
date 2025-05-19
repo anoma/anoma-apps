@@ -57,7 +57,7 @@ actionWithAuthorizationAppData
       -- requiring the commitments of created resources to be part of the
       -- action.
       appDataMap : Map RawTag Kudos.PublicData :=
-        (map (n in nullifiers) {
+        map (n in nullifiers) {
               let
                 nestedMap : Kudos.PublicData :=
                   Map.singleton
@@ -74,7 +74,7 @@ actionWithAuthorizationAppData
               let
                 nestedMap : Kudos.PublicData := Map.empty;
               in Commitment.toRawTag c, nestedMap
-            })
+            }
           |> Map.fromList;
       map' : Map RawTag AnomaAtom :=
         map (builtinAnomaEncode >> AnomaAtom.fromNat) appDataMap;
@@ -116,10 +116,11 @@ module Kudos;
 
     owner (r : Resource) : ExternalIdentity :=
       ExternalIdentity.fromByteArray
-        (fromAnomaContents 32 (Applib.Resource.nullifierKeyCommitment r));
+        (NullifierKeyCommitment.toByteArray
+          (Applib.Resource.nullifierKeyCommitment r));
 
     setOwner (newOwner : ExternalIdentity) (r : Resource) : Resource :=
-      r@Resource{nullifierKeyCommitment := toAnomaContents
+      r@Resource{nullifierKeyCommitment := NullifierKeyCommitment.fromByteArray
         (ExternalIdentity.toByteArray newOwner)};
 
     mk
@@ -140,7 +141,7 @@ module Kudos;
         nullifierKeyCommitment :=
           -- FIXME the owner should not be put here. We temporarily have it here
             -- because the indexer looks at this field at the moment.
-            toAnomaContents
+            NullifierKeyCommitment.fromByteArray
             (ExternalIdentity.toByteArray owner);
         label := Label.mk (builtinAnomaEncode label);
       };

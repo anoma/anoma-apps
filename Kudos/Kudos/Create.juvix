@@ -36,8 +36,8 @@ isValidLogic (args : Logic.Args) : Bool := true ||
         | else :=
           let
             owner :=
-              ExternalIdentity.fromAnomaAtom
-                (Resource.nullifierKeyCommitment self);
+              ExternalIdentity.fromByteArray
+                (NullifierKeyCommitment.toByteArray (Resource.nullifierKeyCommitment self));
             authorized :=
               isAuthorizedBy@{
                 signer := owner;
@@ -169,7 +169,7 @@ initialize
         toInitialize@Resource{
           ephemeral := true;
           -- TODO this needs to agree with what the indexer function for owners does.
-          nullifierKeyCommitment := ExternalIdentity.toAnomaAtom caller;
+          nullifierKeyCommitment := NullifierKeyCommitment.fromByteArray (ExternalIdentity.toByteArray caller);
         };
     in
     action <- actionWithAuthorizationAppData@{
