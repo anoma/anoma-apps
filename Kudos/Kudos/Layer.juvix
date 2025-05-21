@@ -57,7 +57,7 @@ actionWithAuthorizationAppData
       -- requiring the commitments of created resources to be part of the
       -- action.
       appDataMap : Map RawTag Kudos.PublicData :=
-        (map (n in nullifiers) {
+        map (n in nullifiers) {
               let
                 nestedMap : Kudos.PublicData :=
                   Map.singleton
@@ -74,7 +74,7 @@ actionWithAuthorizationAppData
               let
                 nestedMap : Kudos.PublicData := Map.empty;
               in Commitment.toRawTag c, nestedMap
-            })
+            }
           |> Map.fromList;
       map' : Map RawTag AnomaAtom :=
         map (builtinAnomaEncode >> AnomaAtom.fromNat) appDataMap;
@@ -98,11 +98,11 @@ module Kudos;
   module Instance;
     otherPublic (args : Logic.Args) : Kudos.PublicData :=
       let
-        m : Map RawTag AnomaAtom := AppData.toMap1 (Logic.Args.appData args);
-        selfTag : RawTag := RawTag.fromTag (Logic.Args.selfTag args);
-      in case Map.lookup selfTag m of
-           | nothing := failwith "Kudos public data missing from AppData"
-           | just r := builtinAnomaDecode (AnomaAtom.toNat r);
+        d : List AppData.Value := Logic.Args.appData args;
+      in case d of
+           | AppData.Value.mk atom _ :: _ :=
+             builtinAnomaDecode (AnomaAtom.toNat atom)
+           | nil := failwith "Kudos public data missing from AppData";
   end;
 
   module Resource;
@@ -116,10 +116,11 @@ module Kudos;
 
     owner (r : Resource) : ExternalIdentity :=
       ExternalIdentity.fromByteArray
-        (fromAnomaContents 32 (Applib.Resource.nullifierKeyCommitment r));
+        (NullifierKeyCommitment.toByteArray
+          (Applib.Resource.nullifierKeyCommitment r));
 
     setOwner (newOwner : ExternalIdentity) (r : Resource) : Resource :=
-      r@Resource{nullifierKeyCommitment := toAnomaContents
+      r@Resource{nullifierKeyCommitment := NullifierKeyCommitment.fromByteArray
         (ExternalIdentity.toByteArray newOwner)};
 
     mk
@@ -134,13 +135,13 @@ module Kudos;
         logic := Encoded.encode logic;
         ephemeral;
         quantity;
-        nonce := Nonce.toRaw nonce;
+        nonce;
         unusedRandSeed := 0;
         value := 0;
         nullifierKeyCommitment :=
           -- FIXME the owner should not be put here. We temporarily have it here
             -- because the indexer looks at this field at the moment.
-            toAnomaContents
+            NullifierKeyCommitment.fromByteArray
             (ExternalIdentity.toByteArray owner);
         label := Label.mk (builtinAnomaEncode label);
       };

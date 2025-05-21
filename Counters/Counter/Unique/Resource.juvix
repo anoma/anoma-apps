@@ -25,12 +25,12 @@ mkCounter
   Resource.mk@{
     logic := Encoded.encode logic;
     label := Label.mk (builtinAnomaEncode uniqueLabel);
-    nonce := Nonce.toRaw nonce;
+    nonce;
     ephemeral;
     unusedRandSeed := 0;
     value := AnomaAtom.fromNat count;
     quantity := 1;
-    nullifierKeyCommitment := toAnomaContents Universal.pub;
+    nullifierKeyCommitment := Universal.nullifierKeyCommitment;
   };
 
 counterKind (consumable : Resource) (logic : Logic) : Kind :=

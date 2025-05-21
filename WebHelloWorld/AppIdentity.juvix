@@ -17,9 +17,9 @@ main (logic : Logic) : Kind :=
         logic := Encoded.encode logic;
         value := 0;
         quantity := 0;
-        nonce := Nonce.toRaw (Nonce.fromAnomaAtom 0);
+        nonce := Nonce.fromAnomaAtom 0;
         ephemeral := true;
         unusedRandSeed := 0;
-        nullifierKeyCommitment := 0;
+        nullifierKeyCommitment := NullifierKeyCommitment.zero;
       };
   in kind dummyResource;
