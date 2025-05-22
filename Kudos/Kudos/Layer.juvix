@@ -98,7 +98,7 @@ module Kudos;
   module Instance;
     otherPublic (args : Logic.Args) : Kudos.PublicData :=
       let
-        d : List AppData.Value := Logic.Args.appData args;
+        d : List AppData.Value := Logic.Args.data args;
       in case d of
            | AppData.Value.mk atom _ :: _ :=
              builtinAnomaDecode (AnomaAtom.toNat atom)

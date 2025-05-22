@@ -29,7 +29,7 @@ mkHelloWorldCreatedResource
     ephemeral := false;
     randSeed := 0;
     -- can be arbitrary for intent resources
-    nullifierKeyCommitment := NullifierKeyCommitment.mk (ByteArray.zero 1);
+    nullifierKeyCommitment := NullifierKeyCommitment.zero;
   };
 
 --- Produces a ;Transaction; that creates a HelloWorld ;Resource;
