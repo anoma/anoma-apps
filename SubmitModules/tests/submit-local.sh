@@ -14,6 +14,7 @@ juvix compile anoma Main.juvix --modular -o $TMPDIR/Main.nockma
 cd ..
 scripts/submit-local-modules.sh $TMPDIR/Main.modules.nockma
 cd -
+sleep 1
 juvix dev anoma prove $TMPDIR/Main.nockma -o $TMPDIR/Main.proved.nockma
 RESULT=$(cat $TMPDIR/Main.proved.nockma | juvix dev nockma encode --from bytes --to text)
 juvix dev anoma stop
