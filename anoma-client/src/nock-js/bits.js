@@ -120,9 +120,9 @@ function atomToWords(atom) {
   return bytesToWords(atomToBytes(atom));
 }
 
-function atomToWords(atom) {
-  return bytesToWords(atomToBytes(atom));
-}
+// function atomToWords(atom) {
+//   return bytesToWords(atomToBytes(atom));
+// }
 
 function wordsToAtom(words) {
   return bytesToAtom(wordsToBytes(words));
@@ -292,7 +292,8 @@ function can(a, b) {
     }                                                                                                                                         
     if ( 0 === tot ) {                                                                                                                       
       return zero;                                                                                                                               
-    }                                                                                                                                         
+    } 
+    var sal                                                                                                                                        
     sal = slaq(ai, tot);
 
     // chop the list atoms in                                                                                                                  
